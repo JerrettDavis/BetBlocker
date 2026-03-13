@@ -101,7 +101,7 @@ pub async fn create_enrollment(
             let partnership =
                 partner_service::has_active_partnership(&state.db, device.account_id, caller.id)
                     .await?;
-            if partnership.is_none() && device.account_id != caller.id {
+            if partnership.is_none() {
                 return Err(ApiError::Forbidden {
                     message: "Partner enrollment requires active partner relationship".into(),
                 });

@@ -10,7 +10,6 @@ pub struct AccountRow {
     pub id: i64,
     pub public_id: Uuid,
     pub email: String,
-    #[sqlx(skip)]
     #[serde(skip)]
     pub password_hash: String,
     pub display_name: String,

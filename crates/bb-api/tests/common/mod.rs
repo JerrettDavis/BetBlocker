@@ -24,6 +24,15 @@ impl TestApp {
         let admin_db_url = std::env::var("TEST_DATABASE_URL")
             .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/postgres".into());
 
+        // Flush Redis to clear stale lockout keys from previous test runs
+        let redis_url = std::env::var("TEST_REDIS_URL")
+            .unwrap_or_else(|_| "redis://localhost:6379".into());
+        if let Ok(redis_client) = redis::Client::open(redis_url.as_str()) {
+            if let Ok(mut conn) = redis_client.get_multiplexed_async_connection().await {
+                let _: Result<(), _> = redis::cmd("FLUSHDB").query_async(&mut conn).await;
+            }
+        }
+
         // Create test database
         let admin_pool = sqlx::PgPool::connect(&admin_db_url).await.unwrap();
         sqlx::query(&format!("CREATE DATABASE \"{db_name}\""))
@@ -32,7 +41,11 @@ impl TestApp {
             .unwrap();
         admin_pool.close().await;
 
-        let db_url = format!("postgres://postgres:postgres@localhost:5432/{db_name}");
+        // Derive the test DB URL from the admin URL by replacing the database name
+        let db_url = {
+            let base = admin_db_url.rsplitn(2, '/').last().unwrap_or(&admin_db_url);
+            format!("{base}/{db_name}")
+        };
         let db = sqlx::PgPool::connect(&db_url).await.unwrap();
 
         // Run migrations: execute each SQL file in order
@@ -50,8 +63,9 @@ impl TestApp {
 
         for entry in &migration_files {
             let sql = std::fs::read_to_string(entry.path()).unwrap();
-            // Execute each statement separately (some migrations have multiple statements)
-            for statement in sql.split(';') {
+            // Split on semicolons, but respect $$ dollar-quoted blocks
+            let statements = split_sql_statements(&sql);
+            for statement in &statements {
                 let trimmed = statement.trim();
                 if !trimmed.is_empty() {
                     if let Err(e) = sqlx::query(trimmed).execute(&db).await {
@@ -293,4 +307,46 @@ impl Drop for TestApp {
 fn base64_encode(data: &[u8]) -> String {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD.encode(data)
+}
+
+/// Split SQL text into individual statements on `;`, respecting `$$` dollar-quoted blocks.
+fn split_sql_statements(sql: &str) -> Vec<String> {
+    let mut statements = Vec::new();
+    let mut current = String::new();
+    let mut in_dollar_quote = false;
+    let mut chars = sql.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        if ch == '$' && chars.peek() == Some(&'$') {
+            // Consume the second '$'
+            chars.next();
+            current.push('$');
+            current.push('$');
+            in_dollar_quote = !in_dollar_quote;
+        } else if ch == ';' && !in_dollar_quote {
+            let trimmed = current.trim().to_string();
+            if !trimmed.is_empty() {
+                statements.push(trimmed);
+            }
+            current.clear();
+        } else if ch == '-' && chars.peek() == Some(&'-') && !in_dollar_quote {
+            // Skip single-line comments
+            current.push(ch);
+            while let Some(c) = chars.next() {
+                current.push(c);
+                if c == '\n' {
+                    break;
+                }
+            }
+        } else {
+            current.push(ch);
+        }
+    }
+
+    let trimmed = current.trim().to_string();
+    if !trimmed.is_empty() {
+        statements.push(trimmed);
+    }
+
+    statements
 }

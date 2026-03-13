@@ -52,7 +52,7 @@ pub async fn create_device(
 
     let row = sqlx::query_as::<_, DeviceRow>(
         r#"INSERT INTO devices (account_id, name, platform, os_version, agent_version, hostname, hardware_id)
-           VALUES ($1, $2, $3::platform_type, $4, $5, $6, $7)
+           VALUES ($1, $2, $3::device_platform, $4, $5, $6, $7)
            RETURNING id, public_id, account_id, name, platform::text, os_version, agent_version,
                      hostname, hardware_id, status::text, blocklist_version, last_heartbeat_at,
                      enrollment_id, created_at, updated_at"#,
