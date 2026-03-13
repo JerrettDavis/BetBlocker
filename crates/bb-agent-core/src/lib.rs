@@ -8,11 +8,14 @@
 //! `BetBlocker` Agent Core -- cross-platform blocking engine.
 //!
 //! This crate contains the platform-independent blocking logic:
-//! event system, configuration management, and orchestration.
+//! event system, configuration management, API communication,
+//! tamper resistance, and orchestration.
 //! Plugin traits, blocklist engine, and built-in plugins live in `bb-agent-plugins`.
 
 pub mod config;
 pub mod events;
+pub mod comms;
+pub mod tamper;
 
 // Re-exports from bb-agent-plugins for convenience
 pub use bb_agent_plugins::blocklist;

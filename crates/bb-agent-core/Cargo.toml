@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 bb-common = { path = "../bb-common" }
+bb-proto = { path = "../bb-proto" }
 bb-agent-plugins = { path = "../bb-agent-plugins" }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -14,11 +15,25 @@ chrono = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 rusqlite = { version = "0.32", features = ["bundled"] }
+prost = { workspace = true }
+ring = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+rustls = { workspace = true }
+rustls-pemfile = "2"
+backoff = { version = "0.4", features = ["tokio"] }
+zstd = "0.13"
+sha2 = "0.10"
+aes-gcm = "0.10"
+hkdf = "0.12"
+base64 = "0.22"
+hostname = "0.4"
+hex-literal = "0.4"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = "3"
 uuid = { workspace = true }
+wiremock = "0.6"
 
 [lints]
 workspace = true
