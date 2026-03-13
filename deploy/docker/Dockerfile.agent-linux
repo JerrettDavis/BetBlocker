@@ -1,0 +1,53 @@
+# deploy/docker/Dockerfile.agent-linux
+# Purpose: Build the Linux agent binary in a reproducible environment.
+# The output is a static binary extracted via `docker cp` or multi-stage copy.
+# ---------------------------------------------------------
+# Stage 1: Build static agent binary
+# ---------------------------------------------------------
+FROM rust:1.85-alpine AS builder
+
+RUN apk add --no-cache musl-dev protobuf-dev
+
+RUN rustup target add x86_64-unknown-linux-musl
+
+WORKDIR /build
+
+# Copy workspace manifests for dependency caching
+COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
+COPY .cargo .cargo
+COPY crates/bb-common/Cargo.toml crates/bb-common/Cargo.toml
+COPY crates/bb-proto/Cargo.toml crates/bb-proto/Cargo.toml
+COPY crates/bb-api/Cargo.toml crates/bb-api/Cargo.toml
+COPY crates/bb-worker/Cargo.toml crates/bb-worker/Cargo.toml
+COPY crates/bb-agent-core/Cargo.toml crates/bb-agent-core/Cargo.toml
+COPY crates/bb-agent-plugins/Cargo.toml crates/bb-agent-plugins/Cargo.toml
+COPY crates/bb-agent-linux/Cargo.toml crates/bb-agent-linux/Cargo.toml
+COPY crates/bb-cli/Cargo.toml crates/bb-cli/Cargo.toml
+
+# Create dummy source files for dependency caching
+RUN mkdir -p crates/bb-common/src && echo "" > crates/bb-common/src/lib.rs && \
+    mkdir -p crates/bb-proto/src && echo "" > crates/bb-proto/src/lib.rs && \
+    mkdir -p crates/bb-proto/proto && touch crates/bb-proto/proto/device.proto && \
+    mkdir -p crates/bb-api/src && echo "fn main() {}" > crates/bb-api/src/main.rs && \
+    mkdir -p crates/bb-worker/src && echo "fn main() {}" > crates/bb-worker/src/main.rs && \
+    mkdir -p crates/bb-agent-core/src && echo "" > crates/bb-agent-core/src/lib.rs && \
+    mkdir -p crates/bb-agent-plugins/src && echo "" > crates/bb-agent-plugins/src/lib.rs && \
+    mkdir -p crates/bb-agent-linux/src && echo "fn main() {}" > crates/bb-agent-linux/src/main.rs && \
+    mkdir -p crates/bb-cli/src && echo "fn main() {}" > crates/bb-cli/src/main.rs
+
+RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-agent-linux 2>/dev/null || true
+
+COPY crates crates
+
+RUN find crates -name "*.rs" -exec touch {} +
+
+RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-agent-linux
+
+RUN strip /build/target/x86_64-unknown-linux-musl/release/betblocker-agent-linux
+
+# ---------------------------------------------------------
+# Stage 2: Extract binary into a minimal image for CI artifact extraction
+# ---------------------------------------------------------
+FROM scratch
+
+COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/betblocker-agent-linux /betblocker-agent-linux
