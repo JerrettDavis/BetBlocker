@@ -1,0 +1,312 @@
+# .github/workflows/merge.yml
+name: Build & E2E (Main)
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: main-build
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/betblocker
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # -----------------------------------------------------------
+  # Build Docker images in parallel
+  # -----------------------------------------------------------
+  build-api:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}-api
+          tags: |
+            type=raw,value=main
+            type=sha,prefix=
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.api
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+  build-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}-worker
+          tags: |
+            type=raw,value=main
+            type=sha,prefix=
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.worker
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}-web
+          tags: |
+            type=raw,value=main
+            type=sha,prefix=
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: deploy/docker/Dockerfile.web
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  build-agent-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build agent binary via Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.agent-linux
+          push: false
+          load: true
+          tags: betblocker-agent-linux:build
+          cache-from: type=gha,scope=agent-linux
+          cache-to: type=gha,mode=max,scope=agent-linux
+
+      - name: Extract agent binary from image
+        run: |
+          docker create --name agent-extract betblocker-agent-linux:build
+          docker cp agent-extract:/betblocker-agent-linux ./betblocker-agent-linux
+          docker rm agent-extract
+          chmod +x betblocker-agent-linux
+
+      - name: Upload agent binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: betblocker-agent-linux
+          path: betblocker-agent-linux
+          retention-days: 7
+
+  # -----------------------------------------------------------
+  # E2E tests against built images
+  # -----------------------------------------------------------
+  e2e:
+    needs: [build-api, build-worker, build-agent-linux]
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_DB: betblocker
+          POSTGRES_USER: betblocker
+          POSTGRES_PASSWORD: testpass
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U betblocker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      cache:
+        image: redis:7-alpine
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start API container
+        run: |
+          docker run -d --name betblocker-api \
+            --network host \
+            -e DATABASE_URL=postgres://betblocker:testpass@localhost:5432/betblocker \
+            -e REDIS_URL=redis://localhost:6379 \
+            -e BETBLOCKER_DEPLOYMENT=self-hosted \
+            -e BETBLOCKER_BILLING_ENABLED=false \
+            -e BETBLOCKER_LOG_LEVEL=debug \
+            ${{ env.IMAGE_PREFIX }}-api:main
+
+      - name: Wait for API to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8443/healthz; then
+              echo "API is healthy"
+              break
+            fi
+            echo "Waiting for API... ($i/30)"
+            sleep 2
+          done
+
+      - name: Download agent binary
+        uses: actions/download-artifact@v4
+        with:
+          name: betblocker-agent-linux
+
+      - name: Run E2E tests
+        run: |
+          chmod +x betblocker-agent-linux
+          # E2E test runner (implemented in tests/e2e/)
+          cargo test --test e2e -- --test-threads=1
+        env:
+          API_URL: http://localhost:8443
+          DATABASE_URL: postgres://betblocker:testpass@localhost:5432/betblocker
+          REDIS_URL: redis://localhost:6379
+
+  web-e2e:
+    needs: [build-api, build-web]
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_DB: betblocker
+          POSTGRES_USER: betblocker
+          POSTGRES_PASSWORD: testpass
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U betblocker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      cache:
+        image: redis:7-alpine
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start API + Web containers
+        run: |
+          docker run -d --name betblocker-api \
+            --network host \
+            -e DATABASE_URL=postgres://betblocker:testpass@localhost:5432/betblocker \
+            -e REDIS_URL=redis://localhost:6379 \
+            -e BETBLOCKER_DEPLOYMENT=self-hosted \
+            -e BETBLOCKER_BILLING_ENABLED=false \
+            ${{ env.IMAGE_PREFIX }}-api:main
+
+          docker run -d --name betblocker-web \
+            --network host \
+            -e API_URL=http://localhost:8443 \
+            -e NEXT_PUBLIC_API_URL=http://localhost:8443 \
+            -e NEXT_PUBLIC_HOSTED=false \
+            ${{ env.IMAGE_PREFIX }}-web:main
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8443/healthz && curl -sf http://localhost:3000/api/health; then
+              echo "All services healthy"
+              break
+            fi
+            sleep 2
+          done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Playwright
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E tests
+        working-directory: web
+        run: npx playwright test
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8443

@@ -1,0 +1,279 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/betblocker
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # -----------------------------------------------------------
+  # Extract version from tag
+  # -----------------------------------------------------------
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+  # -----------------------------------------------------------
+  # Build + push Docker images with version tags
+  # -----------------------------------------------------------
+  build-api-image:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.api
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-api:${{ needs.prepare.outputs.version }}
+            ${{ env.IMAGE_PREFIX }}-api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+  build-worker-image:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.worker
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-worker:${{ needs.prepare.outputs.version }}
+            ${{ env.IMAGE_PREFIX }}-worker:latest
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
+
+  build-web-image:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: deploy/docker/Dockerfile.web
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-web:${{ needs.prepare.outputs.version }}
+            ${{ env.IMAGE_PREFIX }}-web:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  # -----------------------------------------------------------
+  # Build agent binaries (Linux only in Phase 1)
+  # -----------------------------------------------------------
+  build-agent-linux:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build agent binary via Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.agent-linux
+          push: false
+          load: true
+          tags: betblocker-agent-linux:build
+          cache-from: type=gha,scope=agent-linux
+          cache-to: type=gha,mode=max,scope=agent-linux
+
+      - name: Extract agent binary
+        run: |
+          docker create --name agent-extract betblocker-agent-linux:build
+          docker cp agent-extract:/betblocker-agent-linux ./betblocker-agent-linux
+          docker rm agent-extract
+          chmod +x betblocker-agent-linux
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: betblocker-agent-linux
+          path: betblocker-agent-linux
+
+  # -----------------------------------------------------------
+  # Sign agent binaries
+  # -----------------------------------------------------------
+  sign-binaries:
+    needs: [prepare, build-agent-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all agent binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Install signing dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y openssl
+
+      - name: Sign binaries with Ed25519
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.ED25519_RELEASE_SIGNING_KEY }}
+        run: |
+          # Decode the signing key from CI secret
+          echo "${SIGNING_KEY_BASE64}" | base64 -d > /tmp/release-signing.key
+
+          # Sign each binary
+          for binary_dir in artifacts/betblocker-agent-*; do
+            binary_name=$(basename "${binary_dir}")
+            binary_path="${binary_dir}/${binary_name}"
+
+            if [ -f "${binary_path}" ]; then
+              echo "Signing ${binary_name}..."
+              bash tools/signing/sign-binary.sh \
+                "${binary_path}" \
+                /tmp/release-signing.key \
+                "${binary_path}.sig"
+
+              echo "Verifying signature for ${binary_name}..."
+              bash tools/signing/verify-binary.sh \
+                "${binary_path}" \
+                "${binary_path}.sig" \
+                tools/signing/release-signing.pub
+            fi
+          done
+
+          # Clean up key
+          rm -f /tmp/release-signing.key
+
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-binaries
+          path: artifacts/
+
+  # -----------------------------------------------------------
+  # Create GitHub Release
+  # -----------------------------------------------------------
+  release:
+    needs: [prepare, build-api-image, build-worker-image, build-web-image, sign-binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download signed binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-binaries
+          path: release-artifacts
+
+      - name: Flatten release artifacts
+        run: |
+          mkdir -p release-files
+          find release-artifacts -type f -exec cp {} release-files/ \;
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "${PREV_TAG}" ]; then
+            CHANGELOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
+          fi
+          # Write to file for the release body
+          cat > /tmp/release-notes.md << NOTES_EOF
+          ## BetBlocker ${{ github.ref_name }}
+
+          ### Docker Images
+
+          \`\`\`bash
+          docker pull ${{ env.IMAGE_PREFIX }}-api:${{ needs.prepare.outputs.version }}
+          docker pull ${{ env.IMAGE_PREFIX }}-worker:${{ needs.prepare.outputs.version }}
+          docker pull ${{ env.IMAGE_PREFIX }}-web:${{ needs.prepare.outputs.version }}
+          \`\`\`
+
+          ### Self-Hosted Upgrade
+
+          \`\`\`bash
+          cd deploy
+          # Update version in .env
+          echo "BETBLOCKER_VERSION=${{ needs.prepare.outputs.version }}" >> .env
+          docker compose pull
+          docker compose up -d
+          \`\`\`
+
+          ### Agent Binaries
+
+          Download the agent binary for your platform below. Each binary has a corresponding \`.sig\` file for Ed25519 signature verification.
+
+          Verify with:
+          \`\`\`bash
+          bash tools/signing/verify-binary.sh betblocker-agent-linux betblocker-agent-linux.sig
+          \`\`\`
+
+          ### Changes
+
+          NOTES_EOF
+          echo "${CHANGELOG}" >> /tmp/release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BetBlocker ${{ github.ref_name }}
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') }}
+          files: release-files/*

@@ -80,3 +80,29 @@ jobs:
         run: sudo apt-get install -y protobuf-compiler
       - name: Build all crates
         run: cargo build --workspace
+
+  docker-lint:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Dockerfile.api
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: deploy/docker/Dockerfile.api
+
+      - name: Lint Dockerfile.worker
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: deploy/docker/Dockerfile.worker
+
+      - name: Lint Dockerfile.web
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: deploy/docker/Dockerfile.web
+
+      - name: Lint Dockerfile.agent-linux
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: deploy/docker/Dockerfile.agent-linux
