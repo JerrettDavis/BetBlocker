@@ -1,0 +1,28 @@
+syntax = "proto3";
+package betblocker.blocklist;
+
+message BlocklistDeltaRequest {
+  uint64 current_version = 1;
+}
+
+message BlocklistDeltaResponse {
+  uint64 from_version = 1;
+  uint64 to_version = 2;
+  bool full_sync_required = 3;
+  repeated BlocklistAddition additions = 4;
+  repeated string removals = 5;
+  bytes signature = 6;
+}
+
+message BlocklistAddition {
+  string domain = 1;
+  string category = 2;
+  float confidence = 3;
+}
+
+message FederatedReport {
+  string domain = 1;
+  string heuristic_type = 2;
+  float confidence = 3;
+  uint64 timestamp = 4;
+}

@@ -1,0 +1,26 @@
+syntax = "proto3";
+package betblocker.device;
+
+message DeviceRegistrationRequest {
+  string enrollment_token = 1;
+  bytes public_key = 2;
+  DeviceFingerprint fingerprint = 3;
+  string agent_version = 4;
+}
+
+message DeviceFingerprint {
+  string os_type = 1;
+  string os_version = 2;
+  string hardware_id = 3;
+  string hostname = 4;
+}
+
+message DeviceRegistrationResponse {
+  string device_id = 1;
+  bytes device_certificate = 2;
+  bytes ca_certificate_chain = 3;
+  string initial_blocklist_url = 4;
+  uint64 initial_blocklist_version = 5;
+  bytes initial_blocklist_signature = 6;
+  uint64 certificate_expires_at = 7;
+}

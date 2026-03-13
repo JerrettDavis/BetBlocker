@@ -1,0 +1,13 @@
+[package]
+name = "bb-proto"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+prost = { workspace = true }
+
+[build-dependencies]
+prost-build = "0.13"
+
+[lints]
+workspace = true

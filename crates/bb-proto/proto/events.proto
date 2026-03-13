@@ -1,0 +1,21 @@
+syntax = "proto3";
+package betblocker.events;
+
+message EventBatch {
+  string device_id = 1;
+  uint64 batch_sequence = 2;
+  repeated EventRecord events = 3;
+}
+
+message EventRecord {
+  string event_type = 1;
+  string category = 2;
+  string severity = 3;
+  bytes metadata = 4;
+  uint64 occurred_at = 5;
+}
+
+message EventBatchResponse {
+  bool acknowledged = 1;
+  uint64 events_accepted = 2;
+}

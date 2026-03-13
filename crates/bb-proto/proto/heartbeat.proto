@@ -1,0 +1,51 @@
+syntax = "proto3";
+package betblocker.heartbeat;
+
+message HeartbeatRequest {
+  string device_id = 1;
+  uint64 sequence_number = 2;
+  uint64 timestamp = 3;
+  string agent_version = 4;
+  string os_version = 5;
+  uint64 blocklist_version = 6;
+  ProtectionStatus protection_status = 7;
+  bytes integrity_hash = 8;
+  uint64 uptime_seconds = 9;
+  ResourceUsage resource_usage = 10;
+  uint32 queued_events = 11;
+  uint32 queued_reports = 12;
+}
+
+message ProtectionStatus {
+  LayerStatus dns_blocking = 1;
+  LayerStatus hosts_file = 2;
+  LayerStatus app_blocking = 3;
+  LayerStatus browser_extension = 4;
+  LayerStatus network_hook = 5;
+  bool watchdog_alive = 6;
+  bool config_integrity_ok = 7;
+}
+
+enum LayerStatus {
+  ACTIVE = 0;
+  DEGRADED = 1;
+  INACTIVE = 2;
+  FAILED = 3;
+}
+
+message ResourceUsage {
+  float cpu_percent = 1;
+  uint64 memory_bytes = 2;
+  uint64 disk_cache_bytes = 3;
+}
+
+message HeartbeatResponse {
+  bool acknowledged = 1;
+  uint64 server_timestamp = 2;
+  repeated ServerCommand commands = 3;
+}
+
+message ServerCommand {
+  string command_type = 1;
+  bytes payload = 2;
+}
