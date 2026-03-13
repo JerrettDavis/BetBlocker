@@ -39,5 +39,14 @@ default = ["hosted"]
 hosted = []
 billing = ["dep:stripe-rust"]
 
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+base64 = "0.22"
+tokio = { workspace = true }
+sqlx = { workspace = true }
+ring = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+
 [lints]
 workspace = true
