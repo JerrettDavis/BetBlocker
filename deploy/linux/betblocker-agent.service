@@ -1,0 +1,45 @@
+[Unit]
+Description=BetBlocker Agent — gambling site blocking service
+Documentation=https://betblocker.org/docs
+After=network-online.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/lib/betblocker/bb-agent-linux
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy: always restart, escalating delay
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+# Security hardening
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+NoNewPrivileges=true
+ReadWritePaths=/var/lib/betblocker /var/log/betblocker
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+
+# Resource limits
+MemoryMax=128M
+CPUQuota=10%
+
+# Capabilities: only what we need for DNS redirect via nftables
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=betblocker-agent
+
+[Install]
+WantedBy=multi-user.target

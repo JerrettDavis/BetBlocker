@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_reporter_creation() {
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let reporter = EventReporter::new(
             client,
             "test-device".to_string(),
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_reporter_with_overrides() {
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let reporter = EventReporter::new(
             client,
             "test-device".to_string(),
@@ -205,7 +205,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_report_batch_empty_store() {
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let mut reporter = EventReporter::new(
             client,
             "test-device".to_string(),

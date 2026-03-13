@@ -236,7 +236,7 @@ mod tests {
     fn test_signature_verification_valid() {
         let (keypair, public_key) = generate_test_keypair();
 
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let syncer = BlocklistSyncer::new(client, "test".to_string(), public_key);
 
         // Build a response and sign it
@@ -277,7 +277,7 @@ mod tests {
     fn test_signature_verification_invalid() {
         let (_, public_key) = generate_test_keypair();
 
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let syncer = BlocklistSyncer::new(client, "test".to_string(), public_key);
 
         let response = bb_proto::blocklist::BlocklistDeltaResponse {
@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     fn test_signature_verification_empty_key() {
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let syncer = BlocklistSyncer::new(client, "test".to_string(), Vec::new());
 
         let response = bb_proto::blocklist::BlocklistDeltaResponse::default();
@@ -306,7 +306,7 @@ mod tests {
 
     #[test]
     fn test_version_tracking() {
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         let mut syncer = BlocklistSyncer::new(client, "test".to_string(), vec![1, 2, 3]);
 
         assert_eq!(syncer.current_version(), 0);

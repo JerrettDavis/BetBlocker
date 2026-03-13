@@ -5,14 +5,19 @@ edition.workspace = true
 
 [dependencies]
 bb-common = { path = "../bb-common" }
+bb-proto = { path = "../bb-proto" }
 bb-agent-core = { path = "../bb-agent-core" }
 bb-agent-plugins = { path = "../bb-agent-plugins" }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+thiserror = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
 
 [lints]
 workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
-# Linux-specific deps will go here
+libc = "0.2"

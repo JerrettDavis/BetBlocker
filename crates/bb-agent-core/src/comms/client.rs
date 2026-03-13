@@ -199,9 +199,8 @@ impl ApiClient {
         })
     }
 
-    /// Create a minimal client for testing (no TLS configuration).
-    #[cfg(test)]
-    pub fn new_for_test(base_url: String) -> Self {
+    /// Create a minimal client without TLS (for testing or pre-registration).
+    pub fn new_insecure(base_url: String) -> Self {
         let client = Client::builder()
             .timeout(Duration::from_secs(5))
             .build()
@@ -439,7 +438,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_api_client_circuit_breaker_rejects() {
-        let client = ApiClient::new_for_test("http://localhost:1".to_string());
+        let client = ApiClient::new_insecure("http://localhost:1".to_string());
 
         // Force circuit open
         client.circuit.record_failure();
@@ -458,7 +457,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_api_client_set_device_id() {
-        let client = ApiClient::new_for_test("http://localhost:1".to_string());
+        let client = ApiClient::new_insecure("http://localhost:1".to_string());
         assert!(client.device_id().await.is_none());
 
         client.set_device_id("test-device-123".to_string()).await;

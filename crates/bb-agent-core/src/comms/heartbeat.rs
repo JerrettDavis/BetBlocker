@@ -297,7 +297,7 @@ mod tests {
     use super::*;
 
     fn make_sender(interval_secs: u64) -> HeartbeatSender {
-        let client = Arc::new(ApiClient::new_for_test("http://localhost:1".to_string()));
+        let client = Arc::new(ApiClient::new_insecure("http://localhost:1".to_string()));
         HeartbeatSender::new(
             client,
             HeartbeatConfig {
