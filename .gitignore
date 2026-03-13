@@ -1,0 +1,9 @@
+/target
+.env
+*.pem
+*.key
+*.cert
+.DS_Store
+node_modules/
+web/.next/
+web/out/

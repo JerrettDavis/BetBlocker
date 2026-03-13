@@ -1,0 +1,74 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/bb-common",
+    "crates/bb-proto",
+    "crates/bb-api",
+    "crates/bb-worker",
+    "crates/bb-agent-core",
+    "crates/bb-agent-plugins",
+    "crates/bb-agent-linux",
+    "crates/bb-cli",
+]
+# Default members excludes platform-specific agent crates on non-matching OS
+default-members = [
+    "crates/bb-common",
+    "crates/bb-proto",
+    "crates/bb-api",
+    "crates/bb-worker",
+    "crates/bb-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/betblocker/betblocker"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+postcard = { version = "1", features = ["alloc"] }
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# Web framework
+axum = { version = "0.8", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace", "request-id", "compression-gzip"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate"] }
+
+# Crypto
+ring = "0.17"
+rustls = "0.23"
+jsonwebtoken = "9"
+
+# Protocol
+prost = "0.13"
+prost-types = "0.13"
+
+# Utils
+uuid = { version = "1", features = ["v7", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+config = "0.14"
+dotenvy = "0.15"
+
+# Testing
+insta = { version = "1", features = ["json"] }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
