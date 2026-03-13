@@ -1,0 +1,13 @@
+[package]
+name = "bb-worker"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bb-common = { path = "../bb-common" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

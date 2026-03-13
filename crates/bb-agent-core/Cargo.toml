@@ -1,0 +1,16 @@
+[package]
+name = "bb-agent-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bb-common = { path = "../bb-common" }
+bb-proto = { path = "../bb-proto" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

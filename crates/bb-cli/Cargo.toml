@@ -1,0 +1,12 @@
+[package]
+name = "bb-cli"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bb-common = { path = "../bb-common" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true

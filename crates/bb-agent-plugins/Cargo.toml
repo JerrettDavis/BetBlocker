@@ -1,0 +1,13 @@
+[package]
+name = "bb-agent-plugins"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bb-common = { path = "../bb-common" }
+bb-agent-core = { path = "../bb-agent-core" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true
