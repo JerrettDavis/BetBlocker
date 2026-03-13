@@ -3,11 +3,27 @@ name = "bb-agent-plugins"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = ["dns-resolver", "dns-hosts"]
+dns-resolver = []
+dns-hosts = []
+
 [dependencies]
 bb-common = { path = "../bb-common" }
-bb-agent-core = { path = "../bb-agent-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
 tracing = { workspace = true }
+async-trait = "0.1"
+hickory-server = "0.25"
+hickory-resolver = "0.25"
+sha2 = "0.10"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+tempfile = "3"
 
 [lints]
 workspace = true

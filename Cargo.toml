@@ -16,6 +16,8 @@ default-members = [
     "crates/bb-proto",
     "crates/bb-api",
     "crates/bb-worker",
+    "crates/bb-agent-core",
+    "crates/bb-agent-plugins",
     "crates/bb-cli",
 ]
 

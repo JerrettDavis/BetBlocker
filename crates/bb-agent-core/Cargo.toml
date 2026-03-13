@@ -5,12 +5,20 @@ edition.workspace = true
 
 [dependencies]
 bb-common = { path = "../bb-common" }
-bb-proto = { path = "../bb-proto" }
-tokio = { workspace = true }
-tracing = { workspace = true }
+bb-agent-plugins = { path = "../bb-agent-plugins" }
 serde = { workspace = true }
 serde_json = { workspace = true }
+toml = "0.8"
 thiserror = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+tempfile = "3"
+uuid = { workspace = true }
 
 [lints]
 workspace = true
