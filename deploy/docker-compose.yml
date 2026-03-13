@@ -1,0 +1,190 @@
+# deploy/docker-compose.yml
+# BetBlocker self-hosted production deployment
+# Usage:
+#   1. Copy .env.example to .env and fill in values
+#   2. Run: docker compose up -d
+#   3. First run: docker compose exec api /betblocker-api setup
+#      OR run: ../scripts/setup.sh
+#
+# For development, use docker-compose.dev.yml as an override:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+name: betblocker
+
+services:
+  # -------------------------------------------------------
+  # API Server
+  # -------------------------------------------------------
+  api:
+    image: ghcr.io/betblocker/betblocker-api:${BETBLOCKER_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8443}:8443"
+    environment:
+      BETBLOCKER_DEPLOYMENT: self-hosted
+      BETBLOCKER_BILLING_ENABLED: "false"
+      BETBLOCKER_MARKETING_PAGES: "false"
+      BETBLOCKER_DISCOVERY_PIPELINE: "false"
+      BETBLOCKER_TELEMETRY_ENABLED: "false"
+      BETBLOCKER_COMMUNITY_FEED_URL: ${BETBLOCKER_COMMUNITY_FEED_URL:-https://feed.betblocker.org/v1}
+      DATABASE_URL: postgres://betblocker:${DB_PASSWORD}@db:5432/betblocker
+      REDIS_URL: redis://cache:6379
+      BETBLOCKER_JWT_SIGNING_KEY_PATH: /keys/jwt-signing.key
+      BETBLOCKER_BLOCKLIST_SIGNING_KEY_PATH: /keys/blocklist-signing.key
+      BETBLOCKER_CA_KEY_PATH: /keys/root-ca.key
+      BETBLOCKER_DEVICE_CA_KEY_PATH: /keys/device-ca.key
+      BETBLOCKER_LOG_LEVEL: ${LOG_LEVEL:-info}
+      BETBLOCKER_LOG_FORMAT: json
+      BETBLOCKER_EXTERNAL_URL: ${BETBLOCKER_EXTERNAL_URL:-https://localhost:8443}
+    volumes:
+      - betblocker-keys:/keys:ro
+      - betblocker-data:/data
+    networks:
+      - betblocker-internal
+    healthcheck:
+      test: ["CMD", "/betblocker-api", "healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M
+    security_opt:
+      - no-new-privileges:true
+
+  # -------------------------------------------------------
+  # Background Worker
+  # -------------------------------------------------------
+  worker:
+    image: ghcr.io/betblocker/betblocker-worker:${BETBLOCKER_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    environment:
+      BETBLOCKER_DEPLOYMENT: self-hosted
+      BETBLOCKER_BILLING_ENABLED: "false"
+      BETBLOCKER_DISCOVERY_PIPELINE: "false"
+      DATABASE_URL: postgres://betblocker:${DB_PASSWORD}@db:5432/betblocker
+      REDIS_URL: redis://cache:6379
+      BETBLOCKER_BLOCKLIST_SIGNING_KEY_PATH: /keys/blocklist-signing.key
+      BETBLOCKER_COMMUNITY_FEED_URL: ${BETBLOCKER_COMMUNITY_FEED_URL:-https://feed.betblocker.org/v1}
+      BETBLOCKER_LOG_LEVEL: ${LOG_LEVEL:-info}
+      BETBLOCKER_LOG_FORMAT: json
+    volumes:
+      - betblocker-keys:/keys:ro
+      - betblocker-data:/data
+    networks:
+      - betblocker-internal
+    healthcheck:
+      test: ["CMD", "/betblocker-worker", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M
+    security_opt:
+      - no-new-privileges:true
+
+  # -------------------------------------------------------
+  # Web Dashboard
+  # -------------------------------------------------------
+  web:
+    image: ghcr.io/betblocker/betblocker-web:${BETBLOCKER_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-80}:3000"
+    environment:
+      BETBLOCKER_DEPLOYMENT: self-hosted
+      NEXT_PUBLIC_API_URL: ${BETBLOCKER_EXTERNAL_URL:-https://localhost:8443}
+      NEXT_PUBLIC_HOSTED: "false"
+      API_URL: http://api:8443
+    networks:
+      - betblocker-internal
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M
+      - /app/.next/cache:size=256M
+    security_opt:
+      - no-new-privileges:true
+
+  # -------------------------------------------------------
+  # Database (TimescaleDB = PostgreSQL + hypertables)
+  # -------------------------------------------------------
+  db:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: betblocker
+      POSTGRES_USER: betblocker
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - betblocker-db:/var/lib/postgresql/data
+    networks:
+      - betblocker-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U betblocker -d betblocker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    # Do not expose port externally in production
+    # Uncomment for debugging:
+    # ports:
+    #   - "5432:5432"
+    shm_size: 256m
+
+  # -------------------------------------------------------
+  # Cache (Redis)
+  # -------------------------------------------------------
+  cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - betblocker-cache:/data
+    networks:
+      - betblocker-internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  betblocker-db:
+    driver: local
+  betblocker-cache:
+    driver: local
+  betblocker-keys:
+    driver: local
+  betblocker-data:
+    driver: local
+
+networks:
+  betblocker-internal:
+    driver: bridge
