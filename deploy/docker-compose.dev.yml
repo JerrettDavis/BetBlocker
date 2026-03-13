@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: betblocker
+      POSTGRES_USER: betblocker
+      POSTGRES_PASSWORD: betblocker_dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U betblocker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
