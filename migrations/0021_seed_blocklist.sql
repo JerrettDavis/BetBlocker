@@ -1,29 +1,80 @@
--- Seed blocklist with initial well-known gambling domains
+-- Seed blocklist from data/blocklist-seed.txt
+--
+-- The seed file uses category headers (lines like "# CATEGORY_NAME") to group
+-- domains.  This migration reads the file, parses category context, and inserts
+-- each domain with the appropriate category.
+--
+-- Domains under "# PAYMENT_PROCESSORS (optional, disabled by default)" are
+-- inserted with status = 'review' so they are NOT active by default.
 
-INSERT INTO blocklist_entries (domain, category, source, confidence, status)
-VALUES
-    ('bet365.com', 'sports_betting', 'curated', 100, 'active'),
-    ('pokerstars.com', 'poker', 'curated', 100, 'active'),
-    ('888casino.com', 'casino', 'curated', 100, 'active'),
-    ('williamhill.com', 'sports_betting', 'curated', 100, 'active'),
-    ('paddypower.com', 'sports_betting', 'curated', 100, 'active'),
-    ('betfair.com', 'sports_betting', 'curated', 100, 'active'),
-    ('ladbrokes.com', 'sports_betting', 'curated', 100, 'active'),
-    ('coral.co.uk', 'sports_betting', 'curated', 100, 'active'),
-    ('draftkings.com', 'sports_betting', 'curated', 100, 'active'),
-    ('fanduel.com', 'sports_betting', 'curated', 100, 'active'),
-    ('betway.com', 'sports_betting', 'curated', 100, 'active'),
-    ('unibet.com', 'sports_betting', 'curated', 100, 'active'),
-    ('bwin.com', 'sports_betting', 'curated', 100, 'active'),
-    ('partypoker.com', 'poker', 'curated', 100, 'active'),
-    ('888poker.com', 'poker', 'curated', 100, 'active'),
-    ('casumo.com', 'casino', 'curated', 100, 'active'),
-    ('leovegas.com', 'casino', 'curated', 100, 'active'),
-    ('mrgreen.com', 'casino', 'curated', 100, 'active'),
-    ('betsson.com', 'sports_betting', 'curated', 100, 'active'),
-    ('bovada.lv', 'casino', 'curated', 100, 'active')
-ON CONFLICT (domain) DO NOTHING;
+DO $$
+DECLARE
+    line           TEXT;
+    current_cat    VARCHAR(100) := 'uncategorized';
+    is_payment     BOOLEAN := FALSE;
+    domain_count   INT := 0;
+    raw            TEXT;
+    lines          TEXT[];
+BEGIN
+    -- Read the seed file (path relative to the data directory shipped alongside migrations)
+    raw := pg_read_file('data/blocklist-seed.txt');
+    lines := string_to_array(raw, E'\n');
 
--- Create initial blocklist version
+    FOREACH line IN ARRAY lines
+    LOOP
+        -- Trim whitespace
+        line := btrim(line);
+
+        -- Skip empty lines
+        IF line = '' THEN
+            CONTINUE;
+        END IF;
+
+        -- Detect category headers
+        IF line ~ '^#\s+[A-Z_]+' THEN
+            -- Extract category name (first word after #)
+            current_cat := lower(btrim((regexp_match(line, '^#\s+([A-Z_]+)'))[1]));
+
+            IF current_cat = 'payment_processors' THEN
+                is_payment := TRUE;
+            END IF;
+
+            CONTINUE;
+        END IF;
+
+        -- Skip other comment lines (descriptions, sub-comments)
+        IF line ~ '^#' THEN
+            CONTINUE;
+        END IF;
+
+        -- Insert the domain
+        INSERT INTO blocklist_entries (domain, category, source, confidence, status)
+        VALUES (
+            line,
+            current_cat,
+            'curated',
+            100,
+            CASE WHEN is_payment THEN 'review' ELSE 'active' END
+        )
+        ON CONFLICT (domain) DO NOTHING;
+
+        domain_count := domain_count + 1;
+    END LOOP;
+
+    RAISE NOTICE 'Seeded % domains from blocklist-seed.txt', domain_count;
+END;
+$$;
+
+-- Create initial blocklist version with accurate count
 INSERT INTO blocklist_versions (version_number, entry_count, delta_metadata)
-VALUES (1, 20, '{"initial_seed": true}');
+SELECT
+    1,
+    count(*),
+    jsonb_build_object(
+        'initial_seed', true,
+        'source_file',  'data/blocklist-seed.txt',
+        'seeded_at',    now()::text
+    )
+FROM blocklist_entries
+WHERE source = 'curated'
+  AND status = 'active';
