@@ -1,0 +1,126 @@
+# deploy/helm/betblocker/values.yaml
+
+# -- Global settings
+global:
+  deployment: hosted
+  imageRegistry: ghcr.io/betblocker
+  imageTag: latest
+  imagePullPolicy: IfNotPresent
+
+# -- API server
+api:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/betblocker/betblocker-api
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  service:
+    type: ClusterIP
+    port: 8443
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    BETBLOCKER_DEPLOYMENT: hosted
+    BETBLOCKER_BILLING_ENABLED: "true"
+    BETBLOCKER_MARKETING_PAGES: "true"
+    BETBLOCKER_DISCOVERY_PIPELINE: "true"
+    BETBLOCKER_LOG_LEVEL: info
+    BETBLOCKER_LOG_FORMAT: json
+
+# -- Background worker
+worker:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/betblocker/betblocker-worker
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  env:
+    BETBLOCKER_DEPLOYMENT: hosted
+    BETBLOCKER_LOG_LEVEL: info
+    BETBLOCKER_LOG_FORMAT: json
+
+# -- Web dashboard
+web:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/betblocker/betblocker-web
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  service:
+    type: ClusterIP
+    port: 3000
+  env:
+    BETBLOCKER_DEPLOYMENT: hosted
+    NEXT_PUBLIC_HOSTED: "true"
+
+# -- Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  hosts:
+    - host: betblocker.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: api
+        - path: /
+          pathType: Prefix
+          service: web
+  tls:
+    - secretName: betblocker-tls
+      hosts:
+        - betblocker.com
+
+# -- External database (managed PostgreSQL / TimescaleDB)
+database:
+  # External database URL (e.g., RDS, Timescale Cloud)
+  # Provided via secret, not values
+  external: true
+
+# -- External Redis (managed ElastiCache or similar)
+redis:
+  external: true
+
+# -- Secrets (references to Kubernetes secrets)
+secrets:
+  # Name of the Kubernetes secret containing DATABASE_URL, REDIS_URL, etc.
+  existingSecret: betblocker-secrets
+
+# -- Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL

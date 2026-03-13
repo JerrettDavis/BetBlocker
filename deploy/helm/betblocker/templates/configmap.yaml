@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "betblocker.fullname" . }}-config
+  labels:
+    {{- include "betblocker.labels" . | nindent 4 }}
+data:
+  BETBLOCKER_DEPLOYMENT: {{ .Values.global.deployment | quote }}

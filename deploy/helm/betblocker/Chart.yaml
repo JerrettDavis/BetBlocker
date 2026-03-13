@@ -1,0 +1,13 @@
+apiVersion: v2
+name: betblocker
+description: BetBlocker gambling blocking platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - gambling
+  - blocking
+  - dns
+maintainers:
+  - name: BetBlocker
+    url: https://betblocker.org
