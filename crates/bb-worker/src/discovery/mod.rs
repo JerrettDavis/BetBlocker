@@ -1,5 +1,7 @@
+pub mod classifier;
 pub mod crawler;
 pub mod crawlers;
+pub mod scorer;
 
 use crate::discovery::crawler::CrawlerScheduler;
 use crate::discovery::crawlers::affiliate::AffiliateCrawler;

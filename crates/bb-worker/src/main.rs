@@ -1,3 +1,4 @@
+mod analytics;
 mod discovery;
 mod scheduler;
 
@@ -31,6 +32,9 @@ async fn main() -> anyhow::Result<()> {
 
     // ── Scheduler ───────────────────────────────────────────────────────
     let sched = JobScheduler::new().await?;
+
+    // Register analytics jobs (trend computation every hour).
+    analytics::register_jobs(&sched, Arc::clone(&ctx)).await?;
 
     // Run discovery pipeline every 6 hours.
     sched
