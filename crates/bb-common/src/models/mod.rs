@@ -1,4 +1,5 @@
 pub mod account;
+pub mod analytics;
 pub mod app_signature;
 pub mod blocklist;
 pub mod bypass_detection;
@@ -15,6 +16,7 @@ pub mod partner;
 pub mod tor_exit_nodes;
 
 pub use account::Account;
+pub use analytics::{AnalyticsTrend, DailyBlockStat, HourlyBlockStat};
 pub use app_signature::AppSignature;
 pub use blocklist::BlocklistEntry;
 pub use bypass_detection::{BypassDetectionResult, ProxyInfo, TorInfo, VpnInfo};

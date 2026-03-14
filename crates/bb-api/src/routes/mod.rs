@@ -1,6 +1,7 @@
 pub mod admin_app_signatures;
 pub mod admin_blocklist;
 pub mod accounts;
+pub mod analytics;
 pub mod auth;
 pub mod billing;
 pub mod blocklist;
@@ -10,6 +11,7 @@ pub mod events;
 pub mod health;
 pub mod organizations;
 pub mod partners;
+pub mod review_queue;
 
 use axum::{
     routing::{delete, get, patch, post},
@@ -166,6 +168,23 @@ pub fn router(state: AppState) -> Router {
             post(admin_blocklist::resolve_review),
         );
 
+    // Analytics routes (authenticated)
+    let analytics_routes = Router::new()
+        .route("/timeseries", get(analytics::timeseries))
+        .route("/trends", get(analytics::trends))
+        .route("/summary", get(analytics::summary))
+        .route("/heatmap", get(analytics::heatmap));
+
+    // Review queue routes (admin only)
+    let review_queue_routes = Router::new()
+        .route("/", get(review_queue::list_items))
+        .route("/bulk-approve", post(review_queue::bulk_approve))
+        .route("/bulk-reject", post(review_queue::bulk_reject))
+        .route("/{id}", get(review_queue::get_item))
+        .route("/{id}/approve", post(review_queue::approve_item))
+        .route("/{id}/reject", post(review_queue::reject_item))
+        .route("/{id}/defer", post(review_queue::defer_item));
+
     // Event routes (authenticated)
     let event_routes = Router::new()
         .route("/", post(events::batch_ingest).get(events::query_events))
@@ -186,6 +205,8 @@ pub fn router(state: AppState) -> Router {
         .nest("/v1/blocklist", blocklist_routes)
         .nest("/v1/admin/blocklist", admin_blocklist_routes)
         .nest("/v1/admin/app-signatures", admin_app_signature_routes)
+        .nest("/v1/admin/review-queue", review_queue_routes)
+        .nest("/v1/analytics", analytics_routes)
         .nest("/v1/enroll", enroll_routes)
         .nest("/v1/events", event_routes);
 

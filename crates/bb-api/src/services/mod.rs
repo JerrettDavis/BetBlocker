@@ -1,3 +1,4 @@
+pub mod analytics_service;
 pub mod auth_service;
 pub mod account_service;
 pub mod app_signature_service;
@@ -8,3 +9,4 @@ pub mod organization_service;
 pub mod partner_service;
 pub mod blocklist_service;
 pub mod event_service;
+pub mod review_queue_service;
