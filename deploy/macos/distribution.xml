@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  distribution.xml — productbuild Distribution XML for BetBlocker macOS installer.
+
+  This file is consumed by `productbuild` in build-pkg.sh to produce the
+  final .pkg distribution package.  It controls:
+    • Installation title, organisation, and licence
+    • Minimum OS version check (macOS 12.0+)
+    • Architecture volume check
+    • Installation choices (single package component)
+    • Pre/post-install script references
+-->
+<installer-gui-script minSpecVersion="2">
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Package metadata                                                     -->
+    <!-- ------------------------------------------------------------------ -->
+    <title>BetBlocker</title>
+    <organization>com.betblocker</organization>
+    <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
+    <options customize="never" require-scripts="true" rootVolumeOnly="true"/>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Localised strings (welcome, conclusion)                              -->
+    <!-- ------------------------------------------------------------------ -->
+    <!--
+      Place welcome.rtf and conclusion.rtf under deploy/macos/resources/.
+      The files are referenced by productbuild via the --resources flag.
+      If the files are absent, productbuild will omit those wizard pages.
+    -->
+    <welcome    file="welcome.rtf"    mime-type="text/rtf"/>
+    <license    file="LICENSE.rtf"    mime-type="text/rtf"/>
+    <conclusion file="conclusion.rtf" mime-type="text/rtf"/>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Volume / OS checks                                                   -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      Require macOS 12.0 (Monterey) or later.
+      The NetworkExtension DNS proxy API is available from macOS 11; we
+      target 12 for stability of the XPC and System Extension APIs.
+    -->
+    <volume-check>
+        <allowed-os-versions>
+            <os-version min="12.0"/>
+        </allowed-os-versions>
+    </volume-check>
+
+    <!--
+      Ensure the target volume has at least 50 MB free.
+    -->
+    <volume-check>
+        <minimum-disk-space>51200</minimum-disk-space>
+    </volume-check>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Package references                                                   -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      The component package produced by pkgbuild.
+      auth="root" causes the Installer.app to request administrator
+      authentication before installing.
+    -->
+    <pkg-ref id="com.betblocker.agent"
+             version="0"
+             auth="root">BetBlocker-component.pkg</pkg-ref>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Choices outline (installation options)                               -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      A single mandatory choice — BetBlocker has no optional components at
+      this time.  Expand with additional <choice> elements if optional
+      components (e.g., Safari extension, menu-bar app) are added later.
+    -->
+    <choices-outline>
+        <line choice="com.betblocker.agent"/>
+    </choices-outline>
+
+    <choice id="com.betblocker.agent"
+            title="BetBlocker Agent"
+            description="The BetBlocker background daemon that enforces DNS-based gambling site blocking."
+            start_selected="true"
+            start_enabled="true"
+            start_visible="true">
+        <pkg-ref id="com.betblocker.agent"/>
+    </choice>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Installation check scripts                                           -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      JavaScript check executed before the installer proceeds.
+      Returns false (with a user-visible message) if:
+        • The host is not macOS 12.0 or later.
+        • The user is not an administrator.
+    -->
+    <installation-check script="installation_check()"/>
+    <script>
+    <![CDATA[
+    function installation_check() {
+        // OS version guard — belt-and-suspenders on top of volume-check.
+        var sys = system.version.ProductVersion;
+        var parts = sys.split(".");
+        var major = parseInt(parts[0], 10);
+        var minor = parseInt(parts[1] || "0", 10);
+
+        if (major < 12) {
+            my.result.type    = "Fatal";
+            my.result.title   = "macOS 12 or later required";
+            my.result.message = "BetBlocker requires macOS 12.0 (Monterey) or later. "
+                              + "Your Mac is running macOS " + sys + ".";
+            return false;
+        }
+
+        // Verify administrator privileges.
+        if (!system.files.fileExistsAtPath("/private/var/db/.AppleSetupDone")) {
+            // Fresh install; privileges should be available.
+            return true;
+        }
+        if (system.sysctl("kern.securelevel") > 0) {
+            my.result.type    = "Fatal";
+            my.result.title   = "Administrator privileges required";
+            my.result.message = "BetBlocker must be installed by an administrator.";
+            return false;
+        }
+
+        return true;
+    }
+    ]]>
+    </script>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Volume check script                                                  -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      Additional JavaScript check to confirm the target volume is the
+      startup disk and is not read-only.
+    -->
+    <volume-check script="volume_check()"/>
+    <script>
+    <![CDATA[
+    function volume_check() {
+        // Ensure installation target is the system volume.
+        if (my.target.mountpoint !== "/") {
+            my.result.type    = "Fatal";
+            my.result.title   = "System volume required";
+            my.result.message = "BetBlocker must be installed on the startup (system) disk.";
+            return false;
+        }
+        return true;
+    }
+    ]]>
+    </script>
+
+</installer-gui-script>

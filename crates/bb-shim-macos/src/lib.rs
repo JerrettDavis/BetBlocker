@@ -5,7 +5,9 @@
 
 pub mod dns_monitor;
 pub mod file_protect;
+pub mod installer;
 pub mod keychain;
 pub mod launchd;
 pub mod network_ext;
 pub mod platform;
+pub mod xpc;

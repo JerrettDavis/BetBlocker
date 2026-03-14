@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  BetBlocker Network Extension – Info.plist
+
+  Bundle type:   System Extension (Network Extension, DNS Proxy Provider)
+  Bundle ID:     com.betblocker.networkextension
+  Team ID:       Replace TEAMID with your Apple Developer Team ID
+
+  This plist is the metadata manifest for the NEDNSProxyProvider extension
+  bundle.  It is intentionally kept minimal; Xcode will expand it with
+  additional keys (CFBundleShortVersionString, CFBundleVersion, etc.) when
+  the real Swift extension target is created.
+
+  The two critical keys required by the NetworkExtension framework are:
+    • NSExtensionPointIdentifier  – tells the system this is a DNS proxy
+    • NEDNSProxyProviderDesignatedRequirement – the code-signing requirement
+      the host app must satisfy in order to communicate with the extension
+-->
+<plist version="1.0">
+<dict>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Bundle identity                                                      -->
+    <!-- ------------------------------------------------------------------ -->
+    <key>CFBundleIdentifier</key>
+    <string>com.betblocker.networkextension</string>
+
+    <key>CFBundleName</key>
+    <string>BetBlockerNetworkExtension</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>BetBlocker Network Extension</string>
+
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+
+    <!-- Bundle executable – the compiled Swift extension binary -->
+    <key>CFBundleExecutable</key>
+    <string>BetBlockerNetworkExtension</string>
+
+    <!-- Package type = BNDL for an app extension bundle -->
+    <key>CFBundlePackageType</key>
+    <string>XPC!</string>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- NSExtension dictionary                                               -->
+    <!-- ------------------------------------------------------------------ -->
+    <key>NSExtension</key>
+    <dict>
+
+        <!--
+          NSExtensionPointIdentifier must be exactly
+          "com.apple.networkextension.dns-proxy" for DNS Proxy Providers.
+        -->
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.networkextension.dns-proxy</string>
+
+        <!--
+          NSExtensionPrincipalClass is the Swift class (or Objective-C class)
+          that implements NEDNSProxyProvider.  Replace the namespace prefix
+          with your module name if it differs.
+        -->
+        <key>NSExtensionPrincipalClass</key>
+        <string>$(PRODUCT_MODULE_NAME).DNSProxyProvider</string>
+
+    </dict>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Network Extension – DNS Proxy Provider configuration                -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      NEDNSProxyProviderDesignatedRequirement is the code-signing requirement
+      that must be satisfied by the process that configures the extension
+      (i.e., the main BetBlocker app or the bb-agent-macos helper tool).
+
+      The value below is a template.  Replace:
+        TEAMID      – your 10-character Apple Developer Team ID
+        APP_BUNDLE  – the bundle ID of the configuring application
+                      (e.g., com.betblocker.app)
+
+      Example:
+        anchor apple generic and identifier "com.betblocker.app"
+        and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */
+             or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */
+                and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */
+                and certificate leaf[subject.OU] = "TEAMID")
+    -->
+    <key>NEDNSProxyProviderDesignatedRequirement</key>
+    <string>anchor apple generic and identifier "com.betblocker.app" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "TEAMID")</string>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Minimum OS version                                                   -->
+    <!-- ------------------------------------------------------------------ -->
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+
+</dict>
+</plist>

@@ -519,6 +519,7 @@ dependencies = [
  "bb-agent-plugins",
  "bb-common",
  "bb-proto",
+ "bb-shim-linux",
  "chrono",
  "clap",
  "libc",
@@ -552,6 +553,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "bb-common",
+ "bb-shim-linux",
  "chrono",
  "hickory-resolver",
  "hickory-server",
@@ -685,6 +687,7 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
