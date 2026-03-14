@@ -12,6 +12,7 @@
 //! tamper resistance, and orchestration.
 //! Plugin traits, blocklist engine, and built-in plugins live in `bb-agent-plugins`.
 
+#[cfg(feature = "bypass-detection")]
 pub mod bypass_detection;
 pub mod config;
 pub mod events;

@@ -1,6 +1,8 @@
 mod analytics;
 mod discovery;
+mod federated;
 mod scheduler;
+mod tor_exits;
 
 use std::sync::Arc;
 
@@ -45,6 +47,23 @@ async fn main() -> anyhow::Result<()> {
             |ctx| async move {
                 if let Err(e) = discovery::DiscoveryPipeline::run_cycle(&ctx).await {
                     tracing::error!(error = %e, "discovery pipeline failed");
+                }
+            },
+        )
+        .await?;
+
+    // Register federated ingestion jobs (aggregator every 15 min, promoter every 30 min).
+    federated::register_jobs(&sched, Arc::clone(&ctx)).await?;
+
+    // Tor exit node refresh every 6 hours.
+    sched
+        .add_job(
+            "tor_exit_refresh",
+            "0 0 */6 * * *",
+            Arc::clone(&ctx),
+            |ctx| async move {
+                if let Err(e) = tor_exits::TorExitNodeRefreshJob::run(&ctx).await {
+                    tracing::error!(error = %e, "tor exit node refresh failed");
                 }
             },
         )

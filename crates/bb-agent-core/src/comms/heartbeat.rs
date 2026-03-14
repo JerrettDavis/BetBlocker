@@ -27,6 +27,10 @@ pub struct HeartbeatSender {
     offline_queue: VecDeque<bb_proto::heartbeat::HeartbeatRequest>,
     /// Blocklist version for heartbeat reporting
     blocklist_version: u64,
+    /// Whether a VPN was detected in the last bypass detection cycle (SP4 T17)
+    vpn_detected: bool,
+    /// Whether a proxy was detected in the last bypass detection cycle (SP4 T17)
+    proxy_detected: bool,
 }
 
 const MAX_OFFLINE_QUEUE: usize = 1000;
@@ -87,7 +91,27 @@ impl HeartbeatSender {
             sequence_number: 0,
             offline_queue: VecDeque::new(),
             blocklist_version: 0,
+            vpn_detected: false,
+            proxy_detected: false,
         }
+    }
+
+    /// Update the bypass detection status for inclusion in the next heartbeat.
+    ///
+    /// Should be called after each bypass detection cycle completes.
+    pub fn set_bypass_detection_status(&mut self, vpn_detected: bool, proxy_detected: bool) {
+        self.vpn_detected = vpn_detected;
+        self.proxy_detected = proxy_detected;
+    }
+
+    /// Returns whether a VPN was detected in the last reported cycle.
+    pub fn vpn_detected(&self) -> bool {
+        self.vpn_detected
+    }
+
+    /// Returns whether a proxy was detected in the last reported cycle.
+    pub fn proxy_detected(&self) -> bool {
+        self.proxy_detected
     }
 
     /// Update the blocklist version for heartbeat reporting.
@@ -150,6 +174,8 @@ impl HeartbeatSender {
             resource_usage: Some(self.collect_resource_usage()),
             queued_events: 0,
             queued_reports: 0,
+            vpn_detected: self.vpn_detected,
+            proxy_detected: self.proxy_detected,
         };
 
         let path = format!("/api/v1/devices/{}/heartbeat", self.device_id);
@@ -246,6 +272,8 @@ impl HeartbeatSender {
             resource_usage: None,
             queued_events: 0,
             queued_reports: 0,
+            vpn_detected: self.vpn_detected,
+            proxy_detected: self.proxy_detected,
         };
 
         if self.offline_queue.len() >= MAX_OFFLINE_QUEUE {
@@ -379,6 +407,48 @@ mod tests {
         };
         sender.handle_server_command(&cmd);
         assert_eq!(sender.current_interval(), Duration::from_secs(120));
+    }
+
+    // ── SP4 T17: bypass detection fields ─────────────────────────────
+
+    #[test]
+    fn bypass_detection_fields_default_false() {
+        let sender = make_sender(300);
+        assert!(!sender.vpn_detected(), "vpn_detected should default to false");
+        assert!(!sender.proxy_detected(), "proxy_detected should default to false");
+    }
+
+    #[test]
+    fn set_bypass_detection_status_vpn() {
+        let mut sender = make_sender(300);
+        sender.set_bypass_detection_status(true, false);
+        assert!(sender.vpn_detected());
+        assert!(!sender.proxy_detected());
+    }
+
+    #[test]
+    fn set_bypass_detection_status_proxy() {
+        let mut sender = make_sender(300);
+        sender.set_bypass_detection_status(false, true);
+        assert!(!sender.vpn_detected());
+        assert!(sender.proxy_detected());
+    }
+
+    #[test]
+    fn set_bypass_detection_status_both() {
+        let mut sender = make_sender(300);
+        sender.set_bypass_detection_status(true, true);
+        assert!(sender.vpn_detected());
+        assert!(sender.proxy_detected());
+    }
+
+    #[test]
+    fn set_bypass_detection_status_can_be_cleared() {
+        let mut sender = make_sender(300);
+        sender.set_bypass_detection_status(true, true);
+        sender.set_bypass_detection_status(false, false);
+        assert!(!sender.vpn_detected());
+        assert!(!sender.proxy_detected());
     }
 
     #[tokio::test]

@@ -33,6 +33,10 @@ base64 = "0.22"
 hostname = "0.4"
 hex-literal = "0.4"
 
+[features]
+default = ["bypass-detection"]
+bypass-detection = []
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = "3"
