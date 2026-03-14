@@ -242,3 +242,88 @@ pub enum BlockDecision {
     Allow,
     Block,
 }
+
+// ── SP2: Discovery Pipeline ─────────────────────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DiscoveryCandidateStatus {
+    Pending,
+    Approved,
+    Rejected,
+    Deferred,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CrawlerSource {
+    Affiliate,
+    LicenseRegistry,
+    WhoisPattern,
+    DnsZone,
+    SearchEngine,
+    Federated,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FederatedAggregateStatus {
+    Collecting,
+    ThresholdMet,
+    Reviewing,
+    Promoted,
+    Rejected,
+}
+
+// ── SP3: App Blocking ───────────────────────────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AppSignatureStatus {
+    Active,
+    Inactive,
+    PendingReview,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AppSignaturePlatform {
+    Windows,
+    Macos,
+    Linux,
+    Android,
+    Ios,
+    All,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    macro_rules! serde_roundtrip {
+        ($name:ident, $ty:ty, $variant:expr, $expected_json:expr) => {
+            #[test]
+            fn $name() {
+                let val: $ty = $variant;
+                let json = serde_json::to_string(&val).unwrap();
+                assert_eq!(json, $expected_json);
+                let back: $ty = serde_json::from_str(&json).unwrap();
+                assert_eq!(val, back);
+            }
+        };
+    }
+
+    // SP2 enums
+    serde_roundtrip!(discovery_candidate_status_pending, DiscoveryCandidateStatus, DiscoveryCandidateStatus::Pending, "\"pending\"");
+    serde_roundtrip!(discovery_candidate_status_deferred, DiscoveryCandidateStatus, DiscoveryCandidateStatus::Deferred, "\"deferred\"");
+    serde_roundtrip!(crawler_source_license_registry, CrawlerSource, CrawlerSource::LicenseRegistry, "\"license_registry\"");
+    serde_roundtrip!(crawler_source_search_engine, CrawlerSource, CrawlerSource::SearchEngine, "\"search_engine\"");
+    serde_roundtrip!(federated_aggregate_status_threshold_met, FederatedAggregateStatus, FederatedAggregateStatus::ThresholdMet, "\"threshold_met\"");
+    serde_roundtrip!(federated_aggregate_status_collecting, FederatedAggregateStatus, FederatedAggregateStatus::Collecting, "\"collecting\"");
+
+    // SP3 enums
+    serde_roundtrip!(app_signature_status_active, AppSignatureStatus, AppSignatureStatus::Active, "\"active\"");
+    serde_roundtrip!(app_signature_status_pending_review, AppSignatureStatus, AppSignatureStatus::PendingReview, "\"pending_review\"");
+    serde_roundtrip!(app_signature_platform_all, AppSignaturePlatform, AppSignaturePlatform::All, "\"all\"");
+    serde_roundtrip!(app_signature_platform_macos, AppSignaturePlatform, AppSignaturePlatform::Macos, "\"macos\"");
+}
