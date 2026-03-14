@@ -142,6 +142,7 @@ impl TestApp {
             billing_enabled: false,
             stripe_secret_key: None,
             stripe_webhook_secret: None,
+            public_base_url: None,
         };
 
         let state = AppState::new(config).await.unwrap();

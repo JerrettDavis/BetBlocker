@@ -40,7 +40,7 @@ impl Default for PromoterConfig {
 /// Runs on a 30-minute schedule but is **disabled by default** – must be
 /// explicitly enabled via [`PromoterConfig::enabled`].
 pub struct AutoPromoter {
-    config: PromoterConfig,
+    pub(crate) config: PromoterConfig,
 }
 
 impl AutoPromoter {
