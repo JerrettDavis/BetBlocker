@@ -1,0 +1,85 @@
+; betblocker_wfp.inf — INF file for the BetBlocker WFP Callout Driver
+;
+; Install with:
+;   pnputil /add-driver betblocker_wfp.inf /install
+;   sc start BetBlockerWfp
+;
+; Or (test-signed, kernel debugger attached):
+;   devcon install betblocker_wfp.inf BetBlockerWfp\WFP
+;
+; Signing requirements (production):
+;   - EV code-signing certificate
+;   - Microsoft cross-signature via KMCS / WHQL submission
+;   - Secure Boot-compatible driver signing policy
+;
+; This INF targets Windows 10 1903+ (x64 only — no 32-bit support).
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "NetService"
+ClassGuid   = {4D36E974-E325-11CE-BFC1-08002BE10318}
+Provider    = %ManufacturerName%
+DriverVer   = 01/01/2025,0.1.0.0
+CatalogFile = betblocker_wfp.cat
+PnpLockdown = 1
+
+; --------------------------------------------------------------------------
+; Manufacturer / Models
+; --------------------------------------------------------------------------
+[Manufacturer]
+%ManufacturerName% = BetBlocker_Models, NTamd64
+
+[BetBlocker_Models.NTamd64]
+%WFP_Driver_Desc% = BetBlockerWfp_Install, BetBlockerWfp\WFP
+
+; --------------------------------------------------------------------------
+; Install section
+; --------------------------------------------------------------------------
+[BetBlockerWfp_Install.NTamd64]
+CopyFiles = BetBlockerWfp_Files
+
+[BetBlockerWfp_Install.NTamd64.Services]
+AddService = BetBlockerWfp, %SPSVCINST_ASSOCSERVICE%, BetBlockerWfp_Service
+
+; --------------------------------------------------------------------------
+; Service definition
+; --------------------------------------------------------------------------
+[BetBlockerWfp_Service]
+DisplayName    = %WFP_Service_DisplayName%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\betblocker_wfp.sys
+LoadOrderGroup = NDIS
+Description    = %WFP_Service_Desc%
+
+; --------------------------------------------------------------------------
+; File copy
+; --------------------------------------------------------------------------
+[BetBlockerWfp_Files]
+betblocker_wfp.sys
+
+[DestinationDirs]
+BetBlockerWfp_Files = 12   ; %windir%\System32\drivers
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+betblocker_wfp.sys = 1
+
+; --------------------------------------------------------------------------
+; Strings (localisation table)
+; --------------------------------------------------------------------------
+[Strings]
+ManufacturerName        = "BetBlocker Ltd"
+WFP_Driver_Desc         = "BetBlocker WFP Callout Driver"
+WFP_Service_DisplayName = "BetBlocker WFP Callout Driver"
+WFP_Service_Desc        = "Provides kernel-level DNS redirection and network filtering for BetBlocker."
+DiskName                = "BetBlocker Driver Installation Disk"
+
+; Standard constants
+SPSVCINST_ASSOCSERVICE  = 0x00000002
+SERVICE_KERNEL_DRIVER   = 1
+SERVICE_DEMAND_START    = 3
+SERVICE_ERROR_NORMAL    = 1

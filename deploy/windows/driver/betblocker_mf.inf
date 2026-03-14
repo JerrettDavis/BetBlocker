@@ -1,0 +1,103 @@
+; betblocker_mf.inf — INF file for the BetBlocker Minifilter Driver
+;
+; Install with:
+;   pnputil /add-driver betblocker_mf.inf /install
+;   net start BetBlockerMF
+;
+; Or (test-signed, kernel debugger attached):
+;   devcon install betblocker_mf.inf BetBlockerMF\MiniFilter
+;
+; Signing requirements (production):
+;   - EV code-signing certificate
+;   - Microsoft cross-signature via KMCS / WHQL submission
+;   - Secure Boot-compatible driver signing policy
+;
+; Minifilter altitude
+;   The driver is registered at altitude 385200 (FSFilter Anti-Virus range:
+;   320000–329999 is too low for write-block; 380000–389999 suits an
+;   activity-monitor / tamper-protection driver).  Confirm with Microsoft
+;   Minifilter Altitude Assignment before production release.
+;
+; This INF targets Windows 10 1903+ (x64 only — no 32-bit support).
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"
+ClassGuid   = {B86DFF51-A31E-4BAC-B3CF-E8CFE75C9FC2}
+Provider    = %ManufacturerName%
+DriverVer   = 01/01/2025,0.1.0.0
+CatalogFile = betblocker_mf.cat
+PnpLockdown = 1
+
+; --------------------------------------------------------------------------
+; Manufacturer / Models
+; --------------------------------------------------------------------------
+[Manufacturer]
+%ManufacturerName% = BetBlocker_Models, NTamd64
+
+[BetBlocker_Models.NTamd64]
+%MF_Driver_Desc% = BetBlockerMF_Install, BetBlockerMF\MiniFilter
+
+; --------------------------------------------------------------------------
+; Install section
+; --------------------------------------------------------------------------
+[BetBlockerMF_Install.NTamd64]
+CopyFiles = BetBlockerMF_Files
+
+[BetBlockerMF_Install.NTamd64.Services]
+AddService = BetBlockerMF, %SPSVCINST_ASSOCSERVICE%, BetBlockerMF_Service
+
+; --------------------------------------------------------------------------
+; Service definition
+; --------------------------------------------------------------------------
+[BetBlockerMF_Service]
+DisplayName    = %MF_Service_DisplayName%
+ServiceType    = %SERVICE_FILE_SYSTEM_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\betblocker_mf.sys
+LoadOrderGroup = FSFilter Activity Monitor
+AddReg         = BetBlockerMF_AddReg
+Description    = %MF_Service_Desc%
+
+[BetBlockerMF_AddReg]
+; Register the minifilter altitude with Filter Manager.
+; The altitude must be unique across all installed minifilters.
+HKR, "Instances",          "DefaultInstance",  %REG_SZ%,  %MF_DefaultInstance%
+HKR, "Instances\BetBlockerMF", "Altitude",     %REG_SZ%,  %MF_Altitude%
+HKR, "Instances\BetBlockerMF", "Flags",        %REG_DWORD%, 0x0
+
+; --------------------------------------------------------------------------
+; File copy
+; --------------------------------------------------------------------------
+[BetBlockerMF_Files]
+betblocker_mf.sys
+
+[DestinationDirs]
+BetBlockerMF_Files = 12   ; %windir%\System32\drivers
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+betblocker_mf.sys = 1
+
+; --------------------------------------------------------------------------
+; Strings (localisation table)
+; --------------------------------------------------------------------------
+[Strings]
+ManufacturerName        = "BetBlocker Ltd"
+MF_Driver_Desc          = "BetBlocker Minifilter Driver"
+MF_Service_DisplayName  = "BetBlocker Minifilter Driver"
+MF_Service_Desc         = "Protects BetBlocker files from tampering using a Windows minifilter driver."
+DiskName                = "BetBlocker Driver Installation Disk"
+MF_DefaultInstance      = "BetBlockerMF"
+MF_Altitude             = "385200"
+
+; Standard constants
+SPSVCINST_ASSOCSERVICE  = 0x00000002
+SERVICE_FILE_SYSTEM_DRIVER = 2
+SERVICE_DEMAND_START    = 3
+SERVICE_ERROR_NORMAL    = 1
+REG_SZ                  = 0x00000000
+REG_DWORD               = 0x00010001
