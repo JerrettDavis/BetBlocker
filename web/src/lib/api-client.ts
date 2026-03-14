@@ -1,5 +1,6 @@
 import type {
   Account,
+  AnalyticsSummary,
   ApiResponse,
   AppSignature,
   AuthTokens,
@@ -9,6 +10,7 @@ import type {
   EnrollmentToken,
   Event,
   EventSummary,
+  HeatmapData,
   LoginResponse,
   OrgDevice,
   OrgMember,
@@ -21,6 +23,8 @@ import type {
   RegisterResponse,
   ReportingConfig,
   ReviewQueueItem,
+  TimeseriesResponse,
+  TrendsResponse,
   UnenrollmentPolicy,
 } from './api-types';
 import { API_BASE_URL } from './constants';
@@ -496,6 +500,38 @@ export const blocklist = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Helper for binary/blob downloads
+// ---------------------------------------------------------------------------
+
+async function requestBlob(path: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'GET',
+    headers,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    let code = 'UNKNOWN_ERROR';
+    let message = 'An unexpected error occurred';
+    try {
+      const json = await res.json();
+      code = json.error?.code ?? code;
+      message = json.error?.message ?? message;
+    } catch {
+      // ignore JSON parse failure
+    }
+    throw new ApiClientError(res.status, code, message);
+  }
+
+  return res.blob();
+}
+
 // --- Enrollment (token redemption) ---
 
 export const enroll = {
@@ -631,5 +667,62 @@ export const events = {
       'GET',
       `/events/summary${query ? `?${query}` : ''}`,
     );
+  },
+};
+
+// --- Analytics ---
+
+export const analyticsApi = {
+  timeseries(params: {
+    device_id: number;
+    period?: 'hourly' | 'daily';
+    from: string;
+    to: string;
+  }) {
+    const qs = new URLSearchParams();
+    qs.set('device_id', String(params.device_id));
+    if (params.period) qs.set('period', params.period);
+    qs.set('from', params.from);
+    qs.set('to', params.to);
+    return request<ApiResponse<TimeseriesResponse>>('GET', `/v1/analytics/timeseries?${qs}`);
+  },
+
+  trends(params: { device_id: number; metrics?: string }) {
+    const qs = new URLSearchParams();
+    qs.set('device_id', String(params.device_id));
+    if (params.metrics) qs.set('metrics', params.metrics);
+    return request<ApiResponse<TrendsResponse>>('GET', `/v1/analytics/trends?${qs}`);
+  },
+
+  summary(params: { device_id: number; from: string; to: string }) {
+    const qs = new URLSearchParams();
+    qs.set('device_id', String(params.device_id));
+    qs.set('from', params.from);
+    qs.set('to', params.to);
+    return request<ApiResponse<AnalyticsSummary>>('GET', `/v1/analytics/summary?${qs}`);
+  },
+
+  heatmap(params: { device_id: number; from: string; to: string }) {
+    const qs = new URLSearchParams();
+    qs.set('device_id', String(params.device_id));
+    qs.set('from', params.from);
+    qs.set('to', params.to);
+    return request<ApiResponse<HeatmapData>>('GET', `/v1/analytics/heatmap?${qs}`);
+  },
+
+  exportCsv(params: { device_id: number; from: string; to: string }): Promise<Blob> {
+    const qs = new URLSearchParams();
+    qs.set('device_id', String(params.device_id));
+    qs.set('from', params.from);
+    qs.set('to', params.to);
+    return requestBlob(`/v1/analytics/export/csv?${qs}`);
+  },
+
+  exportPdf(params: { device_id: number; from: string; to: string }): Promise<Blob> {
+    const qs = new URLSearchParams();
+    qs.set('device_id', String(params.device_id));
+    qs.set('from', params.from);
+    qs.set('to', params.to);
+    return requestBlob(`/v1/analytics/export/pdf?${qs}`);
   },
 };

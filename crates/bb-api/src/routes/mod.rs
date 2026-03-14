@@ -8,21 +8,25 @@ pub mod blocklist;
 pub mod devices;
 pub mod enrollments;
 pub mod events;
+pub mod federated;
 pub mod health;
 pub mod organizations;
 pub mod partners;
 pub mod review_queue;
+pub mod tor_exits;
 
 use axum::{
     routing::{delete, get, patch, post},
     Router,
 };
+use tower::ServiceBuilder;
 use tower_http::{
     cors::{Any, CorsLayer},
     request_id::{PropagateRequestIdLayer, SetRequestIdLayer},
     trace::TraceLayer,
 };
 
+use crate::middleware::ip_strip::StripSourceIpLayer;
 use crate::middleware::request_id::UuidV7RequestId;
 use crate::state::AppState;
 
@@ -173,7 +177,10 @@ pub fn router(state: AppState) -> Router {
         .route("/timeseries", get(analytics::timeseries))
         .route("/trends", get(analytics::trends))
         .route("/summary", get(analytics::summary))
-        .route("/heatmap", get(analytics::heatmap));
+        .route("/heatmap", get(analytics::heatmap))
+        .route("/export/csv", get(analytics::export_csv))
+        .route("/export/pdf", get(analytics::export_pdf))
+        .route("/org/{org_id}/summary", get(analytics::org_summary));
 
     // Review queue routes (admin only)
     let review_queue_routes = Router::new()
@@ -194,6 +201,17 @@ pub fn router(state: AppState) -> Router {
     let enroll_routes = Router::new()
         .route("/{token_public_id}", post(organizations::redeem_token));
 
+    // Federated report routes (unauthenticated, IP-stripped)
+    // StripSourceIp is applied only to this group so reporter IPs are never
+    // visible to the ingestion logic.
+    let federated_routes = Router::new()
+        .route("/reports", post(federated::ingest_reports))
+        .layer(ServiceBuilder::new().layer(StripSourceIpLayer));
+
+    // Tor exit node list (public read, updated by worker)
+    let tor_exits_routes = Router::new()
+        .route("/", get(tor_exits::get_tor_exits));
+
     // Assemble the API under /v1
     let mut api = Router::new()
         .nest("/v1/auth", auth_routes)
@@ -208,7 +226,9 @@ pub fn router(state: AppState) -> Router {
         .nest("/v1/admin/review-queue", review_queue_routes)
         .nest("/v1/analytics", analytics_routes)
         .nest("/v1/enroll", enroll_routes)
-        .nest("/v1/events", event_routes);
+        .nest("/v1/events", event_routes)
+        .nest("/v1/federated", federated_routes)
+        .nest("/v1/tor-exits", tor_exits_routes);
 
     // Conditionally register billing routes
     if state.config.billing_enabled {

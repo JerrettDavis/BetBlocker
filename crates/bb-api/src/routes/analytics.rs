@@ -1,6 +1,8 @@
 use axum::{
+    body::Body,
     extract::{Query, State},
-    http::StatusCode,
+    http::{header, StatusCode},
+    response::Response,
     Json,
 };
 use chrono::{DateTime, Utc};
@@ -10,7 +12,7 @@ use serde_json::json;
 use crate::error::ApiError;
 use crate::extractors::AuthenticatedAccount;
 use crate::response::ApiResponse;
-use crate::services::{account_service, analytics_service};
+use crate::services::{account_service, analytics_service, export_service};
 use crate::state::AppState;
 
 // ---------------------------------------------------------------------------
@@ -214,4 +216,137 @@ pub async fn heatmap(
         .collect();
 
     Ok(ApiResponse::ok(json!({ "heatmap": data })))
+}
+
+// ---------------------------------------------------------------------------
+// Export query params (shared by CSV and PDF)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+pub struct ExportParams {
+    pub device_id: i64,
+    pub from: DateTime<Utc>,
+    pub to: DateTime<Utc>,
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/analytics/export/csv
+// ---------------------------------------------------------------------------
+
+/// Export daily analytics as a CSV file download.
+///
+/// TODO (routes/mod.rs): Register as:
+///   .route("/export/csv", get(analytics::export_csv))
+pub async fn export_csv(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Query(params): Query<ExportParams>,
+) -> Result<Response<Body>, ApiError> {
+    let account =
+        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+
+    analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
+        .await?;
+
+    let csv_bytes =
+        export_service::generate_csv_report(&state.db, params.device_id, params.from, params.to)
+            .await?;
+
+    let filename = format!(
+        "analytics_device{}_{}_to_{}.csv",
+        params.device_id,
+        params.from.format("%Y%m%d"),
+        params.to.format("%Y%m%d"),
+    );
+
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "text/csv; charset=utf-8")
+        .header(
+            header::CONTENT_DISPOSITION,
+            format!("attachment; filename=\"{filename}\""),
+        )
+        .header(header::CONTENT_LENGTH, csv_bytes.len())
+        .body(Body::from(csv_bytes))
+        .map_err(|e| ApiError::Internal {
+            message: format!("Response build error: {e}"),
+        })?;
+
+    Ok(response)
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/analytics/export/pdf
+// ---------------------------------------------------------------------------
+
+/// Export analytics as a PDF file download.
+///
+/// TODO (routes/mod.rs): Register as:
+///   .route("/export/pdf", get(analytics::export_pdf))
+pub async fn export_pdf(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Query(params): Query<ExportParams>,
+) -> Result<Response<Body>, ApiError> {
+    let account =
+        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+
+    analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
+        .await?;
+
+    let pdf_bytes =
+        export_service::generate_pdf_report(&state.db, params.device_id, params.from, params.to)
+            .await?;
+
+    let filename = format!(
+        "analytics_device{}_{}_to_{}.pdf",
+        params.device_id,
+        params.from.format("%Y%m%d"),
+        params.to.format("%Y%m%d"),
+    );
+
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "application/pdf")
+        .header(
+            header::CONTENT_DISPOSITION,
+            format!("attachment; filename=\"{filename}\""),
+        )
+        .header(header::CONTENT_LENGTH, pdf_bytes.len())
+        .body(Body::from(pdf_bytes))
+        .map_err(|e| ApiError::Internal {
+            message: format!("Response build error: {e}"),
+        })?;
+
+    Ok(response)
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/analytics/org/:org_id/summary  (stub)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+pub struct OrgAnalyticsSummaryParams {
+    pub from: Option<DateTime<Utc>>,
+    pub to: Option<DateTime<Utc>>,
+}
+
+/// Org-scoped analytics summary stub.
+///
+/// TODO (routes/mod.rs): Register under organization routes or as:
+///   .route("/analytics/org/{org_id}/summary", get(analytics::org_summary))
+pub async fn org_summary(
+    State(_state): State<AppState>,
+    auth: AuthenticatedAccount,
+    axum::extract::Path(org_id): axum::extract::Path<String>,
+    Query(_params): Query<OrgAnalyticsSummaryParams>,
+) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
+    // Stub: returns a placeholder until org-level aggregation is implemented
+    let _ = auth;
+    Ok(ApiResponse::ok(json!({
+        "org_id": org_id,
+        "message": "Org-scoped analytics aggregation is not yet implemented",
+        "total_events": null,
+        "total_blocks": null,
+    })))
 }

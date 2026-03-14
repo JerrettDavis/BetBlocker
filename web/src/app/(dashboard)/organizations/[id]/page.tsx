@@ -1,12 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useOrganization, useOrgMembers, useOrgDevices, useOrgTokens } from '@/hooks/use-organizations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitalize, formatDate } from '@/lib/utils';
-import { Users, Monitor, Key, Building2 } from 'lucide-react';
+import { Users, Monitor, Key, Building2, BarChart2 } from 'lucide-react';
 
 export default function OrgDetailPage() {
   const params = useParams();
@@ -101,6 +102,27 @@ export default function OrgDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Analytics summary shortcut */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+          <BarChart2 className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            View detailed block activity, heatmaps and trend reports for devices in this
+            organization.
+          </p>
+          <Link
+            href="/reports/analytics"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <BarChart2 className="h-4 w-4" />
+            Open Analytics Dashboard
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }

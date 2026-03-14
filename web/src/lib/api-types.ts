@@ -281,6 +281,68 @@ export interface EventSummary {
   }>;
 }
 
+// --- Analytics types ---
+
+/** A single point in a timeseries dataset. */
+export interface TimeseriesPoint {
+  /** ISO-8601 bucket timestamp (hourly or daily). */
+  bucket: string;
+  event_type: string;
+  count: number;
+}
+
+/** A pre-computed trend metric for a device. */
+export interface TrendMetric {
+  metric_name: string;
+  metric_value: Record<string, unknown>;
+  computed_at: string;
+}
+
+/** A single cell in an activity heatmap (hour x day-of-week). */
+export interface HeatmapCell {
+  hour_of_day: number;
+  day_of_week: number;
+  event_count: number;
+}
+
+/** Full heatmap dataset. */
+export interface HeatmapData {
+  heatmap: HeatmapCell[];
+}
+
+/** Summary statistics for analytics dashboard. */
+export interface AnalyticsSummary {
+  total_events: number;
+  total_blocks: number;
+  total_bypass_attempts: number;
+  total_tamper_events: number;
+  unique_event_types: number;
+}
+
+/** Timeseries response envelope from GET /v1/analytics/timeseries. */
+export interface TimeseriesResponse {
+  period: string;
+  data: Array<{
+    timestamp: string;
+    device_id: number;
+    event_type: string;
+    event_count: number;
+  }>;
+}
+
+/** Trends response envelope from GET /v1/analytics/trends. */
+export interface TrendsResponse {
+  trends: Array<{
+    id: number;
+    device_id: number;
+    metric_name: string;
+    metric_value: Record<string, unknown>;
+    computed_at: string;
+    period_start: string;
+    period_end: string;
+  }>;
+}
+
 // --- API response envelopes ---
 
 export interface ApiMeta {
