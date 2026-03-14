@@ -4,7 +4,7 @@ pub mod crawlers;
 pub mod scorer;
 
 use crate::discovery::crawler::CrawlerScheduler;
-use crate::discovery::crawlers::affiliate::AffiliateCrawler;
+use crate::discovery::crawlers::{WorkerConfig, build_crawlers};
 use crate::scheduler::AppContext;
 
 /// Top-level discovery pipeline.
@@ -18,16 +18,8 @@ impl DiscoveryPipeline {
     /// Build the default pipeline with all registered crawlers.
     #[must_use]
     pub fn new() -> Self {
-        let affiliate = AffiliateCrawler::new(
-            vec![
-                "https://www.askgamblers.com/online-casinos/all".to_string(),
-                "https://www.casinomeister.com/".to_string(),
-            ],
-            1,
-            "a".to_string(),
-        );
-
-        let crawlers: Vec<Box<dyn crawler::DomainCrawler>> = vec![Box::new(affiliate)];
+        let config = WorkerConfig::default();
+        let crawlers = build_crawlers(&config);
 
         Self {
             crawler_scheduler: CrawlerScheduler::new(crawlers),
