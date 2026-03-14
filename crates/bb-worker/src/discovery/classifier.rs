@@ -12,6 +12,7 @@ pub enum ClassifyError {
     Http(#[from] reqwest::Error),
 
     #[error("parse error: {0}")]
+    #[allow(dead_code)] // Valid error variant; will be constructed by future classifiers
     Parse(String),
 
     #[error("{0}")]

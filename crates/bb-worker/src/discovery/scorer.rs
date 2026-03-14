@@ -5,6 +5,7 @@ use super::classifier::Classification;
 // ---------------------------------------------------------------------------
 
 /// Categorisation of a confidence score into an action tier.
+#[allow(dead_code)] // Used at runtime with DB queries to route domains to review queues
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScoreCategory {
     /// Score < 0.3 – unlikely to be gambling, discard.
@@ -39,6 +40,7 @@ impl Default for ConfidenceScorer {
 
 impl ConfidenceScorer {
     /// Create a scorer with custom weights.
+    #[allow(dead_code)] // Used at runtime with DB queries; tested via unit tests
     #[must_use]
     pub fn new(keyword_weight: f64, structure_weight: f64, link_graph_weight: f64) -> Self {
         Self {
@@ -59,6 +61,7 @@ impl ConfidenceScorer {
     }
 
     /// Map a confidence score to a [`ScoreCategory`].
+    #[allow(dead_code)] // Used at runtime with DB queries to route domains to review queues
     #[must_use]
     pub fn categorize(&self, score: f64) -> ScoreCategory {
         if score > 0.85 {

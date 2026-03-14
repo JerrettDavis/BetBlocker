@@ -18,8 +18,10 @@ pub enum SearchEngine {
     /// Google via SerpApi (`https://serpapi.com/search`).
     Google,
     /// Bing via SerpApi or the Bing Web Search API.
+    #[allow(dead_code)] // Valid engine option; available for callers to configure
     Bing,
     /// DuckDuckGo HTML search (no official API key required for low volumes).
+    #[allow(dead_code)] // Valid engine option; available for callers to configure
     DuckDuckGo,
 }
 

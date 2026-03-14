@@ -18,8 +18,10 @@ pub enum RegistryParser {
     /// Extract domains from rows of an HTML table.
     HtmlTable,
     /// Fetch a JSON array / object from an API endpoint.
+    #[allow(dead_code)] // Valid parser option; used when a registry exposes a JSON API
     JsonApi,
     /// Parse a comma-separated values file.
+    #[allow(dead_code)] // Valid parser option; used when a registry publishes a CSV download
     Csv,
 }
 

@@ -142,6 +142,7 @@ impl WhoisCrawler {
 
     /// Parse a raw response body into `WhoisRecord`s without any HTTP call.
     /// Used by tests.
+    #[allow(dead_code)] // Used in unit tests; not called from production code paths yet
     pub fn parse_response(body: &str) -> Result<Vec<WhoisRecord>, CrawlError> {
         let api_response: WhoisApiResponse = serde_json::from_str(body)
             .map_err(|e| CrawlError::Parse(format!("WHOIS API JSON parse error: {e}")))?;
