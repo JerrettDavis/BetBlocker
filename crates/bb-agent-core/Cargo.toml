@@ -10,6 +10,7 @@ bb-agent-plugins = { path = "../bb-agent-plugins" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 toml = "0.8"
+async-trait = "0.1"
 thiserror = { workspace = true }
 chrono = { workspace = true }
 tokio = { workspace = true }
