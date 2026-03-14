@@ -261,6 +261,19 @@ export interface ReviewQueueItem {
   sample_context: Record<string, unknown>;
 }
 
+/** Alias for ReviewQueueItem — represents a discovery candidate awaiting review. */
+export type DiscoveryCandidate = ReviewQueueItem;
+
+export interface ReviewQueueFilters {
+  status?: string;
+  source?: string;
+  min_confidence?: number;
+  domain?: string;
+  sort?: 'confidence' | 'date';
+  page?: number;
+  per_page?: number;
+}
+
 export interface EventSummary {
   enrollment_id: string;
   device_id: string;
