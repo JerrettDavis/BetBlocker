@@ -192,6 +192,7 @@ pub enum VpnDetectionMode {
     Disabled,
     Log,
     Alert,
+    Block,
     Lockdown,
 }
 
@@ -324,6 +325,10 @@ mod tests {
     serde_roundtrip!(crawler_source_search_engine, CrawlerSource, CrawlerSource::SearchEngine, "\"search_engine\"");
     serde_roundtrip!(federated_aggregate_status_threshold_met, FederatedAggregateStatus, FederatedAggregateStatus::ThresholdMet, "\"threshold_met\"");
     serde_roundtrip!(federated_aggregate_status_collecting, FederatedAggregateStatus, FederatedAggregateStatus::Collecting, "\"collecting\"");
+
+    // VpnDetectionMode
+    serde_roundtrip!(vpn_detection_mode_block, VpnDetectionMode, VpnDetectionMode::Block, "\"block\"");
+    serde_roundtrip!(vpn_detection_mode_lockdown, VpnDetectionMode, VpnDetectionMode::Lockdown, "\"lockdown\"");
 
     // SP3 enums
     serde_roundtrip!(app_signature_status_active, AppSignatureStatus, AppSignatureStatus::Active, "\"active\"");
