@@ -8,6 +8,7 @@ bb-common = { path = "../bb-common" }
 bb-proto = { path = "../bb-proto" }
 bb-agent-core = { path = "../bb-agent-core" }
 bb-agent-plugins = { path = "../bb-agent-plugins" }
+bb-shim-linux = { path = "../bb-shim-linux" }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

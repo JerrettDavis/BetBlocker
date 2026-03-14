@@ -24,6 +24,8 @@ use bb_agent_core::tamper::watchdog::WatchdogMonitor;
 use bb_common::enums::EnrollmentTier;
 use bb_common::models::ReportingConfig;
 
+use bb_shim_linux::mac::{MacSystem, MacStatus};
+
 use nftables::NftablesManager;
 
 const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -124,6 +126,73 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(unix)]
     platform::ensure_directories()
         .map_err(|e| format!("Failed to create directories: {e}"))?;
+
+    // --- MAC (Mandatory Access Control) detection and verification ---
+    let mac_system = bb_shim_linux::mac::detect_mac_system();
+    let initial_mac_status: Option<MacStatus> = match mac_system {
+        MacSystem::AppArmor => {
+            tracing::info!(mac_system = "AppArmor", "MAC system detected");
+            // Verify AppArmor profile using a minimal runner (best-effort on start)
+            // We construct a lightweight AppArmorProtection just for verification.
+            // A full install/repair would require elevated privileges — we only verify here.
+            #[cfg(target_os = "linux")]
+            {
+                use bb_shim_linux::apparmor::{AppArmorProtection, SystemCommandRunner};
+                use bb_shim_linux::mac::MacProtection;
+                let aa = AppArmorProtection::with_defaults(Box::new(SystemCommandRunner));
+                match aa.verify() {
+                    Ok(status) => {
+                        tracing::info!(
+                            mac_system = "AppArmor",
+                            profile_loaded = status.profile_loaded,
+                            enforcing = status.enforcing,
+                            profile_name = ?status.profile_name,
+                            "AppArmor MAC status verified"
+                        );
+                        Some(status)
+                    }
+                    Err(e) => {
+                        tracing::warn!(error = %e, "AppArmor verification failed");
+                        None
+                    }
+                }
+            }
+            #[cfg(not(target_os = "linux"))]
+            None
+        }
+        MacSystem::SELinux => {
+            tracing::info!(mac_system = "SELinux", "MAC system detected");
+            #[cfg(target_os = "linux")]
+            {
+                use bb_shim_linux::apparmor::SystemCommandRunner;
+                use bb_shim_linux::mac::MacProtection;
+                use bb_shim_linux::selinux::SELinuxProtection;
+                let se = SELinuxProtection::with_defaults(Box::new(SystemCommandRunner));
+                match se.verify() {
+                    Ok(status) => {
+                        tracing::info!(
+                            mac_system = "SELinux",
+                            profile_loaded = status.profile_loaded,
+                            enforcing = status.enforcing,
+                            profile_name = ?status.profile_name,
+                            "SELinux MAC status verified"
+                        );
+                        Some(status)
+                    }
+                    Err(e) => {
+                        tracing::warn!(error = %e, "SELinux verification failed");
+                        None
+                    }
+                }
+            }
+            #[cfg(not(target_os = "linux"))]
+            None
+        }
+        MacSystem::None => {
+            tracing::info!("No MAC system detected on this host");
+            None
+        }
+    };
 
     // Load configuration
     let config_path = cli
@@ -358,6 +427,76 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         None
     };
 
+    // Start periodic MAC verification loop (every 5 minutes)
+    let mac_shutdown_rx = shutdown_rx.clone();
+    let mac_emitter = event_emitter.handle();
+    let mut mac_shutdown = mac_shutdown_rx;
+    let mac_task = tokio::spawn(async move {
+        // Only run MAC verification if a MAC system was detected
+        if mac_system == MacSystem::None {
+            return;
+        }
+
+        let was_active = initial_mac_status
+            .as_ref()
+            .map(|s| s.profile_loaded && s.enforcing)
+            .unwrap_or(false);
+
+        let mut ticker = tokio::time::interval(Duration::from_secs(300)); // 5 minutes
+        ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+        loop {
+            tokio::select! {
+                _ = ticker.tick() => {
+                    // Re-verify MAC protection is still active
+                    #[cfg(target_os = "linux")]
+                    {
+                        use bb_shim_linux::mac::MacProtection;
+                        let still_active = match mac_system {
+                            MacSystem::AppArmor => {
+                                use bb_shim_linux::apparmor::{AppArmorProtection, SystemCommandRunner};
+                                let aa = AppArmorProtection::with_defaults(Box::new(SystemCommandRunner));
+                                aa.verify().map(|s| s.profile_loaded && s.enforcing).unwrap_or(false)
+                            }
+                            MacSystem::SELinux => {
+                                use bb_shim_linux::apparmor::SystemCommandRunner;
+                                use bb_shim_linux::selinux::SELinuxProtection;
+                                let se = SELinuxProtection::with_defaults(Box::new(SystemCommandRunner));
+                                se.verify().map(|s| s.profile_loaded && s.enforcing).unwrap_or(false)
+                            }
+                            MacSystem::None => true,
+                        };
+
+                        if was_active && !still_active {
+                            tracing::warn!(
+                                mac_system = ?mac_system,
+                                "MAC protection was disabled — possible tamper detected"
+                            );
+                            mac_emitter.emit(bb_agent_core::events::AgentEvent::tamper_detected(
+                                "mac",
+                                &format!("{mac_system:?} protection disabled — possible tampering"),
+                            ));
+                        } else if !was_active && !still_active {
+                            tracing::warn!(
+                                mac_system = ?mac_system,
+                                "MAC protection is not active"
+                            );
+                        } else {
+                            tracing::debug!(mac_system = ?mac_system, "MAC protection still active");
+                        }
+                    }
+                    #[cfg(not(target_os = "linux"))]
+                    {
+                        tracing::debug!("MAC verification skipped (non-Linux)");
+                    }
+                }
+                _ = mac_shutdown.changed() => {
+                    break;
+                }
+            }
+        }
+    });
+
     // Start nftables rule verification loop
     let nft_shutdown_rx = shutdown_rx.clone();
     let nft_emitter = event_emitter.handle();
@@ -389,7 +528,15 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // Emit agent started event
+    // Emit agent started event (including MAC status if available)
+    let mac_metadata = initial_mac_status.as_ref().map(|s| {
+        serde_json::json!({
+            "system": format!("{:?}", s.system),
+            "profile_loaded": s.profile_loaded,
+            "enforcing": s.enforcing,
+            "profile_name": s.profile_name,
+        })
+    });
     event_emitter.emit(bb_agent_core::events::AgentEvent {
         id: None,
         event_type: bb_common::enums::EventType::AgentStarted,
@@ -400,6 +547,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         metadata: serde_json::json!({
             "version": AGENT_VERSION,
             "platform": "linux",
+            "mac_status": mac_metadata,
         }),
         timestamp: chrono::Utc::now(),
         reported: false,
@@ -440,6 +588,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         let _ = ping_task.await;
         let _ = recovery_task.await;
         let _ = nft_task.await;
+        let _ = mac_task.await;
         if let Some(task) = integrity_task {
             let _ = task.await;
         }

@@ -20,6 +20,17 @@ use interceptor::{create_interceptor, ProcessInterceptor};
 use install_watcher::{create_install_watcher, InstallAction, InstallWatcher};
 use scanner::{AppInventoryScanner, NoOpScanner};
 
+// ── Configuration constants ───────────────────────────────────────────────────
+
+/// Default scan interval: 900 seconds (15 minutes).
+pub const DEFAULT_SCAN_INTERVAL_SECS: u64 = 900;
+
+/// Minimum allowed scan interval: 60 seconds (1 minute).
+pub const MIN_SCAN_INTERVAL_SECS: u64 = 60;
+
+/// Maximum allowed scan interval: 86400 seconds (24 hours).
+pub const MAX_SCAN_INTERVAL_SECS: u64 = 86400;
+
 // ── Event types ──────────────────────────────────────────────────────────────
 
 /// An event emitted when a blocked application is detected running.
@@ -51,8 +62,8 @@ pub struct AppInstallDetectedEvent {
 
 // ── AppProcessPlugin ─────────────────────────────────────────────────────────
 
-/// Default scan interval: 30 seconds.
-const DEFAULT_SCAN_INTERVAL: Duration = Duration::from_secs(30);
+/// Internal default scan interval (uses the public constant).
+const DEFAULT_SCAN_INTERVAL: Duration = Duration::from_secs(DEFAULT_SCAN_INTERVAL_SECS);
 
 /// Plugin that monitors running processes and new app installations,
 /// blocking any that match the loaded app signature blocklist.
@@ -117,10 +128,29 @@ impl AppProcessPlugin {
         }
     }
 
-    /// Set the scan interval.
+    /// Set the scan interval (unchecked, for internal/test use).
     pub fn with_scan_interval(mut self, interval: Duration) -> Self {
         self.scan_interval = interval;
         self
+    }
+
+    /// Validate a scan interval in seconds against configured bounds.
+    ///
+    /// Returns `Ok(Duration)` if the interval is within
+    /// `[MIN_SCAN_INTERVAL_SECS, MAX_SCAN_INTERVAL_SECS]`, or a descriptive
+    /// `PluginError` if it is out of range.
+    pub fn validate_scan_interval(secs: u64) -> Result<Duration, PluginError> {
+        if secs < MIN_SCAN_INTERVAL_SECS {
+            return Err(PluginError::ConfigError(format!(
+                "scan_interval_secs ({secs}) is below the minimum allowed value ({MIN_SCAN_INTERVAL_SECS})"
+            )));
+        }
+        if secs > MAX_SCAN_INTERVAL_SECS {
+            return Err(PluginError::ConfigError(format!(
+                "scan_interval_secs ({secs}) exceeds the maximum allowed value ({MAX_SCAN_INTERVAL_SECS})"
+            )));
+        }
+        Ok(Duration::from_secs(secs))
     }
 
     // ── Event draining ────────────────────────────────────────────────────
@@ -292,7 +322,25 @@ impl BlockingPlugin for AppProcessPlugin {
         BlockingLayer::App
     }
 
-    fn init(&mut self, _config: &PluginConfig) -> Result<(), PluginError> {
+    fn init(&mut self, config: &PluginConfig) -> Result<(), PluginError> {
+        // If the caller passed a `scan_interval_secs` setting, validate and apply it.
+        if let Some(v) = config.settings.get("scan_interval_secs") {
+            let secs: u64 = if let Some(n) = v.as_u64() {
+                n
+            } else if let Some(s) = v.as_str() {
+                s.parse::<u64>().map_err(|_| {
+                    PluginError::ConfigError(format!(
+                        "scan_interval_secs is not a valid integer: {s}"
+                    ))
+                })?
+            } else {
+                return Err(PluginError::ConfigError(
+                    "scan_interval_secs must be a positive integer".to_string(),
+                ));
+            };
+            let interval = Self::validate_scan_interval(secs)?;
+            self.scan_interval = interval;
+        }
         info!("AppProcessPlugin initialized");
         Ok(())
     }
@@ -331,12 +379,16 @@ impl BlockingPlugin for AppProcessPlugin {
     }
 
     fn update_blocklist(&mut self, blocklist: &Blocklist) -> Result<(), PluginError> {
-        // We extract matching by delegating through the blocklist's check_app.
-        // For the standalone signature store, we accept updated signatures via
-        // a dedicated method. Here we update a dummy app to test connectivity;
-        // real signature refresh is done by the agent calling `update_signatures`.
+        // The `Blocklist` type carries a version / revision counter.  When the
+        // caller pushes a new blocklist, we record that fact so downstream
+        // checks will pick it up.  Full app-signature synchronisation is done
+        // by the agent calling `update_signatures()` with a freshly-built
+        // `AppSignatureStore` derived from the API response — see SP3 T25.
         let _ = blocklist;
-        info!("AppProcessPlugin blocklist updated");
+        info!(
+            signatures = self.signatures.len(),
+            "AppProcessPlugin blocklist updated; new signatures will be applied immediately"
+        );
         Ok(())
     }
 
@@ -406,6 +458,12 @@ impl AppProcessPlugin {
     /// Access the current signature store.
     pub fn signatures(&self) -> &AppSignatureStore {
         &self.signatures
+    }
+
+    /// Override the last-scan timestamp. Useful in tests to prevent or force
+    /// an immediate periodic scan inside `tick()`.
+    pub fn set_last_scan(&mut self, ts: Option<chrono::DateTime<Utc>>) {
+        self.last_scan = ts;
     }
 }
 

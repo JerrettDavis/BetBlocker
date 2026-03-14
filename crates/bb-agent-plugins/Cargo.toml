@@ -27,6 +27,7 @@ strsim = "0.11"
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = "3"
+bb-shim-linux = { path = "../bb-shim-linux" }
 
 [lints]
 workspace = true
