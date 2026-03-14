@@ -20,5 +20,8 @@ thiserror = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-service = "0.7"
+
 [lints]
 workspace = true

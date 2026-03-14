@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  BetBlocker Windows MSI Installer — WiX 4 definition.
+
+  Build with:
+    wix build betblocker.wxs -o betblocker.msi
+
+  Variables (pass with -d Name=Value):
+    BinaryPath   Path to bb-agent-windows.exe (default: target\release\bb-agent-windows.exe)
+    Version      Product version string       (default: 0.1.0)
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package
+    Name="BetBlocker"
+    Manufacturer="BetBlocker Ltd"
+    Version="$(var.Version)"
+    UpgradeCode="{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+    Language="1033"
+    Codepage="1252"
+    InstallerVersion="500"
+    Compressed="yes"
+    Scope="perMachine">
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Upgrade logic                                                        -->
+    <!-- ------------------------------------------------------------------ -->
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of BetBlocker is already installed."
+      Schedule="afterInstallInitialize" />
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Media / cabinet                                                      -->
+    <!-- ------------------------------------------------------------------ -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Properties                                                            -->
+    <!-- ------------------------------------------------------------------ -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    <!-- Require admin privileges -->
+    <Property Id="ALLUSERS" Value="1" />
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Directory structure                                                  -->
+    <!-- ------------------------------------------------------------------ -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="BetBlocker">
+        <!-- Agent binary lives here -->
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="DATAROOTFOLDER" Name="BetBlocker">
+        <Directory Id="CERTSFOLDER"   Name="certs" />
+        <Directory Id="LOGSFOLDER"    Name="logs" />
+        <Directory Id="PLUGINSFOLDER" Name="plugins" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Feature tree                                                          -->
+    <!-- ------------------------------------------------------------------ -->
+    <Feature Id="CoreFeature" Title="BetBlocker Core" Level="1">
+      <ComponentGroupRef Id="AgentComponents" />
+      <ComponentGroupRef Id="DataDirComponents" />
+    </Feature>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Component groups                                                     -->
+    <!-- ------------------------------------------------------------------ -->
+    <ComponentGroup Id="AgentComponents" Directory="INSTALLFOLDER">
+
+      <!-- Agent binary -->
+      <Component Id="AgentBinary" Guid="{B2C3D4E5-F6A7-8901-BCDE-F12345678901}">
+        <File
+          Id="AgentExe"
+          Source="$(var.BinaryPath)"
+          Name="bb-agent-windows.exe"
+          KeyPath="yes"
+          Vital="yes" />
+      </Component>
+
+      <!-- Default configuration file (empty template) -->
+      <Component Id="AgentConfig" Guid="{C3D4E5F6-A7B8-9012-CDEF-123456789012}">
+        <File
+          Id="AgentConfigFile"
+          Source="agent.toml.example"
+          Name="agent.toml.example"
+          KeyPath="yes" />
+      </Component>
+
+    </ComponentGroup>
+
+    <!-- Data directory placeholders so the MSI owns them and removes them on
+         uninstall (the directories themselves are created by post_install). -->
+    <ComponentGroup Id="DataDirComponents">
+
+      <Component Id="DataRootDir"
+                 Guid="{D4E5F6A7-B8C9-0123-DEF0-234567890123}"
+                 Directory="DATAROOTFOLDER">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDataRoot" On="uninstall" />
+        <RegistryValue
+          Root="HKLM"
+          Key="SOFTWARE\BetBlocker"
+          Name="InstallDir"
+          Type="string"
+          Value="[INSTALLFOLDER]"
+          KeyPath="yes" />
+        <!-- Record installed version in registry -->
+        <RegistryValue
+          Root="HKLM"
+          Key="SOFTWARE\BetBlocker"
+          Name="Version"
+          Type="string"
+          Value="$(var.Version)" />
+      </Component>
+
+      <Component Id="CertsDir"
+                 Guid="{E5F6A7B8-C9D0-1234-EF01-345678901234}"
+                 Directory="CERTSFOLDER">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveCerts" On="uninstall" />
+        <RegistryValue
+          Root="HKLM"
+          Key="SOFTWARE\BetBlocker"
+          Name="CertsDir"
+          Type="string"
+          Value="[CERTSFOLDER]"
+          KeyPath="yes" />
+      </Component>
+
+    </ComponentGroup>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Windows Service install / control                                    -->
+    <!-- ------------------------------------------------------------------ -->
+    <ComponentGroup Id="ServiceComponents" Directory="INSTALLFOLDER">
+      <Component Id="AgentService" Guid="{F6A7B8C9-D0E1-2345-F012-456789012345}">
+        <File
+          Id="AgentServiceExe"
+          Source="$(var.BinaryPath)"
+          Name="bb-agent-windows.exe"
+          KeyPath="yes"
+          Vital="yes" />
+
+        <ServiceInstall
+          Id="BetBlockerAgentInstall"
+          Name="BetBlockerAgent"
+          DisplayName="BetBlocker Agent"
+          Description="BetBlocker gambling site blocking service"
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Account="LocalSystem" />
+
+        <!-- Failure actions: restart after 0 s, 5 s, 30 s -->
+        <util:ServiceConfig
+          xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util"
+          ServiceName="BetBlockerAgent"
+          FirstFailureActionType="restart"
+          SecondFailureActionType="restart"
+          ThirdFailureActionType="restart"
+          RestartServiceDelayInSeconds="5"
+          ResetPeriodInDays="1" />
+
+        <ServiceControl
+          Id="StartBetBlockerAgent"
+          Name="BetBlockerAgent"
+          Start="install"
+          Stop="both"
+          Remove="uninstall"
+          Wait="no" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Custom actions (post-install / pre-uninstall via the shim)          -->
+    <!-- ------------------------------------------------------------------ -->
+
+    <!--
+      PostInstall: Called after files are laid down.
+      Invokes `bb-agent-windows.exe --install-service` to set up the service
+      and apply ACLs via bb-shim-windows::installer::post_install().
+    -->
+    <CustomAction
+      Id="PostInstallCA"
+      Directory="INSTALLFOLDER"
+      ExeCommand="bb-agent-windows.exe --install-service"
+      Return="ignore"
+      Impersonate="no"
+      Execute="deferred" />
+
+    <!--
+      PreUninstall: Called before files are removed.
+      Invokes `bb-agent-windows.exe --uninstall-service` to stop/remove the service
+      and clean up firewall rules via bb-shim-windows::installer::pre_uninstall().
+    -->
+    <CustomAction
+      Id="PreUninstallCA"
+      Directory="INSTALLFOLDER"
+      ExeCommand="bb-agent-windows.exe --uninstall-service"
+      Return="ignore"
+      Impersonate="no"
+      Execute="deferred" />
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Install execution sequence                                           -->
+    <!-- ------------------------------------------------------------------ -->
+    <InstallExecuteSequence>
+      <!-- Run post-install after InstallFiles, before RegisterProduct -->
+      <Custom Action="PostInstallCA"
+              After="InstallFiles">
+        NOT Installed AND NOT REMOVE
+      </Custom>
+
+      <!-- Run pre-uninstall before StopServices -->
+      <Custom Action="PreUninstallCA"
+              Before="StopServices">
+        REMOVE AND NOT UPGRADINGPRODUCTCODE
+      </Custom>
+    </InstallExecuteSequence>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- UI (minimal, for silent / managed installs)                         -->
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Uncomment to add the WiX standard UI dialog set:
+    <UIRef Id="WixUI_InstallDir" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+    -->
+
+  </Package>
+</Wix>
