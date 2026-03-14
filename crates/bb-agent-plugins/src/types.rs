@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 use std::fmt;
 
+use bb_common::enums::Platform;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use uuid::Uuid;
 
 /// Configuration passed to a plugin during init.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -117,18 +119,59 @@ pub enum PluginError {
 }
 
 /// Identifier for an application (used by `AppBlockingPlugin`).
-/// Placeholder for Phase 2.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppIdentifier {
     pub package_name: Option<String>,
     pub executable_path: Option<String>,
+    pub executable_name: Option<String>,
     pub display_name: Option<String>,
+    pub cert_hash: Option<String>,
+    pub pid: Option<u32>,
+    pub platform: Platform,
 }
 
-/// Match result from app scanning. Placeholder for Phase 2.
+impl AppIdentifier {
+    /// Create a minimal `AppIdentifier` for the current platform with all optional fields set to None.
+    pub fn empty(platform: Platform) -> Self {
+        Self {
+            package_name: None,
+            executable_path: None,
+            executable_name: None,
+            display_name: None,
+            cert_hash: None,
+            pid: None,
+            platform,
+        }
+    }
+}
+
+/// How the app was matched against a signature.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AppMatchType {
+    ExactPackage,
+    ExactExecutable,
+    CertHash,
+    FuzzyDisplayName,
+}
+
+impl fmt::Display for AppMatchType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AppMatchType::ExactPackage => write!(f, "ExactPackage"),
+            AppMatchType::ExactExecutable => write!(f, "ExactExecutable"),
+            AppMatchType::CertHash => write!(f, "CertHash"),
+            AppMatchType::FuzzyDisplayName => write!(f, "FuzzyDisplayName"),
+        }
+    }
+}
+
+/// Match result from app signature matching.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppMatch {
     pub app_id: AppIdentifier,
+    pub signature_id: Uuid,
+    pub signature_name: String,
+    pub match_type: AppMatchType,
     pub confidence: f64,
     pub reason: String,
 }

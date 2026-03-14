@@ -1,6 +1,10 @@
+pub mod app_signatures;
 pub mod cache;
 
 use std::collections::HashSet;
+
+use crate::blocklist::app_signatures::{AppSignatureStore, AppSignatureSummary};
+use crate::types::{AppIdentifier, AppMatch};
 
 /// The in-memory blocklist used by all plugins for domain checks.
 /// Exact domains go in a `HashSet` for O(1) lookup.
@@ -15,6 +19,8 @@ pub struct Blocklist {
     wildcard_suffixes: Vec<String>,
     /// Blocklist version from the API (for delta sync).
     pub version: i64,
+    /// App signature store for application-level blocking.
+    app_sigs: AppSignatureStore,
 }
 
 impl Blocklist {
@@ -23,6 +29,7 @@ impl Blocklist {
             exact: HashSet::new(),
             wildcard_suffixes: Vec::new(),
             version,
+            app_sigs: AppSignatureStore::new(),
         }
     }
 
@@ -122,6 +129,16 @@ impl Blocklist {
     /// Iterate over all wildcard suffix entries (in `.suffix` form).
     pub fn wildcard_suffixes(&self) -> &[String] {
         &self.wildcard_suffixes
+    }
+
+    /// Replace the current app signatures with a new set.
+    pub fn update_app_signatures(&mut self, sigs: Vec<AppSignatureSummary>) {
+        self.app_sigs = AppSignatureStore::from_summaries(sigs);
+    }
+
+    /// Check if an application matches any loaded app signature.
+    pub fn check_app(&self, app_id: &AppIdentifier) -> Option<AppMatch> {
+        self.app_sigs.check_app(app_id)
     }
 }
 
@@ -226,5 +243,78 @@ mod tests {
         assert!(bl.is_empty());
         assert_eq!(bl.len(), 0);
         assert!(!bl.is_blocked("anything.com"));
+    }
+
+    #[test]
+    fn test_blocklist_blocks_matching_app() {
+        use bb_common::enums::Platform;
+        use crate::blocklist::app_signatures::AppSignatureSummary;
+        use crate::types::{AppIdentifier, AppMatchType};
+
+        let mut bl = Blocklist::new(1);
+        bl.update_app_signatures(vec![AppSignatureSummary {
+            public_id: uuid::Uuid::nil(),
+            name: "Bet365".to_string(),
+            package_names: vec!["com.bet365.app".to_string()],
+            executable_names: vec!["bet365.exe".to_string()],
+            cert_hashes: vec![],
+            display_name_patterns: vec![],
+            platforms: vec!["windows".to_string()],
+            category: "sports_betting".to_string(),
+            confidence: 0.85,
+        }]);
+
+        let mut app = AppIdentifier::empty(Platform::Windows);
+        app.package_name = Some("com.bet365.app".to_string());
+        let result = bl.check_app(&app);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().match_type, AppMatchType::ExactPackage);
+    }
+
+    #[test]
+    fn test_update_replaces_old_signatures() {
+        use bb_common::enums::Platform;
+        use crate::blocklist::app_signatures::AppSignatureSummary;
+        use crate::types::AppIdentifier;
+
+        let mut bl = Blocklist::new(1);
+
+        // Load first set
+        bl.update_app_signatures(vec![AppSignatureSummary {
+            public_id: uuid::Uuid::nil(),
+            name: "OldApp".to_string(),
+            package_names: vec!["com.old.app".to_string()],
+            executable_names: vec![],
+            cert_hashes: vec![],
+            display_name_patterns: vec![],
+            platforms: vec!["windows".to_string()],
+            category: "casino".to_string(),
+            confidence: 0.85,
+        }]);
+
+        let mut app_old = AppIdentifier::empty(Platform::Windows);
+        app_old.package_name = Some("com.old.app".to_string());
+        assert!(bl.check_app(&app_old).is_some());
+
+        // Replace with new set
+        bl.update_app_signatures(vec![AppSignatureSummary {
+            public_id: uuid::Uuid::nil(),
+            name: "NewApp".to_string(),
+            package_names: vec!["com.new.app".to_string()],
+            executable_names: vec![],
+            cert_hashes: vec![],
+            display_name_patterns: vec![],
+            platforms: vec!["windows".to_string()],
+            category: "casino".to_string(),
+            confidence: 0.85,
+        }]);
+
+        // Old app should no longer match
+        assert!(bl.check_app(&app_old).is_none());
+
+        // New app should match
+        let mut app_new = AppIdentifier::empty(Platform::Windows);
+        app_new.package_name = Some("com.new.app".to_string());
+        assert!(bl.check_app(&app_new).is_some());
     }
 }

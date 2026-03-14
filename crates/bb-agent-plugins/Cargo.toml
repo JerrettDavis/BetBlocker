@@ -20,6 +20,8 @@ async-trait = "0.1"
 hickory-server = "0.25"
 hickory-resolver = "0.25"
 sha2 = "0.10"
+uuid = { workspace = true }
+strsim = "0.11"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

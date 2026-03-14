@@ -12,6 +12,7 @@ import {
   ListFilter,
   BarChart3,
   Shield,
+  Building2,
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/devices', label: 'Devices', icon: Monitor },
   { href: '/partners', label: 'Partners', icon: Users },
   { href: '/partner-dashboard', label: 'Partner Dashboard', icon: HandHeart, partnerOnly: true },
+  { href: '/organizations', label: 'Organizations', icon: Building2 },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
 ];
 

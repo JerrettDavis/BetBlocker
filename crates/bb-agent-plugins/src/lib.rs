@@ -12,6 +12,7 @@
 //! This crate defines the plugin trait hierarchy (`BlockingPlugin`, `DnsBlockingPlugin`, etc.),
 //! supporting types, the blocklist engine, and the built-in DNS resolver and HOSTS file plugins.
 
+pub mod app_process;
 pub mod blocklist;
 pub mod traits;
 pub mod types;
@@ -29,5 +30,5 @@ pub use registry::{PluginInstance, PluginRegistry};
 pub use traits::{BlockingPlugin, DnsBlockingPlugin, AppBlockingPlugin, ContentBlockingPlugin};
 pub use types::{
     BlockDecision, BlockingLayer, PluginConfig, PluginError, PluginHealth,
-    AppIdentifier, AppMatch, ContentRules, ExtensionHealth,
+    AppIdentifier, AppMatch, AppMatchType, ContentRules, ExtensionHealth,
 };
