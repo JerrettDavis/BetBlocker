@@ -1,0 +1,19 @@
+[package]
+name = "bb-shim-linux"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = ["apparmor"]
+apparmor = []
+selinux = []
+ebpf = []
+
+[dependencies]
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+
+[lints]
+workspace = true

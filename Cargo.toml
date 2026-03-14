@@ -8,6 +8,13 @@ members = [
     "crates/bb-agent-core",
     "crates/bb-agent-plugins",
     "crates/bb-agent-linux",
+    "crates/bb-agent-windows",
+    "crates/bb-agent-macos",
+    "crates/bb-shim-windows",
+    "crates/bb-shim-macos",
+    "crates/bb-shim-linux",
+    "crates/bb-shim-android",
+    "crates/bb-shim-ios",
     "crates/bb-cli",
 ]
 # Default members excludes platform-specific agent crates on non-matching OS

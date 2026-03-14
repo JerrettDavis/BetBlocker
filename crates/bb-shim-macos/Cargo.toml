@@ -1,0 +1,20 @@
+[package]
+name = "bb-shim-macos"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = ["network-extension", "keychain-store", "pf-redirect"]
+network-extension = []
+keychain-store = []
+tamper-es = []
+pf-redirect = []
+
+[dependencies]
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+
+[lints]
+workspace = true
