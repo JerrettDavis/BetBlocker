@@ -8,6 +8,18 @@ bb-common = { path = "../bb-common" }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+tokio-cron-scheduler = "0.13"
+reqwest = { version = "0.12", features = ["rustls-tls", "json"] }
+scraper = "0.22"
+sqlx = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+anyhow = { workspace = true }
+async-trait = "0.1"
+governor = "0.8"
+thiserror = { workspace = true }
+url = "2"
 
 [lints]
 workspace = true

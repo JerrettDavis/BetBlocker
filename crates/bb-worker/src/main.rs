@@ -1,6 +1,56 @@
+mod discovery;
+mod scheduler;
+
+use std::sync::Arc;
+
+use scheduler::{AppContext, JobScheduler};
+use sqlx::postgres::PgPoolOptions;
+
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
     tracing::info!("BetBlocker Worker starting...");
-    // TODO: Background job processing
+
+    // ── Database ────────────────────────────────────────────────────────
+    let database_url =
+        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+    let db = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await?;
+
+    tracing::info!("connected to database");
+
+    // ── HTTP client ─────────────────────────────────────────────────────
+    let http = reqwest::Client::builder()
+        .user_agent("BetBlocker-Worker/0.1")
+        .build()?;
+
+    let ctx = Arc::new(AppContext { db, http });
+
+    // ── Scheduler ───────────────────────────────────────────────────────
+    let sched = JobScheduler::new().await?;
+
+    // Run discovery pipeline every 6 hours.
+    sched
+        .add_job(
+            "discovery_pipeline",
+            "0 0 */6 * * *",
+            Arc::clone(&ctx),
+            |ctx| async move {
+                if let Err(e) = discovery::DiscoveryPipeline::run_cycle(&ctx).await {
+                    tracing::error!(error = %e, "discovery pipeline failed");
+                }
+            },
+        )
+        .await?;
+
+    sched.start().await?;
+    tracing::info!("scheduler started – waiting for Ctrl-C");
+
+    tokio::signal::ctrl_c().await?;
+    tracing::info!("shutting down");
+
+    Ok(())
 }
