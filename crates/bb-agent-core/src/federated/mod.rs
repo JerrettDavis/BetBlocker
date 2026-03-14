@@ -57,6 +57,14 @@ pub enum FederatedError {
 
 // ── Report struct ────────────────────────────────────────────────────────────
 
+/// A batch of anonymized domain reports submitted by the agent.
+///
+/// This wrapper matches the `IngestReportRequest` expected by the API.
+#[derive(Debug, Serialize, Deserialize)]
+struct FederatedReportBatch {
+    pub reports: Vec<FederatedReport>,
+}
+
 /// A single anonymized domain report contributed by the agent.
 ///
 /// **Never** includes a device ID or account ID — this is a deliberate
@@ -232,7 +240,7 @@ impl FederatedReporter {
             })
             .collect();
 
-        let body = serde_json::to_vec(&reports)?;
+        let body = serde_json::to_vec(&FederatedReportBatch { reports: reports.clone() })?;
 
         self.api_client
             .post_raw("/v1/federated/reports", "application/json", body)
@@ -493,8 +501,9 @@ mod tests {
         let requests = server.received_requests().await.expect("requests");
         assert_eq!(requests.len(), 1);
         let body = &requests[0].body;
-        let reports: Vec<FederatedReport> =
+        let batch: FederatedReportBatch =
             serde_json::from_slice(body).expect("parse batch JSON");
+        let reports = batch.reports;
         assert_eq!(reports.len(), 2);
         let id0 = reports[0].batch_id;
         let id1 = reports[1].batch_id;
