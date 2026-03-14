@@ -24,6 +24,9 @@ rustls-pemfile = "2"
 backoff = { version = "0.4", features = ["tokio"] }
 zstd = "0.13"
 sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+uuid = { workspace = true, features = ["v4"] }
 aes-gcm = "0.10"
 hkdf = "0.12"
 base64 = "0.22"
@@ -33,7 +36,6 @@ hex-literal = "0.4"
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = "3"
-uuid = { workspace = true }
 wiremock = "0.6"
 
 [lints]

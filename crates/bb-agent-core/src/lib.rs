@@ -17,6 +17,7 @@ pub mod config;
 pub mod events;
 pub mod comms;
 pub mod tamper;
+pub mod federated;
 
 // Re-exports from bb-agent-plugins for convenience
 pub use bb_agent_plugins::blocklist;
