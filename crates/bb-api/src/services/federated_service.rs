@@ -18,7 +18,7 @@ pub const UNIQUE_REPORTER_THRESHOLD: i32 = 5;
 /// Insert a batch of federated reports and update the per-domain aggregate.
 ///
 /// For each report:
-///   1. Insert into `federated_reports` (skipping true duplicates by
+///   1. Insert into `federated_reports_v2` (skipping true duplicates by
 ///      `(domain, reporter_token, batch_id)`).
 ///   2. Upsert the `federated_aggregates` row, incrementing `unique_reporters`
 ///      and recomputing `avg_heuristic_score`.
@@ -28,7 +28,7 @@ pub async fn ingest(db: &PgPool, reports: Vec<ReportPayload>) -> Result<(), ApiE
     for report in &reports {
         // ── 1. Insert report row (idempotent on batch_id + reporter_token + domain) ──
         sqlx::query(
-            r#"INSERT INTO federated_reports
+            r#"INSERT INTO federated_reports_v2
                    (domain, reporter_token, heuristic_score, category_guess, reported_at, batch_id)
                VALUES ($1, $2, $3, $4, $5, $6)
                ON CONFLICT (domain, reporter_token, batch_id) DO NOTHING"#,
@@ -51,15 +51,15 @@ pub async fn ingest(db: &PgPool, reports: Vec<ReportPayload>) -> Result<(), ApiE
                     first_reported_at, last_reported_at, status)
                VALUES (
                    $1,
-                   (SELECT COUNT(DISTINCT reporter_token) FROM federated_reports WHERE domain = $1),
-                   (SELECT AVG(heuristic_score) FROM federated_reports WHERE domain = $1),
+                   (SELECT COUNT(DISTINCT reporter_token) FROM federated_reports_v2 WHERE domain = $1),
+                   (SELECT AVG(heuristic_score) FROM federated_reports_v2 WHERE domain = $1),
                    $2,
                    $2,
                    'collecting'::federated_aggregate_status
                )
                ON CONFLICT (domain) DO UPDATE SET
-                   unique_reporters  = (SELECT COUNT(DISTINCT reporter_token) FROM federated_reports WHERE domain = $1),
-                   avg_heuristic_score = (SELECT AVG(heuristic_score) FROM federated_reports WHERE domain = $1),
+                   unique_reporters  = (SELECT COUNT(DISTINCT reporter_token) FROM federated_reports_v2 WHERE domain = $1),
+                   avg_heuristic_score = (SELECT AVG(heuristic_score) FROM federated_reports_v2 WHERE domain = $1),
                    last_reported_at  = $2,
                    updated_at        = NOW()"#,
         )
