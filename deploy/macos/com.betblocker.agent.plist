@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.betblocker.agent</string>
+    <key>Program</key>
+    <string>/usr/local/bin/bb-agent-macos</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/bb-agent-macos</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/var/log/betblocker/agent.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/betblocker/agent.err.log</string>
+</dict>
+</plist>

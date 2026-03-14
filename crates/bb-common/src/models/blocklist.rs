@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::enums::{BlocklistEntryStatus, BlocklistSource, GamblingCategory};
+use crate::enums::{AppSignaturePlatform, BlocklistEntryStatus, BlocklistSource, GamblingCategory};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlocklistEntry {
@@ -46,6 +46,20 @@ pub struct BlocklistDelta {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlocklistDeltaEntry {
     pub domain: String,
+    pub category: GamblingCategory,
+    pub confidence: f64,
+}
+
+/// Delta entry for app signature changes (subset of AppSignature for sync).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppSignatureDeltaEntry {
+    pub public_id: Uuid,
+    pub name: String,
+    pub package_names: Vec<String>,
+    pub executable_names: Vec<String>,
+    pub cert_hashes: Vec<String>,
+    pub display_name_patterns: Vec<String>,
+    pub platforms: Vec<AppSignaturePlatform>,
     pub category: GamblingCategory,
     pub confidence: f64,
 }

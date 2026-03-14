@@ -36,6 +36,9 @@ pub struct ApiConfig {
     #[serde(default = "default_cors_origins")]
     pub cors_allowed_origins: Vec<String>,
 
+    /// Public base URL for generating external links (e.g., QR codes)
+    pub public_base_url: Option<String>,
+
     /// Whether billing endpoints are enabled
     #[serde(default)]
     pub billing_enabled: bool,

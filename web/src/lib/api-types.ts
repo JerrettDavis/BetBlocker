@@ -211,6 +211,46 @@ export interface OrgMember {
   joined_at: string;
 }
 
+export type AppSignatureStatus = 'active' | 'inactive' | 'pending_review';
+export type AppSignaturePlatform = 'windows' | 'macos' | 'linux' | 'android' | 'ios' | 'all';
+
+export interface EnrollmentToken {
+  id: number;
+  public_id: string;
+  organization_id: string;
+  label: string | null;
+  max_uses: number | null;
+  uses_count: number;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export interface OrgDevice {
+  id: number;
+  organization_id: string;
+  device_id: number;
+  assigned_by: number | null;
+  assigned_at: string;
+}
+
+export interface AppSignature {
+  id: string;
+  name: string;
+  package_names: string[];
+  executable_names: string[];
+  cert_hashes: string[];
+  display_name_patterns: string[];
+  platforms: AppSignaturePlatform[];
+  category: BlocklistCategory;
+  status: AppSignatureStatus;
+  confidence: number;
+  source: BlocklistSource;
+  evidence_url: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ReviewQueueItem {
   domain: string;
   report_count: number;

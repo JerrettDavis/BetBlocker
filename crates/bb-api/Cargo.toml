@@ -30,6 +30,8 @@ sha2 = "0.10"
 rand = "0.9"
 base64 = "0.22"
 redis = { version = "0.27", features = ["tokio-comp"] }
+qrcode = "0.14"
+image = "0.25"
 
 # Optional billing dependency
 stripe-rust = { version = "0.38", optional = true, package = "async-stripe", default-features = false, features = ["runtime-tokio-hyper"] }

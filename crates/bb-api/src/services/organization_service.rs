@@ -537,6 +537,105 @@ pub async fn remove_member(
 }
 
 // ---------------------------------------------------------------------------
+// Device assignment
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, sqlx::FromRow, serde::Serialize)]
+pub struct OrgDeviceRow {
+    pub id: i64,
+    pub organization_id: i64,
+    pub device_id: i64,
+    pub assigned_by: Option<i64>,
+    pub assigned_at: DateTime<Utc>,
+}
+
+/// Assign a device to an organization.
+pub async fn assign_device(
+    db: &PgPool,
+    org_id: i64,
+    device_id: i64,
+    assigned_by: i64,
+) -> Result<OrgDeviceRow, ApiError> {
+    // Verify the device exists
+    let _device = sqlx::query_scalar::<_, i64>("SELECT id FROM devices WHERE id = $1")
+        .bind(device_id)
+        .fetch_optional(db)
+        .await?
+        .ok_or(ApiError::NotFound {
+            code: "DEVICE_NOT_FOUND".into(),
+            message: "Device not found".into(),
+        })?;
+
+    let row = sqlx::query_as::<_, OrgDeviceRow>(
+        r#"INSERT INTO organization_devices (organization_id, device_id, assigned_by)
+           VALUES ($1, $2, $3)
+           RETURNING id, organization_id, device_id, assigned_by, assigned_at"#,
+    )
+    .bind(org_id)
+    .bind(device_id)
+    .bind(assigned_by)
+    .fetch_one(db)
+    .await?;
+
+    Ok(row)
+}
+
+/// Unassign a device from an organization.
+pub async fn unassign_device(
+    db: &PgPool,
+    org_id: i64,
+    device_id: i64,
+) -> Result<(), ApiError> {
+    let result = sqlx::query(
+        "DELETE FROM organization_devices WHERE organization_id = $1 AND device_id = $2",
+    )
+    .bind(org_id)
+    .bind(device_id)
+    .execute(db)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(ApiError::NotFound {
+            code: "DEVICE_NOT_ASSIGNED".into(),
+            message: "Device is not assigned to this organization".into(),
+        });
+    }
+
+    Ok(())
+}
+
+/// List devices assigned to an organization.
+pub async fn list_org_devices(
+    db: &PgPool,
+    org_id: i64,
+    limit: i64,
+    offset: i64,
+) -> Result<(Vec<OrgDeviceRow>, i64), ApiError> {
+    let rows = sqlx::query_as::<_, OrgDeviceRow>(
+        r#"SELECT od.id, od.organization_id, od.device_id, od.assigned_by, od.assigned_at
+           FROM organization_devices od
+           JOIN devices d ON d.id = od.device_id
+           WHERE od.organization_id = $1
+           ORDER BY od.assigned_at DESC
+           LIMIT $2 OFFSET $3"#,
+    )
+    .bind(org_id)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(db)
+    .await?;
+
+    let total = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM organization_devices WHERE organization_id = $1",
+    )
+    .bind(org_id)
+    .fetch_one(db)
+    .await?;
+
+    Ok((rows, total))
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
     Json,
 };
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
@@ -10,7 +11,7 @@ use uuid::Uuid;
 use crate::error::ApiError;
 use crate::extractors::{AuthenticatedAccount, Pagination};
 use crate::response::{ApiResponse, PaginatedResponse};
-use crate::services::{account_service, organization_service};
+use crate::services::{account_service, enrollment_token_service, organization_service};
 use crate::state::AppState;
 
 // ---------------------------------------------------------------------------
@@ -41,6 +42,21 @@ pub struct InviteMemberRequest {
 #[derive(Debug, Deserialize)]
 pub struct UpdateMemberRoleRequest {
     pub role: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AssignDeviceRequest {
+    pub device_id: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateTokenRequest {
+    pub label: Option<String>,
+    pub protection_config: serde_json::Value,
+    pub reporting_config: serde_json::Value,
+    pub unenrollment_policy: serde_json::Value,
+    pub max_uses: Option<i32>,
+    pub expires_at: Option<DateTime<Utc>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -396,4 +412,337 @@ pub async fn remove_member(
         "organization_id": org.public_id.to_string(),
         "account_id": member_id.to_string(),
     })))
+}
+
+// ---------------------------------------------------------------------------
+// POST /v1/organizations/{id}/devices
+// ---------------------------------------------------------------------------
+
+pub async fn assign_device(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path(org_id): Path<Uuid>,
+    Json(req): Json<AssignDeviceRequest>,
+) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require admin+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
+
+    let device = organization_service::assign_device(
+        &state.db,
+        org.id,
+        req.device_id,
+        caller.id,
+    )
+    .await?;
+
+    tracing::info!(org_id = org.id, device_id = req.device_id, "Device assigned to organization");
+
+    Ok(ApiResponse::created(json!({
+        "id": device.id,
+        "organization_id": org.public_id.to_string(),
+        "device_id": device.device_id,
+        "assigned_by": device.assigned_by,
+        "assigned_at": device.assigned_at.to_rfc3339(),
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /v1/organizations/{id}/devices/{device_id}
+// ---------------------------------------------------------------------------
+
+pub async fn unassign_device(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path((org_id, device_id)): Path<(Uuid, i64)>,
+) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require admin+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
+
+    organization_service::unassign_device(&state.db, org.id, device_id).await?;
+
+    tracing::info!(org_id = org.id, device_id = device_id, "Device unassigned from organization");
+
+    Ok(ApiResponse::ok(json!({
+        "deleted": true,
+        "organization_id": org.public_id.to_string(),
+        "device_id": device_id,
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/organizations/{id}/devices
+// ---------------------------------------------------------------------------
+
+pub async fn list_org_devices(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path(org_id): Path<Uuid>,
+    pagination: Pagination,
+) -> Result<PaginatedResponse<serde_json::Value>, ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require member+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "member").await?;
+
+    let (devices, total) = organization_service::list_org_devices(
+        &state.db,
+        org.id,
+        pagination.per_page,
+        pagination.offset,
+    )
+    .await?;
+
+    let data: Vec<serde_json::Value> = devices
+        .iter()
+        .map(|d| {
+            json!({
+                "id": d.id,
+                "organization_id": org.public_id.to_string(),
+                "device_id": d.device_id,
+                "assigned_by": d.assigned_by,
+                "assigned_at": d.assigned_at.to_rfc3339(),
+            })
+        })
+        .collect();
+
+    Ok(PaginatedResponse::new(
+        data,
+        total,
+        pagination.page,
+        pagination.per_page,
+    ))
+}
+
+// ---------------------------------------------------------------------------
+// POST /v1/organizations/{id}/tokens
+// ---------------------------------------------------------------------------
+
+pub async fn create_token(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path(org_id): Path<Uuid>,
+    Json(req): Json<CreateTokenRequest>,
+) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require admin+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
+
+    let token = enrollment_token_service::create_enrollment_token(
+        &state.db,
+        org.id,
+        caller.id,
+        req.label.as_deref(),
+        req.protection_config,
+        req.reporting_config,
+        req.unenrollment_policy,
+        req.max_uses,
+        req.expires_at,
+    )
+    .await?;
+
+    tracing::info!(org_id = org.id, token_id = token.id, "Enrollment token created");
+
+    Ok(ApiResponse::created(json!({
+        "id": token.id,
+        "public_id": token.public_id.to_string(),
+        "organization_id": org.public_id.to_string(),
+        "label": token.label,
+        "max_uses": token.max_uses,
+        "uses_count": token.uses_count,
+        "expires_at": token.expires_at.map(|t| t.to_rfc3339()),
+        "created_at": token.created_at.to_rfc3339(),
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/organizations/{id}/tokens
+// ---------------------------------------------------------------------------
+
+pub async fn list_tokens(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path(org_id): Path<Uuid>,
+    pagination: Pagination,
+) -> Result<PaginatedResponse<serde_json::Value>, ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require admin+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
+
+    let (tokens, total) = enrollment_token_service::list_enrollment_tokens(
+        &state.db,
+        org.id,
+        pagination.per_page,
+        pagination.offset,
+    )
+    .await?;
+
+    let data: Vec<serde_json::Value> = tokens
+        .iter()
+        .map(|t| {
+            json!({
+                "id": t.id,
+                "public_id": t.public_id.to_string(),
+                "organization_id": org.public_id.to_string(),
+                "label": t.label,
+                "max_uses": t.max_uses,
+                "uses_count": t.uses_count,
+                "expires_at": t.expires_at.map(|ts| ts.to_rfc3339()),
+                "created_at": t.created_at.to_rfc3339(),
+            })
+        })
+        .collect();
+
+    Ok(PaginatedResponse::new(
+        data,
+        total,
+        pagination.page,
+        pagination.per_page,
+    ))
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /v1/organizations/{id}/tokens/{token_id}
+// ---------------------------------------------------------------------------
+
+pub async fn revoke_token(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path((org_id, token_id)): Path<(Uuid, i64)>,
+) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require admin+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
+
+    // Verify token belongs to org
+    let _token = enrollment_token_service::get_enrollment_token_by_id(
+        &state.db,
+        token_id,
+        org.id,
+    )
+    .await
+    .map_err(|_| ApiError::NotFound {
+        code: "TOKEN_NOT_FOUND".into(),
+        message: "Enrollment token not found in this organization".into(),
+    })?;
+
+    enrollment_token_service::revoke_enrollment_token(&state.db, token_id).await?;
+
+    tracing::info!(org_id = org.id, token_id = token_id, "Enrollment token revoked");
+
+    Ok(ApiResponse::ok(json!({
+        "revoked": true,
+        "token_id": token_id,
+        "organization_id": org.public_id.to_string(),
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// POST /v1/enroll/{token_public_id}
+// ---------------------------------------------------------------------------
+
+pub async fn redeem_token(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path(token_public_id): Path<Uuid>,
+    Json(req): Json<AssignDeviceRequest>,
+) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
+    let _caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+
+    let token = enrollment_token_service::redeem_enrollment_token(
+        &state.db,
+        token_public_id,
+        req.device_id,
+    )
+    .await?;
+
+    tracing::info!(
+        token_id = token.id,
+        device_id = req.device_id,
+        "Enrollment token redeemed"
+    );
+
+    Ok(ApiResponse::created(json!({
+        "redeemed": true,
+        "token_public_id": token_public_id.to_string(),
+        "organization_id": token.organization_id,
+        "device_id": req.device_id,
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/organizations/{id}/tokens/{token_id}/qr
+// ---------------------------------------------------------------------------
+
+pub async fn get_token_qr(
+    State(state): State<AppState>,
+    auth: AuthenticatedAccount,
+    Path((org_id, token_id)): Path<(Uuid, i64)>,
+) -> Result<axum::response::Response, ApiError> {
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let org = organization_service::get_organization(&state.db, org_id).await?;
+
+    // Require admin+
+    organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
+
+    // Verify token belongs to org
+    let token = enrollment_token_service::get_enrollment_token_by_id(
+        &state.db,
+        token_id,
+        org.id,
+    )
+    .await
+    .map_err(|_| ApiError::NotFound {
+        code: "TOKEN_NOT_FOUND".into(),
+        message: "Enrollment token not found in this organization".into(),
+    })?;
+
+    // Build the enrollment URL
+    let enroll_url = format!(
+        "{}/v1/enroll/{}",
+        state.config.public_base_url.as_deref().unwrap_or("https://api.betblocker.org"),
+        token.public_id
+    );
+
+    // Generate QR code
+    let qr = qrcode::QrCode::new(enroll_url.as_bytes()).map_err(|e| ApiError::Internal {
+        message: format!("Failed to generate QR code: {e}"),
+    })?;
+
+    let img = qr.render::<image::Luma<u8>>().quiet_zone(true).build();
+
+    let mut png_bytes: Vec<u8> = Vec::new();
+    let encoder = image::codecs::png::PngEncoder::new(&mut png_bytes);
+    image::ImageEncoder::write_image(
+        encoder,
+        &img,
+        img.width(),
+        img.height(),
+        image::ExtendedColorType::L8,
+    )
+    .map_err(|e| ApiError::Internal {
+        message: format!("Failed to encode PNG: {e}"),
+    })?;
+
+    Ok(axum::response::Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "image/png")
+        .header(
+            "Content-Disposition",
+            format!("inline; filename=\"token-{}.png\"", token.public_id),
+        )
+        .body(axum::body::Body::from(png_bytes))
+        .unwrap())
 }

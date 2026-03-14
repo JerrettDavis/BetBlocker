@@ -1,13 +1,16 @@
 import type {
   Account,
   ApiResponse,
+  AppSignature,
   AuthTokens,
   BlocklistEntry,
   Device,
   Enrollment,
+  EnrollmentToken,
   Event,
   EventSummary,
   LoginResponse,
+  OrgDevice,
   OrgMember,
   OrgMemberRole,
   Organization,
@@ -342,6 +345,70 @@ export const organizations = {
       `/organizations/${orgId}/members/${memberId}`,
     );
   },
+
+  // Device assignment
+  assignDevice(orgId: string, data: { device_id: number }) {
+    return request<ApiResponse<OrgDevice>>('POST', `/organizations/${orgId}/devices`, data);
+  },
+
+  listDevices(orgId: string, params?: { page?: number; per_page?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString();
+    return request<PaginatedResponse<OrgDevice>>(
+      'GET',
+      `/organizations/${orgId}/devices${query ? `?${query}` : ''}`,
+    );
+  },
+
+  unassignDevice(orgId: string, deviceId: number) {
+    return request<ApiResponse<{ deleted: boolean; organization_id: string; device_id: number }>>(
+      'DELETE',
+      `/organizations/${orgId}/devices/${deviceId}`,
+    );
+  },
+
+  // Enrollment tokens
+  createToken(
+    orgId: string,
+    data: {
+      label?: string;
+      protection_config: Record<string, unknown>;
+      reporting_config: Record<string, unknown>;
+      unenrollment_policy: Record<string, unknown>;
+      max_uses?: number;
+      expires_at?: string;
+    },
+  ) {
+    return request<ApiResponse<EnrollmentToken>>(
+      'POST',
+      `/organizations/${orgId}/tokens`,
+      data,
+    );
+  },
+
+  listTokens(orgId: string, params?: { page?: number; per_page?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString();
+    return request<PaginatedResponse<EnrollmentToken>>(
+      'GET',
+      `/organizations/${orgId}/tokens${query ? `?${query}` : ''}`,
+    );
+  },
+
+  revokeToken(orgId: string, tokenId: number) {
+    return request<ApiResponse<{ revoked: boolean; token_id: number; organization_id: string }>>(
+      'DELETE',
+      `/organizations/${orgId}/tokens/${tokenId}`,
+    );
+  },
+
+  getTokenQrUrl(orgId: string, tokenId: number): string {
+    return `${API_BASE_URL}/organizations/${orgId}/tokens/${tokenId}/qr`;
+  },
 };
 
 // --- Blocklist Admin ---
@@ -425,6 +492,95 @@ export const blocklist = {
       'POST',
       `/admin/blocklist/review-queue/${encodeURIComponent(domain)}/resolve`,
       data,
+    );
+  },
+};
+
+// --- Enrollment (token redemption) ---
+
+export const enroll = {
+  redeem(tokenPublicId: string, data: { device_id: number }) {
+    return request<
+      ApiResponse<{
+        redeemed: boolean;
+        token_public_id: string;
+        organization_id: number;
+        device_id: number;
+      }>
+    >('POST', `/enroll/${tokenPublicId}`, data);
+  },
+};
+
+// --- Admin App Signatures ---
+
+export const adminAppSignatures = {
+  create(data: {
+    name: string;
+    package_names?: string[];
+    executable_names?: string[];
+    cert_hashes?: string[];
+    display_name_patterns?: string[];
+    platforms?: string[];
+    category: string;
+    status?: string;
+    confidence?: number;
+    source?: string;
+    evidence_url?: string;
+    tags?: string[];
+  }) {
+    return request<ApiResponse<AppSignature>>('POST', '/admin/app-signatures', data);
+  },
+
+  list(params?: {
+    search?: string;
+    category?: string;
+    platform?: string;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.search) qs.set('search', params.search);
+    if (params?.category) qs.set('category', params.category);
+    if (params?.platform) qs.set('platform', params.platform);
+    if (params?.status) qs.set('status', params.status);
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString();
+    return request<PaginatedResponse<AppSignature>>(
+      'GET',
+      `/admin/app-signatures${query ? `?${query}` : ''}`,
+    );
+  },
+
+  get(id: string) {
+    return request<ApiResponse<AppSignature>>('GET', `/admin/app-signatures/${id}`);
+  },
+
+  update(
+    id: string,
+    data: {
+      name?: string;
+      package_names?: string[];
+      executable_names?: string[];
+      cert_hashes?: string[];
+      display_name_patterns?: string[];
+      platforms?: string[];
+      category?: string;
+      status?: string;
+      confidence?: number;
+      source?: string;
+      evidence_url?: string;
+      tags?: string[];
+    },
+  ) {
+    return request<ApiResponse<AppSignature>>('PUT', `/admin/app-signatures/${id}`, data);
+  },
+
+  delete(id: string) {
+    return request<ApiResponse<{ deleted: boolean; id: string }>>(
+      'DELETE',
+      `/admin/app-signatures/${id}`,
     );
   },
 };

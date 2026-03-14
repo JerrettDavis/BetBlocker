@@ -1,3 +1,4 @@
+pub mod admin_app_signatures;
 pub mod admin_blocklist;
 pub mod accounts;
 pub mod auth;
@@ -100,6 +101,26 @@ pub fn router(state: AppState) -> Router {
             "/{id}/members/{member_id}",
             patch(organizations::update_member_role)
                 .delete(organizations::remove_member),
+        )
+        .route(
+            "/{id}/devices",
+            post(organizations::assign_device).get(organizations::list_org_devices),
+        )
+        .route(
+            "/{id}/devices/{device_id}",
+            delete(organizations::unassign_device),
+        )
+        .route(
+            "/{id}/tokens",
+            post(organizations::create_token).get(organizations::list_tokens),
+        )
+        .route(
+            "/{id}/tokens/{token_id}",
+            delete(organizations::revoke_token),
+        )
+        .route(
+            "/{id}/tokens/{token_id}/qr",
+            get(organizations::get_token_qr),
         );
 
     // Partner routes (authenticated)
@@ -114,6 +135,20 @@ pub fn router(state: AppState) -> Router {
         .route("/version", get(blocklist::get_version))
         .route("/delta", get(blocklist::get_delta))
         .route("/report", post(blocklist::submit_report));
+
+    // Admin app signature routes (admin only)
+    let admin_app_signature_routes = Router::new()
+        .route(
+            "/",
+            post(admin_app_signatures::create_signature)
+                .get(admin_app_signatures::list_signatures),
+        )
+        .route(
+            "/{id}",
+            get(admin_app_signatures::get_signature)
+                .put(admin_app_signatures::update_signature)
+                .delete(admin_app_signatures::delete_signature),
+        );
 
     // Admin blocklist routes (admin only)
     let admin_blocklist_routes = Router::new()
@@ -136,6 +171,10 @@ pub fn router(state: AppState) -> Router {
         .route("/", post(events::batch_ingest).get(events::query_events))
         .route("/summary", get(events::event_summary));
 
+    // Enroll route (authenticated, standalone)
+    let enroll_routes = Router::new()
+        .route("/{token_public_id}", post(organizations::redeem_token));
+
     // Assemble the API under /v1
     let mut api = Router::new()
         .nest("/v1/auth", auth_routes)
@@ -146,6 +185,8 @@ pub fn router(state: AppState) -> Router {
         .nest("/v1/partners", partner_routes)
         .nest("/v1/blocklist", blocklist_routes)
         .nest("/v1/admin/blocklist", admin_blocklist_routes)
+        .nest("/v1/admin/app-signatures", admin_app_signature_routes)
+        .nest("/v1/enroll", enroll_routes)
         .nest("/v1/events", event_routes);
 
     // Conditionally register billing routes
