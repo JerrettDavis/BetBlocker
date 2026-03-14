@@ -1,0 +1,31 @@
+# vim:syntax=apparmor
+# AppArmor deny profile for BetBlocker data files.
+# This companion profile prevents any unconfined process from
+# modifying BetBlocker's data, logs, or certificate material.
+# Only the betblocker-agent profile (and root via apparmor_parser)
+# may write to these paths.
+
+#include <tunables/global>
+
+profile betblocker-files {
+  # ── Deny all writes to BetBlocker data from unconfined processes ──
+
+  # Data directory
+  deny /var/lib/betblocker/ w,
+  deny /var/lib/betblocker/** wl,
+
+  # Log directory
+  deny /var/log/betblocker/ w,
+  deny /var/log/betblocker/** wl,
+
+  # Agent binary - prevent replacement
+  deny /usr/lib/betblocker/ w,
+  deny /usr/lib/betblocker/** wl,
+
+  # Certificate and key material
+  deny /var/lib/betblocker/certs/** wl,
+
+  # Deny removal of the AppArmor profile itself
+  deny /etc/apparmor.d/betblocker-agent w,
+  deny /etc/apparmor.d/betblocker-files w,
+}

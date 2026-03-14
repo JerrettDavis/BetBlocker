@@ -1,0 +1,44 @@
+# vim:syntax=apparmor
+# AppArmor profile for the BetBlocker agent daemon.
+# This profile confines the agent binary and grants it the minimum
+# privileges needed to manage nftables rules and its own data.
+
+#include <tunables/global>
+
+profile betblocker-agent /usr/lib/betblocker/bb-agent-linux {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+
+  # ── Agent binary ──────────────────────────────────────────────
+  /usr/lib/betblocker/bb-agent-linux mr,
+
+  # ── Data directory ────────────────────────────────────────────
+  /var/lib/betblocker/ rw,
+  /var/lib/betblocker/** rwk,
+
+  # ── Log directory ─────────────────────────────────────────────
+  /var/log/betblocker/ rw,
+  /var/log/betblocker/** rw,
+
+  # ── System reads ──────────────────────────────────────────────
+  /etc/machine-id r,
+  /proc/self/exe r,
+  /proc/sys/net/** r,
+
+  # ── Network access ───────────────────────────────────────────
+  network inet stream,
+  network inet dgram,
+  network inet6 stream,
+  network inet6 dgram,
+  network netlink raw,
+
+  # ── nftables management ──────────────────────────────────────
+  /usr/sbin/nft Ux,
+
+  # ── Anti-tampering ───────────────────────────────────────────
+  # Deny ptrace from other (unconfined) processes
+  deny ptrace (read, trace) peer=unconfined,
+
+  # ── Certificate and key material ─────────────────────────────
+  /var/lib/betblocker/certs/** rw,
+}
