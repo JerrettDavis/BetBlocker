@@ -30,7 +30,9 @@ export type EventType =
   | 'heartbeat'
   | 'agent_started'
   | 'agent_updated'
-  | 'blocklist_updated';
+  | 'blocklist_updated'
+  | 'app_detected'
+  | 'app_blocked';
 export type EventCategory =
   | 'dns'
   | 'app'
@@ -55,7 +57,7 @@ export type BlocklistSource = 'curated' | 'automated' | 'federated' | 'community
 export type BlocklistEntryStatus = 'pending_review' | 'active' | 'inactive' | 'rejected';
 export type PartnerStatus = 'pending' | 'active' | 'revoked';
 export type PartnerRole = 'accountability_partner' | 'therapist' | 'authority_rep';
-export type OrganizationType = 'family' | 'clinical' | 'enterprise' | 'government';
+export type OrganizationType = 'family' | 'therapy_practice' | 'court_program' | 'employer' | 'other';
 export type OrgMemberRole = 'owner' | 'admin' | 'member';
 
 // --- Models ---
@@ -261,8 +263,19 @@ export interface ReviewQueueItem {
   sample_context: Record<string, unknown>;
 }
 
-/** Alias for ReviewQueueItem — represents a discovery candidate awaiting review. */
-export type DiscoveryCandidate = ReviewQueueItem;
+/** A discovery pipeline candidate with full fields as returned by the Rust API. */
+export interface DiscoveryCandidate {
+  id: string;
+  domain: string;
+  source: string;
+  confidence_score: number;
+  classification: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'deferred';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface ReviewQueueFilters {
   status?: string;

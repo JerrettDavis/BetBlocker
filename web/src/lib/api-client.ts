@@ -684,14 +684,14 @@ export const analyticsApi = {
     if (params.period) qs.set('period', params.period);
     qs.set('from', params.from);
     qs.set('to', params.to);
-    return request<ApiResponse<TimeseriesResponse>>('GET', `/v1/analytics/timeseries?${qs}`);
+    return request<ApiResponse<TimeseriesResponse>>('GET', `/analytics/timeseries?${qs}`);
   },
 
   trends(params: { device_id: number; metrics?: string }) {
     const qs = new URLSearchParams();
     qs.set('device_id', String(params.device_id));
     if (params.metrics) qs.set('metrics', params.metrics);
-    return request<ApiResponse<TrendsResponse>>('GET', `/v1/analytics/trends?${qs}`);
+    return request<ApiResponse<TrendsResponse>>('GET', `/analytics/trends?${qs}`);
   },
 
   summary(params: { device_id: number; from: string; to: string }) {
@@ -699,7 +699,7 @@ export const analyticsApi = {
     qs.set('device_id', String(params.device_id));
     qs.set('from', params.from);
     qs.set('to', params.to);
-    return request<ApiResponse<AnalyticsSummary>>('GET', `/v1/analytics/summary?${qs}`);
+    return request<ApiResponse<AnalyticsSummary>>('GET', `/analytics/summary?${qs}`);
   },
 
   heatmap(params: { device_id: number; from: string; to: string }) {
@@ -707,7 +707,7 @@ export const analyticsApi = {
     qs.set('device_id', String(params.device_id));
     qs.set('from', params.from);
     qs.set('to', params.to);
-    return request<ApiResponse<HeatmapData>>('GET', `/v1/analytics/heatmap?${qs}`);
+    return request<ApiResponse<HeatmapData>>('GET', `/analytics/heatmap?${qs}`);
   },
 
   exportCsv(params: { device_id: number; from: string; to: string }): Promise<Blob> {
@@ -715,7 +715,7 @@ export const analyticsApi = {
     qs.set('device_id', String(params.device_id));
     qs.set('from', params.from);
     qs.set('to', params.to);
-    return requestBlob(`/v1/analytics/export/csv?${qs}`);
+    return requestBlob(`/analytics/export/csv?${qs}`);
   },
 
   exportPdf(params: { device_id: number; from: string; to: string }): Promise<Blob> {
@@ -723,6 +723,6 @@ export const analyticsApi = {
     qs.set('device_id', String(params.device_id));
     qs.set('from', params.from);
     qs.set('to', params.to);
-    return requestBlob(`/v1/analytics/export/pdf?${qs}`);
+    return requestBlob(`/analytics/export/pdf?${qs}`);
   },
 };
