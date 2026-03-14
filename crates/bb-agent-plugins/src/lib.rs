@@ -12,6 +12,7 @@
 //! This crate defines the plugin trait hierarchy (`BlockingPlugin`, `DnsBlockingPlugin`, etc.),
 //! supporting types, the blocklist engine, and the built-in DNS resolver and HOSTS file plugins.
 
+#[cfg(feature = "app-process")]
 pub mod app_process;
 pub mod blocklist;
 pub mod traits;

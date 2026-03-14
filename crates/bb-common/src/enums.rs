@@ -151,6 +151,10 @@ pub enum EventType {
     AgentStarted,
     AgentUpdated,
     BlocklistUpdated,
+    /// A blocked application was detected running on the device.
+    AppDetected,
+    /// A blocked application process was killed by the agent.
+    AppBlocked,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

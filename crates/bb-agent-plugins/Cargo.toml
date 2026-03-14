@@ -4,9 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = ["dns-resolver", "dns-hosts"]
+default = ["dns-resolver", "dns-hosts", "app-process"]
 dns-resolver = []
 dns-hosts = []
+app-process = []
 
 [dependencies]
 bb-common = { path = "../bb-common" }
