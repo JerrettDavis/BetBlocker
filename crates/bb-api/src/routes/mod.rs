@@ -91,6 +91,15 @@ pub fn router(state: AppState) -> Router {
             get(organizations::get_org)
                 .patch(organizations::update_org)
                 .delete(organizations::delete_org),
+        )
+        .route(
+            "/{id}/members",
+            post(organizations::invite_member).get(organizations::list_members),
+        )
+        .route(
+            "/{id}/members/{member_id}",
+            patch(organizations::update_member_role)
+                .delete(organizations::remove_member),
         );
 
     // Partner routes (authenticated)

@@ -8,6 +8,9 @@ import type {
   Event,
   EventSummary,
   LoginResponse,
+  OrgMember,
+  OrgMemberRole,
+  Organization,
   PaginatedResponse,
   Partner,
   PartnerPermissions,
@@ -268,6 +271,76 @@ export const partners = {
     return request<
       ApiResponse<{ id: string; status: string; affected_enrollments: unknown[] }>
     >('DELETE', `/partners/${id}`);
+  },
+};
+
+// --- Organizations ---
+
+export const organizations = {
+  create(data: { name: string; org_type: string }) {
+    return request<ApiResponse<Organization>>('POST', '/organizations', data);
+  },
+
+  list(params?: { page?: number; per_page?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString();
+    return request<PaginatedResponse<Organization>>(
+      'GET',
+      `/organizations${query ? `?${query}` : ''}`,
+    );
+  },
+
+  get(id: string) {
+    return request<ApiResponse<Organization>>('GET', `/organizations/${id}`);
+  },
+
+  update(
+    id: string,
+    data: {
+      name?: string;
+      org_type?: string;
+      default_protection_config?: Record<string, unknown>;
+      default_reporting_config?: Record<string, unknown>;
+      default_unenrollment_policy?: Record<string, unknown>;
+    },
+  ) {
+    return request<ApiResponse<Organization>>('PATCH', `/organizations/${id}`, data);
+  },
+
+  delete(id: string) {
+    return request<ApiResponse<{ deleted: boolean; id: string }>>('DELETE', `/organizations/${id}`);
+  },
+
+  inviteMember(orgId: string, data: { email: string; role: OrgMemberRole }) {
+    return request<ApiResponse<OrgMember>>('POST', `/organizations/${orgId}/members`, data);
+  },
+
+  listMembers(orgId: string, params?: { page?: number; per_page?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString();
+    return request<PaginatedResponse<OrgMember>>(
+      'GET',
+      `/organizations/${orgId}/members${query ? `?${query}` : ''}`,
+    );
+  },
+
+  updateMemberRole(orgId: string, memberId: string, data: { role: OrgMemberRole }) {
+    return request<ApiResponse<OrgMember>>(
+      'PATCH',
+      `/organizations/${orgId}/members/${memberId}`,
+      data,
+    );
+  },
+
+  removeMember(orgId: string, memberId: string) {
+    return request<ApiResponse<{ deleted: boolean; organization_id: string; account_id: string }>>(
+      'DELETE',
+      `/organizations/${orgId}/members/${memberId}`,
+    );
   },
 };
 

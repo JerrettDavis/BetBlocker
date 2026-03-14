@@ -55,6 +55,8 @@ export type BlocklistSource = 'curated' | 'automated' | 'federated' | 'community
 export type BlocklistEntryStatus = 'pending_review' | 'active' | 'inactive' | 'rejected';
 export type PartnerStatus = 'pending' | 'active' | 'revoked';
 export type PartnerRole = 'accountability_partner' | 'therapist' | 'authority_rep';
+export type OrganizationType = 'family' | 'clinical' | 'enterprise' | 'government';
+export type OrgMemberRole = 'owner' | 'admin' | 'member';
 
 // --- Models ---
 
@@ -184,6 +186,29 @@ export interface Partner {
   accepted_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  org_type: OrganizationType;
+  owner_id: string;
+  default_protection_config: Record<string, unknown> | null;
+  default_reporting_config: Record<string, unknown> | null;
+  default_unenrollment_policy: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrgMember {
+  id: number;
+  organization_id: string;
+  account_id: string;
+  role: OrgMemberRole;
+  display_name: string | null;
+  email: string | null;
+  invited_by: number | null;
+  joined_at: string;
 }
 
 export interface ReviewQueueItem {
