@@ -11,6 +11,9 @@ pub struct Organization {
     pub name: String,
     pub org_type: OrganizationType,
     pub owner_id: i64,
+    pub default_protection_config: Option<serde_json::Value>,
+    pub default_reporting_config: Option<serde_json::Value>,
+    pub default_unenrollment_policy: Option<serde_json::Value>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

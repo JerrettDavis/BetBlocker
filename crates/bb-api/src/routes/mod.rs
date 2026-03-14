@@ -7,6 +7,7 @@ pub mod devices;
 pub mod enrollments;
 pub mod events;
 pub mod health;
+pub mod organizations;
 pub mod partners;
 
 use axum::{
@@ -82,6 +83,16 @@ pub fn router(state: AppState) -> Router {
             post(enrollments::approve_unenroll),
         );
 
+    // Organization routes (authenticated)
+    let organization_routes = Router::new()
+        .route("/", post(organizations::create_org).get(organizations::list_orgs))
+        .route(
+            "/{id}",
+            get(organizations::get_org)
+                .patch(organizations::update_org)
+                .delete(organizations::delete_org),
+        );
+
     // Partner routes (authenticated)
     let partner_routes = Router::new()
         .route("/invite", post(partners::invite_partner))
@@ -122,6 +133,7 @@ pub fn router(state: AppState) -> Router {
         .nest("/v1/accounts", account_routes)
         .nest("/v1/devices", device_routes)
         .nest("/v1/enrollments", enrollment_routes)
+        .nest("/v1/organizations", organization_routes)
         .nest("/v1/partners", partner_routes)
         .nest("/v1/blocklist", blocklist_routes)
         .nest("/v1/admin/blocklist", admin_blocklist_routes)
