@@ -1,0 +1,82 @@
+## <summary>BetBlocker SELinux Interface Definitions</summary>
+##
+## <desc>
+## Provides interface macros for other policy modules to interact
+## with the BetBlocker domain and file types.
+## </desc>
+
+########################################
+## <summary>
+##   Execute the BetBlocker agent in the betblocker_t domain.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to transition into betblocker_t.
+##   </summary>
+## </param>
+#
+interface(`betblocker_domtrans',`
+    gen_require(`
+        type betblocker_t, betblocker_exec_t;
+    ')
+
+    corecmd_search_bin($1)
+    domtrans_pattern($1, betblocker_exec_t, betblocker_t)
+')
+
+########################################
+## <summary>
+##   Read BetBlocker data files.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to read BetBlocker data files.
+##   </summary>
+## </param>
+#
+interface(`betblocker_read_var_files',`
+    gen_require(`
+        type betblocker_var_t;
+    ')
+
+    files_search_var_lib($1)
+    read_files_pattern($1, betblocker_var_t, betblocker_var_t)
+')
+
+########################################
+## <summary>
+##   Read BetBlocker log files.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to read BetBlocker log files.
+##   </summary>
+## </param>
+#
+interface(`betblocker_read_log_files',`
+    gen_require(`
+        type betblocker_log_t;
+    ')
+
+    logging_search_logs($1)
+    read_files_pattern($1, betblocker_log_t, betblocker_log_t)
+')
+
+########################################
+## <summary>
+##   Allow a domain to manage BetBlocker data files.
+## </summary>
+## <param name="domain">
+##   <summary>
+##     Domain allowed to manage BetBlocker data.
+##   </summary>
+## </param>
+#
+interface(`betblocker_manage_var_files',`
+    gen_require(`
+        type betblocker_var_t;
+    ')
+
+    files_search_var_lib($1)
+    manage_files_pattern($1, betblocker_var_t, betblocker_var_t)
+')

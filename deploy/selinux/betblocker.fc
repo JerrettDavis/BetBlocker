@@ -1,0 +1,13 @@
+# BetBlocker SELinux File Contexts
+#
+# Maps filesystem paths to SELinux types for the BetBlocker agent.
+
+# Agent binary
+/usr/lib/betblocker(/.*)?               gen_context(system_u:object_r:betblocker_exec_t,s0)
+/usr/lib/betblocker/bb-agent-linux      --  gen_context(system_u:object_r:betblocker_exec_t,s0)
+
+# Data directory
+/var/lib/betblocker(/.*)?               gen_context(system_u:object_r:betblocker_var_t,s0)
+
+# Log directory
+/var/log/betblocker(/.*)?               gen_context(system_u:object_r:betblocker_log_t,s0)

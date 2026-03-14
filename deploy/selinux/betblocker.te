@@ -1,0 +1,118 @@
+## BetBlocker SELinux Type Enforcement Policy
+##
+## Confines the BetBlocker agent daemon and protects its data files
+## from modification by other confined domains.
+
+policy_module(betblocker, 1.0.0)
+
+########################################
+## Type declarations
+########################################
+
+## Domain type for the BetBlocker agent process.
+type betblocker_t;
+
+## Executable type for the BetBlocker agent binary.
+type betblocker_exec_t;
+
+## Data file type for /var/lib/betblocker.
+type betblocker_var_t;
+
+## Log file type for /var/log/betblocker.
+type betblocker_log_t;
+
+########################################
+## Domain transition
+########################################
+
+## Allow init_t (systemd) to transition into betblocker_t
+## when executing the betblocker_exec_t binary.
+init_daemon_domain(betblocker_t, betblocker_exec_t)
+
+########################################
+## Process rules
+########################################
+
+## Allow betblocker_t basic process operations.
+allow betblocker_t self:process { fork signal_perms setcap setrlimit };
+
+## Allow betblocker_t to use file descriptors.
+allow betblocker_t self:fifo_file rw_fifo_file_perms;
+allow betblocker_t self:unix_stream_socket create_stream_socket_perms;
+allow betblocker_t self:unix_dgram_socket create_socket_perms;
+
+########################################
+## Data file access (/var/lib/betblocker)
+########################################
+
+## Allow betblocker_t to manage its data directory and files.
+manage_dirs_pattern(betblocker_t, betblocker_var_t, betblocker_var_t)
+manage_files_pattern(betblocker_t, betblocker_var_t, betblocker_var_t)
+files_var_lib_filetrans(betblocker_t, betblocker_var_t, { dir file })
+
+########################################
+## Log file access (/var/log/betblocker)
+########################################
+
+## Allow betblocker_t to create and write log files.
+manage_dirs_pattern(betblocker_t, betblocker_log_t, betblocker_log_t)
+manage_files_pattern(betblocker_t, betblocker_log_t, betblocker_log_t)
+logging_log_filetrans(betblocker_t, betblocker_log_t, { dir file })
+
+########################################
+## Network access
+########################################
+
+## Allow betblocker_t to bind and connect on TCP/UDP sockets
+## (DNS resolver and API communication).
+allow betblocker_t self:tcp_socket create_stream_socket_perms;
+allow betblocker_t self:udp_socket create_socket_perms;
+corenet_tcp_bind_generic_node(betblocker_t)
+corenet_udp_bind_generic_node(betblocker_t)
+corenet_tcp_connect_http_port(betblocker_t)
+corenet_tcp_connect_dns_port(betblocker_t)
+corenet_tcp_bind_dns_port(betblocker_t)
+corenet_udp_bind_dns_port(betblocker_t)
+
+## Allow DNS name resolution.
+sysnet_dns_name_resolve(betblocker_t)
+
+########################################
+## nftables execution
+########################################
+
+## Allow betblocker_t to execute nft for firewall rule management.
+allow betblocker_t self:netlink_netfilter_socket create_socket_perms;
+allow betblocker_t self:capability { net_admin net_raw };
+
+## Execute nft binary.
+corecmd_exec_bin(betblocker_t)
+
+########################################
+## System access
+########################################
+
+## Read system state (network config, etc.)
+kernel_read_system_state(betblocker_t)
+kernel_read_network_state(betblocker_t)
+
+## Read generic files in /etc for configuration.
+files_read_etc_files(betblocker_t)
+
+## Use shared libraries.
+libs_use_ld_so(betblocker_t)
+libs_use_shared_libs(betblocker_t)
+
+## Read locale data.
+miscfiles_read_localization(betblocker_t)
+
+########################################
+## Deny other domains
+########################################
+
+## Prevent other confined domains from writing to BetBlocker data files.
+neverallow ~{ betblocker_t init_t } betblocker_var_t:file { write append };
+neverallow ~{ betblocker_t init_t } betblocker_var_t:dir { write add_name remove_name };
+
+## Prevent other domains from writing to the agent binary.
+neverallow ~{ betblocker_t init_t } betblocker_exec_t:file { write append };
