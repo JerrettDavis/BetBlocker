@@ -22,11 +22,13 @@ impl TestApp {
     pub async fn spawn() -> Self {
         let db_name = format!("betblocker_test_{}", Uuid::new_v4().simple());
         let admin_db_url = std::env::var("TEST_DATABASE_URL")
+            .or_else(|_| std::env::var("DATABASE_URL"))
             .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/postgres".into());
 
         // Flush Redis to clear stale lockout keys from previous test runs
-        let redis_url =
-            std::env::var("TEST_REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".into());
+        let redis_url = std::env::var("TEST_REDIS_URL")
+            .or_else(|_| std::env::var("REDIS_URL"))
+            .unwrap_or_else(|_| "redis://localhost:6379".into());
         if let Ok(redis_client) = redis::Client::open(redis_url.as_str()) {
             if let Ok(mut conn) = redis_client.get_multiplexed_async_connection().await {
                 let _: Result<(), _> = redis::cmd("FLUSHDB").query_async(&mut conn).await;
@@ -126,6 +128,7 @@ impl TestApp {
         let config = ApiConfig {
             database_url: db_url,
             redis_url: std::env::var("TEST_REDIS_URL")
+                .or_else(|_| std::env::var("REDIS_URL"))
                 .unwrap_or_else(|_| "redis://localhost:6379".into()),
             host: "127.0.0.1".into(),
             port: 0, // OS-assigned
