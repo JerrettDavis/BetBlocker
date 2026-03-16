@@ -43,8 +43,10 @@ pub fn ensure_directories() -> Result<(), std::io::Error> {
 
 /// Get the current process UID (for nftables loop prevention).
 #[cfg(unix)]
+#[allow(unsafe_code)]
 pub fn current_uid() -> u32 {
-    // Safety: getuid() is always safe to call
+    // Safety: getuid() is always safe to call — it has no preconditions,
+    // takes no arguments, and simply returns the real user ID.
     unsafe { libc::getuid() }
 }
 

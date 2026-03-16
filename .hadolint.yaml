@@ -1,0 +1,9 @@
+---
+# Hadolint configuration
+# DL3018: Pin versions in apk add — impractical for Alpine base images that
+#         update frequently; we pin the Rust base image version instead.
+# DL3059: Multiple consecutive RUN instructions — we intentionally separate
+#         RUN layers for Docker layer caching (dependency cache vs source build).
+ignored:
+  - DL3018
+  - DL3059

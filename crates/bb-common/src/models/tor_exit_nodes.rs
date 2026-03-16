@@ -13,12 +13,14 @@ pub struct TorExitNodeList {
 
 impl TorExitNodeList {
     /// Check whether the given IP is a known Tor exit node.
+    #[must_use]
     pub fn contains(&self, ip: &IpAddr) -> bool {
         self.nodes.contains(ip)
     }
 
     /// Parse a newline-delimited list of IP addresses (CSV-style, one per line).
     /// Lines that fail to parse are silently skipped.
+    #[must_use]
     pub fn parse_from_csv(
         data: &str,
         fetched_at: DateTime<Utc>,

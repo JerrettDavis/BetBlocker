@@ -50,7 +50,7 @@ pub struct BlocklistDeltaEntry {
     pub confidence: f64,
 }
 
-/// Delta entry for app signature changes (subset of AppSignature for sync).
+/// Delta entry for app signature changes (subset of `AppSignature` for sync).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSignatureDeltaEntry {
     pub public_id: Uuid,

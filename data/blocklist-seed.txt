@@ -1,0 +1,111 @@
+# SPORTS_BETTING
+# Major sportsbooks and betting exchanges
+bet365.com
+williamhill.com
+ladbrokes.com
+coral.co.uk
+paddypower.com
+betfair.com
+betway.com
+888sport.com
+unibet.com
+bwin.com
+betfred.com
+skybet.com
+draftkings.com
+fanduel.com
+pointsbet.com
+caesars.com/sportsbook
+betmgm.com
+wynnbet.com
+barstoolsportsbook.com
+twinspires.com
+betrivers.com
+sugarhouse.com
+si.com/sportsbook
+hardrock.bet
+
+# ONLINE_CASINOS
+# Online casino platforms
+888casino.com
+partycasino.com
+leovegas.com
+casumo.com
+mrgreen.com
+betsson.com
+videoslots.com
+jackpotcity.com
+spin.com
+royalpanda.com
+genesis.casino
+playojo.com
+kaboo.com
+rizk.com
+dunder.com
+wildz.com
+caxino.com
+wheelz.com
+raptor.casino
+21.com
+
+# POKER
+# Online poker platforms
+pokerstars.com
+888poker.com
+partypoker.com
+ggpoker.com
+wsop.com
+globalpoker.com
+americascardroom.eu
+bovada.lv/poker
+ignitioncasino.eu/poker
+blackchippoker.eu
+
+# LOTTERY
+# Online lottery platforms
+lottery.co.uk
+lottoland.com
+jackpot.com
+thelotter.com
+lotto247.com
+multilotto.com
+wintrillions.com
+playhugelottos.com
+
+# BINGO
+# Online bingo platforms
+tombola.co.uk
+meccabingo.com
+gala-bingo.co.uk
+bingoplayers.co.uk
+winkbingo.com
+888ladies.com
+sunbingo.co.uk
+heartbingo.co.uk
+buzz-bingo.com
+foxy-bingo.com
+
+# FANTASY_SPORTS
+# Daily fantasy sports
+draftkings.com/fantasy
+fanduel.com/fantasy
+yahoo.com/dailyfantasy
+underdogfantasy.com
+prizepicks.com
+sleeper.com
+
+# SPREAD_BETTING
+# Financial and sports spread betting
+spreadex.com
+igindex.co.uk
+cityindex.co.uk
+cmcmarkets.com/spread-betting
+
+# PAYMENT_PROCESSORS (optional, disabled by default)
+# These are payment processors commonly used for gambling deposits.
+# They are added with status = 'review' so admins must manually approve.
+skrill.com
+neteller.com
+paysafecard.com
+ecopayz.com
+muchbetter.com

@@ -429,13 +429,15 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     let mac_shutdown_rx = shutdown_rx.clone();
     let mac_emitter = event_emitter.handle();
     let mut mac_shutdown = mac_shutdown_rx;
+    // Clone before moving into async block — we still need the original for the startup event
+    let initial_mac_status_for_task = initial_mac_status.clone();
     let mac_task = tokio::spawn(async move {
         // Only run MAC verification if a MAC system was detected
         if mac_system == MacSystem::None {
             return;
         }
 
-        let was_active = initial_mac_status
+        let was_active = initial_mac_status_for_task
             .as_ref()
             .map(|s| s.profile_loaded && s.enforcing)
             .unwrap_or(false);
