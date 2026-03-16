@@ -140,22 +140,22 @@ jobs:
           file: deploy/docker/Dockerfile.agent-linux
           push: false
           load: true
-          tags: betblocker-agent-linux:build
+          tags: bb-agent-linux:build
           cache-from: type=gha,scope=agent-linux
           cache-to: type=gha,mode=max,scope=agent-linux
 
       - name: Extract agent binary from image
         run: |
-          docker create --name agent-extract betblocker-agent-linux:build
-          docker cp agent-extract:/betblocker-agent-linux ./betblocker-agent-linux
+          docker create --name agent-extract bb-agent-linux:build
+          docker cp agent-extract:/bb-agent-linux ./bb-agent-linux
           docker rm agent-extract
-          chmod +x betblocker-agent-linux
+          chmod +x bb-agent-linux
 
       - name: Upload agent binary as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: betblocker-agent-linux
-          path: betblocker-agent-linux
+          name: bb-agent-linux
+          path: bb-agent-linux
           retention-days: 7
 
   # -----------------------------------------------------------
@@ -220,11 +220,11 @@ jobs:
       - name: Download agent binary
         uses: actions/download-artifact@v4
         with:
-          name: betblocker-agent-linux
+          name: bb-agent-linux
 
       - name: Run E2E tests
         run: |
-          chmod +x betblocker-agent-linux
+          chmod +x bb-agent-linux
           # E2E test runner (implemented in tests/e2e/)
           cargo test --test e2e -- --test-threads=1
         env:

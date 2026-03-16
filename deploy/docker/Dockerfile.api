@@ -24,6 +24,13 @@ COPY crates/bb-worker/Cargo.toml crates/bb-worker/Cargo.toml
 COPY crates/bb-agent-core/Cargo.toml crates/bb-agent-core/Cargo.toml
 COPY crates/bb-agent-plugins/Cargo.toml crates/bb-agent-plugins/Cargo.toml
 COPY crates/bb-agent-linux/Cargo.toml crates/bb-agent-linux/Cargo.toml
+COPY crates/bb-agent-windows/Cargo.toml crates/bb-agent-windows/Cargo.toml
+COPY crates/bb-agent-macos/Cargo.toml crates/bb-agent-macos/Cargo.toml
+COPY crates/bb-shim-windows/Cargo.toml crates/bb-shim-windows/Cargo.toml
+COPY crates/bb-shim-macos/Cargo.toml crates/bb-shim-macos/Cargo.toml
+COPY crates/bb-shim-linux/Cargo.toml crates/bb-shim-linux/Cargo.toml
+COPY crates/bb-shim-android/Cargo.toml crates/bb-shim-android/Cargo.toml
+COPY crates/bb-shim-ios/Cargo.toml crates/bb-shim-ios/Cargo.toml
 COPY crates/bb-cli/Cargo.toml crates/bb-cli/Cargo.toml
 
 # Create dummy source files so cargo can resolve the workspace and cache deps
@@ -35,6 +42,13 @@ RUN mkdir -p crates/bb-common/src && echo "" > crates/bb-common/src/lib.rs && \
     mkdir -p crates/bb-agent-core/src && echo "" > crates/bb-agent-core/src/lib.rs && \
     mkdir -p crates/bb-agent-plugins/src && echo "" > crates/bb-agent-plugins/src/lib.rs && \
     mkdir -p crates/bb-agent-linux/src && echo "fn main() {}" > crates/bb-agent-linux/src/main.rs && \
+    mkdir -p crates/bb-agent-windows/src && echo "fn main() {}" > crates/bb-agent-windows/src/main.rs && \
+    mkdir -p crates/bb-agent-macos/src && echo "fn main() {}" > crates/bb-agent-macos/src/main.rs && \
+    mkdir -p crates/bb-shim-windows/src && echo "" > crates/bb-shim-windows/src/lib.rs && \
+    mkdir -p crates/bb-shim-macos/src && echo "" > crates/bb-shim-macos/src/lib.rs && \
+    mkdir -p crates/bb-shim-linux/src && echo "" > crates/bb-shim-linux/src/lib.rs && \
+    mkdir -p crates/bb-shim-android/src && echo "" > crates/bb-shim-android/src/lib.rs && \
+    mkdir -p crates/bb-shim-ios/src && echo "" > crates/bb-shim-ios/src/lib.rs && \
     mkdir -p crates/bb-cli/src && echo "fn main() {}" > crates/bb-cli/src/main.rs
 
 # Build dependencies only (this layer is cached unless Cargo.toml/Cargo.lock change)
@@ -51,7 +65,7 @@ RUN find crates -name "*.rs" -exec touch {} +
 RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-api
 
 # Strip the binary for minimal size
-RUN strip /build/target/x86_64-unknown-linux-musl/release/betblocker-api
+RUN strip /build/target/x86_64-unknown-linux-musl/release/bb-api
 
 # ---------------------------------------------------------
 # Stage 2: Minimal runtime image
@@ -62,7 +76,7 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 # Import the static binary
-COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/betblocker-api /betblocker-api
+COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/bb-api /bb-api
 
 # Copy migrations for the binary to run at startup if needed
 COPY --from=builder /build/migrations /migrations
@@ -75,4 +89,4 @@ EXPOSE 8443
 # Health check is handled by the orchestrator (docker-compose / k8s)
 # The binary exposes GET /healthz for probing
 
-ENTRYPOINT ["/betblocker-api"]
+ENTRYPOINT ["/bb-api"]

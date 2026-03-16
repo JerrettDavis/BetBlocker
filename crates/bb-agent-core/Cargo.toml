@@ -18,7 +18,7 @@ tracing = { workspace = true }
 rusqlite = { version = "0.32", features = ["bundled"] }
 prost = { workspace = true }
 ring = { workspace = true }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 rustls = { workspace = true }
 rustls-pemfile = "2"
 backoff = { version = "0.4", features = ["tokio"] }

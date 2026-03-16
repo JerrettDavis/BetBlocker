@@ -1,4 +1,5 @@
--- Enable TimescaleDB extension and convert events to a hypertable
+-- Enable TimescaleDB extension.
+-- The events table already uses native PARTITION BY RANGE (migration 0015),
+-- so we only enable the extension for its aggregate/compression functions
+-- without converting to a hypertable.
 CREATE EXTENSION IF NOT EXISTS timescaledb;
-
-SELECT create_hypertable('events', 'created_at', migrate_data => true, if_not_exists => true);

@@ -161,10 +161,10 @@ impl AppSignatureStore {
                 let pattern_lower = pattern.to_lowercase();
                 let similarity = strsim::normalized_levenshtein(&query, &pattern_lower);
 
-                if similarity >= threshold {
-                    if best_match.map_or(true, |(_, best_sim)| similarity > best_sim) {
-                        best_match = Some((idx, similarity));
-                    }
+                if similarity >= threshold
+                    && best_match.is_none_or(|(_, best_sim)| similarity > best_sim)
+                {
+                    best_match = Some((idx, similarity));
                 }
             }
         }
@@ -189,34 +189,37 @@ impl AppSignatureStore {
     /// Returns the first match found.
     pub fn check_app(&self, app_id: &AppIdentifier) -> Option<AppMatch> {
         // 1. Cert hash (highest trust)
-        if let Some(hash) = &app_id.cert_hash {
-            if let Some(m) = self.check_cert_hash(hash, app_id) {
-                return Some(m);
-            }
+        if let Some(m) = app_id
+            .cert_hash
+            .as_ref()
+            .and_then(|hash| self.check_cert_hash(hash, app_id))
+        {
+            return Some(m);
         }
 
         // 2. Package name
-        if let Some(pkg) = &app_id.package_name {
-            if let Some(m) = self.check_package_name(pkg, app_id) {
-                return Some(m);
-            }
+        if let Some(m) = app_id
+            .package_name
+            .as_ref()
+            .and_then(|pkg| self.check_package_name(pkg, app_id))
+        {
+            return Some(m);
         }
 
         // 3. Executable name
-        if let Some(exe) = &app_id.executable_name {
-            if let Some(m) = self.check_executable(exe, app_id) {
-                return Some(m);
-            }
+        if let Some(m) = app_id
+            .executable_name
+            .as_ref()
+            .and_then(|exe| self.check_executable(exe, app_id))
+        {
+            return Some(m);
         }
 
         // 4. Display name (fuzzy)
-        if let Some(dn) = &app_id.display_name {
-            if let Some(m) = self.check_display_name(dn, app_id) {
-                return Some(m);
-            }
-        }
-
-        None
+        app_id
+            .display_name
+            .as_ref()
+            .and_then(|dn| self.check_display_name(dn, app_id))
     }
 }
 

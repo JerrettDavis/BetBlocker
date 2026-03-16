@@ -129,6 +129,7 @@ impl AppProcessPlugin {
     }
 
     /// Set the scan interval (unchecked, for internal/test use).
+    #[must_use]
     pub fn with_scan_interval(mut self, interval: Duration) -> Self {
         self.scan_interval = interval;
         self
@@ -405,8 +406,7 @@ impl BlockingPlugin for AppProcessPlugin {
         health.details.insert(
             "last_scan".into(),
             self.last_scan
-                .map(|t| t.to_rfc3339())
-                .unwrap_or_else(|| "never".to_string()),
+                .map_or_else(|| "never".to_string(), |t| t.to_rfc3339()),
         );
         health.details.insert(
             "signatures_loaded".into(),
