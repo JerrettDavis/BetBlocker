@@ -154,7 +154,7 @@ jobs:
 
       - name: Extract agent binary from image
         run: |
-          docker create --name agent-extract bb-agent-linux:build
+          docker create --name agent-extract bb-agent-linux:build /bb-agent-linux
           docker cp agent-extract:/bb-agent-linux ./bb-agent-linux
           docker rm agent-extract
           chmod +x bb-agent-linux
@@ -170,6 +170,7 @@ jobs:
   # E2E tests against built images
   # -----------------------------------------------------------
   e2e:
+    if: false  # Disabled until E2E test suite is implemented (tests/e2e/)
     needs: [build-api, build-worker, build-agent-linux]
     runs-on: ubuntu-latest
     services:
@@ -244,6 +245,7 @@ jobs:
           REDIS_URL: redis://localhost:6379
 
   web-e2e:
+    if: false  # Disabled until Playwright tests are created (web/e2e/)
     needs: [build-api, build-web]
     runs-on: ubuntu-latest
     services:

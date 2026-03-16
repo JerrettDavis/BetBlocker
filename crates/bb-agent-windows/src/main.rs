@@ -209,6 +209,10 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         AgentConfig::default()
     };
 
+    // Ensure data directory exists
+    std::fs::create_dir_all(&config.data_dir)
+        .map_err(|e| format!("Failed to create data directory: {e}"))?;
+
     // Initialise event store
     let events_db_path = config.data_dir.join("events.db");
     let event_store =
@@ -530,10 +534,21 @@ mod tests {
     #[tokio::test]
     async fn run_exits_on_no_device_id() {
         let tmp = std::env::temp_dir().join("bb-agent-windows-test");
+        let _ = std::fs::create_dir_all(&tmp);
+
+        // Write a minimal config that points data_dir at the temp directory
+        // so the event store can be opened on any platform.
+        let config_path = tmp.join("test-agent.toml");
+        std::fs::write(
+            &config_path,
+            format!("data_dir = {:?}\n", tmp.to_str().unwrap()),
+        )
+        .expect("write test config");
+
         let cli = Cli {
             config_dir: tmp.clone(),
             enroll: None,
-            config: Some(tmp.join("nonexistent.toml")),
+            config: Some(config_path),
             install_service: false,
             uninstall_service: false,
         };
