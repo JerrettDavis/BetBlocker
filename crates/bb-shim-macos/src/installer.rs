@@ -442,6 +442,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn post_install_bootstraps_daemon() {
         let runner = MockRunner::new();
         // chown, chmod not needed (binary doesn't exist at /tmp/bb-agent-macos)
@@ -462,6 +463,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn post_install_tolerates_already_bootstrapped() {
         let runner = MockRunner::new();
         runner.push_err("already bootstrapped"); // launchctl bootstrap
@@ -472,6 +474,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn post_install_fails_on_launchd_error() {
         let runner = MockRunner::new();
         runner.push_err("some unrecognised error"); // launchctl bootstrap
@@ -489,6 +492,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn pre_uninstall_calls_bootout_and_pf_flush() {
         let runner = MockRunner::new();
         runner.push_ok(""); // launchctl bootout
@@ -512,6 +516,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn pre_uninstall_tolerates_daemon_not_loaded() {
         let runner = MockRunner::new();
         runner.push_err("Could not find specified service"); // launchctl bootout
@@ -523,6 +528,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn pre_uninstall_non_fatal_pf_error() {
         let runner = MockRunner::new();
         runner.push_ok(""); // launchctl bootout
