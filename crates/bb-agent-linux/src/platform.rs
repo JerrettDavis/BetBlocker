@@ -1,11 +1,11 @@
 /// Linux-specific platform bridge.
 ///
 /// Provides platform-specific implementations for:
-/// - Machine ID reading (from /etc/machine-id)
+/// - Machine ID reading (from `/etc/machine-id`)
 /// - Directory creation with correct ownership
-/// - systemd notify integration
+/// - systemd notify integration.
 
-/// Read the machine ID from /etc/machine-id.
+/// Read the machine ID from `/etc/machine-id`.
 ///
 /// This is a stable, unique identifier for the Linux installation.
 /// Falls back to a placeholder if the file cannot be read.

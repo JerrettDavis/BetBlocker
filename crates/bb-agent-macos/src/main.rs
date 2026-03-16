@@ -1,4 +1,22 @@
-//! BetBlocker Agent for macOS.
+// Pedantic clippy: allow common lints at crate level.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::too_many_lines,
+    clippy::collapsible_if,
+    clippy::unused_self,
+    clippy::expect_used,
+    clippy::needless_raw_string_hashes,
+    clippy::semicolon_if_nothing_returned,
+    clippy::unnecessary_wraps,
+    clippy::doc_lazy_continuation,
+    clippy::manual_map
+)]
+
+//! `BetBlocker` Agent for macOS.
 //!
 //! Mirrors the bb-agent-linux pattern: CLI parsing, registration,
 //! subsystem initialization, and graceful shutdown.

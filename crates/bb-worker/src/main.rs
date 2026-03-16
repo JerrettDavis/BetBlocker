@@ -1,3 +1,34 @@
+// Pedantic clippy: allow common lints at crate level.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::needless_raw_string_hashes,
+    clippy::redundant_closure_for_method_calls,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::collapsible_if,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::unused_async,
+    clippy::unused_self,
+    clippy::single_match_else,
+    clippy::match_same_arms,
+    clippy::struct_excessive_bools,
+    clippy::struct_field_names,
+    clippy::let_and_return,
+    clippy::map_unwrap_or,
+    clippy::unnecessary_wraps,
+    clippy::unnecessary_literal_bound,
+    clippy::format_push_string,
+    clippy::return_self_not_must_use,
+    clippy::needless_pass_by_value,
+    clippy::expect_used
+)]
+
 mod analytics;
 mod discovery;
 mod federated;

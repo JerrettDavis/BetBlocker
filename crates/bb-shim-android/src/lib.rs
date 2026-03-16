@@ -1,4 +1,11 @@
-//! Android platform shim for BetBlocker.
+// Platform shim: many functions are cross-platform stubs.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate
+)]
+
+//! Android platform shim for `BetBlocker`.
 //!
 //! Provides Android-specific implementations for device owner APIs,
 //! Samsung Knox integration, and platform trait definitions.

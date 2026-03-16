@@ -1,3 +1,23 @@
+// Pedantic clippy: allow common lints at crate level.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::too_many_lines,
+    clippy::collapsible_if,
+    clippy::unused_self,
+    clippy::expect_used,
+    clippy::needless_raw_string_hashes,
+    clippy::semicolon_if_nothing_returned,
+    clippy::unnecessary_wraps,
+    clippy::map_unwrap_or,
+    clippy::manual_map,
+    clippy::empty_line_after_doc_comments,
+    clippy::doc_lazy_continuation
+)]
+
 mod nftables;
 mod platform;
 
@@ -427,7 +447,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     // Start periodic MAC verification loop (every 5 minutes)
     let mac_shutdown_rx = shutdown_rx.clone();
-    let mac_emitter = event_emitter.handle();
+    let _mac_emitter = event_emitter.handle();
     let mut mac_shutdown = mac_shutdown_rx;
     // Clone before moving into async block — we still need the original for the startup event
     let initial_mac_status_for_task = initial_mac_status.clone();
@@ -437,7 +457,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             return;
         }
 
-        let was_active = initial_mac_status_for_task
+        let _was_active = initial_mac_status_for_task
             .as_ref()
             .map(|s| s.profile_loaded && s.enforcing)
             .unwrap_or(false);

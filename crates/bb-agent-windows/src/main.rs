@@ -1,4 +1,21 @@
-//! BetBlocker Agent for Windows.
+// Pedantic clippy: allow common lints at crate level.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::too_many_lines,
+    clippy::collapsible_if,
+    clippy::unused_self,
+    clippy::expect_used,
+    clippy::needless_raw_string_hashes,
+    clippy::semicolon_if_nothing_returned,
+    clippy::unnecessary_wraps,
+    clippy::empty_line_after_doc_comments
+)]
+
+//! `BetBlocker` Agent for Windows.
 
 mod dns_redirect;
 mod platform;

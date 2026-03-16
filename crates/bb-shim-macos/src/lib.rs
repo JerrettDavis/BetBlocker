@@ -1,4 +1,12 @@
-//! macOS platform shim for BetBlocker.
+// Platform shim: many functions are cross-platform stubs.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps
+)]
+
+//! macOS platform shim for `BetBlocker`.
 //!
 //! Provides macOS-specific implementations for launchd service management,
 //! Keychain integration, DNS monitoring, Network Extension, and file protection.

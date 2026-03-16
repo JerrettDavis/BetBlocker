@@ -1,4 +1,11 @@
-//! iOS platform shim for BetBlocker.
+// Platform shim: many functions are cross-platform stubs.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate
+)]
+
+//! iOS platform shim for `BetBlocker`.
 //!
 //! Provides iOS-specific implementations for MDM integration
 //! and platform trait definitions.

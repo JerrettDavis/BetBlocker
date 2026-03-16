@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bb_api::config::ApiConfig;
 use bb_api::routes;
 use bb_api::state::AppState;

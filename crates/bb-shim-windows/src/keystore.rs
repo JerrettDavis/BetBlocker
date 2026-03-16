@@ -4,7 +4,9 @@
 //! Trusted Platform Module (TPM) or Data Protection API (DPAPI).
 //! Falls back to DPAPI when TPM is not available.
 
-use std::path::{Path, PathBuf};
+#[cfg(target_os = "windows")]
+use std::path::Path;
+use std::path::PathBuf;
 
 /// Errors that can occur during keystore operations.
 #[derive(Debug, thiserror::Error)]

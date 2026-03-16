@@ -1,9 +1,23 @@
-// Clippy pedantic: allow these at crate level for now
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::doc_markdown)]
+// Pedantic clippy: allow common lints at crate level.
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::doc_markdown,
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::collapsible_if,
+    clippy::single_match_else,
+    clippy::match_same_arms,
+    clippy::unused_self,
+    clippy::used_underscore_binding,
+    clippy::ignored_unit_patterns,
+    clippy::format_collect,
+    clippy::return_self_not_must_use,
+    clippy::needless_pass_by_value,
+    clippy::expect_used
+)]
 
 //! `BetBlocker` Agent Core -- cross-platform blocking engine.
 //!

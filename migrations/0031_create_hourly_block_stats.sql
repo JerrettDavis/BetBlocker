@@ -1,8 +1,9 @@
--- Continuous aggregate: hourly block statistics
-CREATE MATERIALIZED VIEW hourly_block_stats
-WITH (timescaledb.continuous) AS
+-- Hourly block statistics (regular materialized view).
+-- The events table uses native PARTITION BY RANGE, not a TimescaleDB hypertable,
+-- so we use a standard materialized view instead of a continuous aggregate.
+CREATE MATERIALIZED VIEW IF NOT EXISTS hourly_block_stats AS
 SELECT
-    time_bucket('1 hour', created_at) AS bucket,
+    date_trunc('hour', created_at) AS bucket,
     device_id,
     event_type::text AS event_type,
     COUNT(*) AS event_count
@@ -10,10 +11,7 @@ FROM events
 GROUP BY bucket, device_id, event_type
 WITH NO DATA;
 
--- Refresh policy: materialize data older than 3 hours, refresh every 1 hour
-SELECT add_continuous_aggregate_policy('hourly_block_stats',
-    start_offset    => INTERVAL '3 hours',
-    end_offset      => INTERVAL '1 hour',
-    schedule_interval => INTERVAL '1 hour',
-    if_not_exists   => true
-);
+CREATE INDEX IF NOT EXISTS idx_hourly_block_stats_bucket
+    ON hourly_block_stats (bucket);
+CREATE INDEX IF NOT EXISTS idx_hourly_block_stats_device
+    ON hourly_block_stats (device_id, bucket);
