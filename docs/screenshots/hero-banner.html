@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BetBlocker - Hero Banner</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #f8fafc;
+    width: 1400px;
+    min-height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero {
+    width: 100%;
+    padding: 80px 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle gradient glow behind the shield */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse at center, rgba(99,102,241,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .brand-icon {
+    color: #818cf8;
+  }
+
+  .brand-name {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 30%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: 20px;
+    color: #94a3b8;
+    font-weight: 400;
+    margin-bottom: 40px;
+    letter-spacing: -0.2px;
+  }
+
+  .feature-pills {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #334155;
+    background: rgba(30, 41, 59, 0.8);
+    color: #e2e8f0;
+  }
+
+  .pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .pill-dot.indigo { background: #818cf8; }
+  .pill-dot.emerald { background: #34d399; }
+  .pill-dot.amber { background: #fbbf24; }
+
+  .platforms {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-top: 8px;
+  }
+
+  .platform {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .platform-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+  }
+
+  .divider {
+    width: 1px;
+    height: 32px;
+    background: #1e293b;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="brand">
+    <svg class="brand-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <span class="brand-name">BetBlocker</span>
+  </div>
+
+  <p class="tagline">Open-source gambling blocking for recovery</p>
+
+  <div class="feature-pills">
+    <span class="pill">
+      <span class="pill-dot indigo"></span>
+      Multi-Layer Blocking
+    </span>
+    <span class="pill">
+      <span class="pill-dot emerald"></span>
+      Cross-Platform
+    </span>
+    <span class="pill">
+      <span class="pill-dot amber"></span>
+      Privacy-First
+    </span>
+  </div>
+
+  <div class="platforms">
+    <div class="platform">
+      <div class="platform-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      Win
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="platform">
+      <div class="platform-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
+          <path d="M12 8v4l2 2"/>
+        </svg>
+      </div>
+      macOS
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="platform">
+      <div class="platform-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="20" x2="20" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/><polyline points="6 10 12 4 18 10"/>
+        </svg>
+      </div>
+      Linux
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="platform">
+      <div class="platform-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+      </div>
+      Android
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="platform">
+      <div class="platform-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="2" width="12" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+      </div>
+      iOS
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

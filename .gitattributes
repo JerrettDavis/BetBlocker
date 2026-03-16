@@ -1,0 +1,36 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Rust
+*.rs text diff=rust
+*.toml text
+Cargo.lock text -diff
+
+# Web
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.css text
+*.json text
+*.md text
+*.html text
+
+# SVG
+*.svg text
+
+# Shell scripts
+*.sh text eol=lf
+
+# Windows-specific
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.wxs text
+
+# Binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

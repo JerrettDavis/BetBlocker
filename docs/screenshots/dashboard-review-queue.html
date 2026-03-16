@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BetBlocker - Review Queue</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; display: flex; width: 1400px; min-height: 820px; }
+
+  /* Sidebar */
+  .sidebar { width: 256px; background: #f1f5f9; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { height: 64px; display: flex; align-items: center; gap: 8px; padding: 0 24px; font-weight: 700; font-size: 18px; border-bottom: 1px solid #e2e8f0; color: #0f172a; }
+  .sidebar-nav { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; }
+  .nav-item:hover { background: #e2e8f0; color: #0f172a; }
+  .nav-item.active { background: #6366f1; color: #fff; }
+  .nav-section { padding: 16px 12px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
+  .nav-subsection { padding: 4px 12px 4px; font-size: 11px; color: #94a3b8; opacity: 0.7; }
+  .nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; }
+  .topbar { height: 64px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 32px; background: #fff; }
+  .content { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; border: 1px solid #e2e8f0; background: #fff; color: #0f172a; cursor: pointer; }
+  .btn-green { color: #15803d; border-color: #86efac; }
+  .btn-green:hover { background: #f0fdf4; }
+  .btn-red { color: #dc2626; border-color: #fca5a5; }
+  .btn-red:hover { background: #fef2f2; }
+  .btn-ghost { border: none; background: transparent; color: #64748b; padding: 6px 8px; }
+  .btn-ghost:hover { background: #f1f5f9; }
+  .btn-icon { padding: 6px; border: none; background: transparent; cursor: pointer; border-radius: 4px; }
+  .btn-icon:hover { background: #f1f5f9; }
+  .btn-icon.green { color: #15803d; }
+  .btn-icon.green:hover { background: #f0fdf4; }
+  .btn-icon.red { color: #dc2626; }
+  .btn-icon.red:hover { background: #fef2f2; }
+
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+  .badge-outline { border: 1px solid #e2e8f0; color: #475569; background: #fff; }
+  .badge-default { background: #6366f1; color: #fff; }
+  .badge-secondary { background: #f1f5f9; color: #475569; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+
+  /* Confidence bar */
+  .confidence-bar { display: flex; align-items: center; gap: 8px; }
+  .confidence-track { width: 80px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 3px; }
+  .confidence-fill.high { background: #22c55e; }
+  .confidence-fill.medium { background: #f59e0b; }
+  .confidence-fill.low { background: #ef4444; }
+  .confidence-value { font-size: 12px; font-weight: 600; min-width: 32px; }
+  .confidence-value.high { color: #15803d; }
+  .confidence-value.medium { color: #92400e; }
+  .confidence-value.low { color: #dc2626; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; align-items: center; gap: 12px; }
+  .search-input { flex: 1; max-width: 360px; height: 36px; padding: 0 12px 0 36px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; background: #fff; color: #0f172a; position: relative; }
+  .search-wrapper { position: relative; flex: 1; max-width: 360px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+  .slider-group { display: flex; align-items: center; gap: 8px; }
+  .slider-label { font-size: 13px; color: #64748b; white-space: nowrap; }
+
+  /* Bulk actions bar */
+  .bulk-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f1f5f9; border-radius: 6px; }
+  .bulk-count { font-size: 13px; font-weight: 500; }
+
+  /* Table */
+  .table-wrapper { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 500; color: #64748b; border-bottom: 1px solid #e2e8f0; background: #fff; white-space: nowrap; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: #0f172a; }
+  td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: #f8fafc; }
+
+  /* Checkbox */
+  .checkbox { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cbd5e1; appearance: none; cursor: pointer; position: relative; background: #fff; }
+  .checkbox:checked { background: #6366f1; border-color: #6366f1; }
+  .checkbox:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+  /* Pagination */
+  .pagination { display: flex; align-items: center; justify-content: space-between; }
+  .pagination-info { font-size: 13px; color: #64748b; }
+  .pagination-btns { display: flex; gap: 8px; }
+
+  .domain-mono { font-family: 'SF Mono', 'Consolas', 'Liberation Mono', monospace; font-size: 13px; }
+  .source-text { font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    BetBlocker
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Devices
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Partners
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Organizations
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+    <div class="nav-section">Admin</div>
+    <div class="nav-subsection">Blocklist</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Blocklist
+    </a>
+    <a class="nav-item active" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+      Review Queue
+    </a>
+    <div class="nav-subsection" style="padding-top:12px">Blocking</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      App Signatures
+    </a>
+  </nav>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1 style="font-size:20px;font-weight:700">Review Queue</h1>
+      <p style="font-size:13px;color:#64748b">Review discovery candidates and approve or reject them for the blocklist.</p>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="search-wrapper">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" type="text" placeholder="Search domain..." readonly>
+      </div>
+      <div class="slider-group">
+        <span class="slider-label">Min confidence: 0%</span>
+        <input type="range" min="0" max="100" value="0" style="width:120px" disabled>
+      </div>
+    </div>
+
+    <!-- Bulk actions -->
+    <div class="bulk-bar">
+      <span class="bulk-count">3 selected</span>
+      <button class="btn btn-green">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Bulk Approve
+      </button>
+      <button class="btn btn-red">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Bulk Reject
+      </button>
+      <button class="btn-ghost btn">Clear</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px"><input type="checkbox" class="checkbox" checked></th>
+            <th>Domain</th>
+            <th>Source</th>
+            <th class="sortable">Confidence &#9660;</th>
+            <th>Category Guess</th>
+            <th>Status</th>
+            <th class="sortable">First Reported</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" class="checkbox" checked></td>
+            <td class="domain-mono">megabet365.live</td>
+            <td class="source-text">4 reports</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill high" style="width:96%"></div></div>
+                <span class="confidence-value high">96%</span>
+              </div>
+            </td>
+            <td><span class="badge badge-outline" style="font-size:11px">sports_betting</span></td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Mar 2, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="checkbox" checked></td>
+            <td class="domain-mono">spinpalace-online.casino</td>
+            <td class="source-text">7 reports</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill high" style="width:94%"></div></div>
+                <span class="confidence-value high">94%</span>
+              </div>
+            </td>
+            <td><span class="badge badge-outline" style="font-size:11px">online_casino</span></td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Feb 28, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="checkbox" checked></td>
+            <td class="domain-mono">lucky-poker-room.net</td>
+            <td class="source-text">3 reports</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill high" style="width:89%"></div></div>
+                <span class="confidence-value high">89%</span>
+              </div>
+            </td>
+            <td><span class="badge badge-outline" style="font-size:11px">poker</span></td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Mar 5, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td class="domain-mono">crypto-slots-win.io</td>
+            <td class="source-text">2 reports</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill medium" style="width:72%"></div></div>
+                <span class="confidence-value medium">72%</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-outline" style="font-size:11px">crypto_gambling</span>
+              <span class="badge badge-outline" style="font-size:11px;margin-left:4px">online_casino</span>
+            </td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Mar 8, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td class="domain-mono">fantasysportsking.com</td>
+            <td class="source-text">1 report</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill medium" style="width:58%"></div></div>
+                <span class="confidence-value medium">58%</span>
+              </div>
+            </td>
+            <td><span class="badge badge-outline" style="font-size:11px">fantasy_sports</span></td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Mar 11, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td class="domain-mono">bingo-bonanza-uk.co.uk</td>
+            <td class="source-text">1 report</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill low" style="width:34%"></div></div>
+                <span class="confidence-value low">34%</span>
+              </div>
+            </td>
+            <td><span class="badge badge-outline" style="font-size:11px">bingo</span></td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Mar 13, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="checkbox"></td>
+            <td class="domain-mono">bet-affiliate-links.com</td>
+            <td class="source-text">2 reports</td>
+            <td>
+              <div class="confidence-bar">
+                <div class="confidence-track"><div class="confidence-fill low" style="width:28%"></div></div>
+                <span class="confidence-value low">28%</span>
+              </div>
+            </td>
+            <td><span class="badge badge-outline" style="font-size:11px">affiliate</span></td>
+            <td><span class="badge badge-secondary">Pending</span></td>
+            <td style="font-size:12px;color:#94a3b8">Mar 14, 2026</td>
+            <td>
+              <div style="display:flex;gap:2px">
+                <button class="btn-icon green" title="Approve"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <button class="btn-icon red" title="Reject"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <button class="btn-icon" title="View"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <span class="pagination-info">Page 1 of 4 (68 items)</span>
+      <div class="pagination-btns">
+        <button class="btn" disabled style="opacity:0.5">Previous</button>
+        <button class="btn">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BetBlocker - Enrollments</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; display: flex; width: 1400px; min-height: 900px; }
+
+  /* Sidebar */
+  .sidebar { width: 256px; background: #f1f5f9; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { height: 64px; display: flex; align-items: center; gap: 8px; padding: 0 24px; font-weight: 700; font-size: 18px; border-bottom: 1px solid #e2e8f0; color: #0f172a; }
+  .sidebar-nav { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; }
+  .nav-item:hover { background: #e2e8f0; color: #0f172a; }
+  .nav-item.active { background: #6366f1; color: #fff; }
+  .nav-section { padding: 16px 12px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
+  .nav-subsection { padding: 4px 12px 4px; font-size: 11px; color: #94a3b8; opacity: 0.7; }
+  .nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; }
+  .topbar { height: 64px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: #fff; }
+  .content { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .card-header { padding: 16px 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 13px; font-weight: 500; color: #64748b; }
+  .card-content { padding: 8px 20px 16px; }
+  .card-value { font-size: 28px; font-weight: 700; }
+  .card-subtitle { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; }
+  .btn-primary { background: #6366f1; color: #fff; }
+  .btn-primary:hover { background: #4f46e5; }
+  .btn-ghost { background: transparent; color: #6366f1; padding: 6px 10px; font-size: 13px; border: none; cursor: pointer; border-radius: 4px; }
+  .btn-ghost:hover { background: #f1f5f9; }
+
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-purple { background: #f3e8ff; color: #7c3aed; }
+  .badge-slate { background: #f1f5f9; color: #475569; }
+  .badge-indigo { background: #e0e7ff; color: #4338ca; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 16px; font-size: 12px; font-weight: 500; color: #64748b; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+  td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfd; }
+
+  /* Status */
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.active { background: #22c55e; }
+  .status-dot.pending { background: #f59e0b; }
+  .status-dot.expired { background: #cbd5e1; }
+
+  /* Device info */
+  .device-info { display: flex; align-items: center; gap: 10px; }
+  .device-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f1f5f9; color: #475569; }
+  .device-label { font-weight: 500; }
+  .device-sub { font-size: 12px; color: #94a3b8; }
+
+  /* Protection level bar */
+  .protection-bar-wrapper { display: flex; align-items: center; gap: 8px; }
+  .protection-bar { height: 6px; border-radius: 3px; background: #e2e8f0; width: 80px; overflow: hidden; }
+  .protection-fill { height: 100%; border-radius: 3px; }
+  .protection-fill.high { background: #22c55e; }
+  .protection-fill.medium { background: #f59e0b; }
+  .protection-fill.low { background: #ef4444; }
+  .protection-label { font-size: 12px; font-weight: 500; }
+
+  /* Countdown timer */
+  .countdown { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; background: #fef3c7; border: 1px solid #fde68a; font-size: 12px; font-weight: 600; color: #92400e; }
+  .countdown svg { flex-shrink: 0; }
+
+  /* Pending unenroll highlight row */
+  tr.pending-row td { background: #fffbeb; }
+  tr.pending-row:hover td { background: #fef9c3; }
+
+  /* Actions */
+  .actions { display: flex; gap: 4px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #e2e8f0; padding: 0 20px; }
+  .tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: #64748b; border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px; }
+  .tab.active { color: #6366f1; border-bottom-color: #6366f1; }
+  .tab .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+  .tab.active .tab-count { background: #e0e7ff; color: #4338ca; }
+  .tab .tab-count { background: #f1f5f9; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    BetBlocker
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item active" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Devices
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Partners
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Organizations
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+    <div class="nav-section">Admin</div>
+    <div class="nav-subsection">Blocklist</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Blocklist
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+      Review Queue
+    </a>
+    <div class="nav-subsection" style="padding-top:12px">Blocking</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      App Signatures
+    </a>
+  </nav>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1 style="font-size:20px;font-weight:700">Enrollments</h1>
+      <p style="font-size:13px;color:#64748b">View and manage device enrollment records and protection commitments.</p>
+    </div>
+    <button class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Report
+    </button>
+  </div>
+
+  <div class="content">
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Active Enrollments</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value" style="color:#16a34a">5</div>
+          <div class="card-subtitle">Devices under active protection</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Pending Unenroll</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value" style="color:#d97706">1</div>
+          <div class="card-subtitle">Awaiting cooldown period</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Expired</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value" style="color:#94a3b8">2</div>
+          <div class="card-subtitle">Protection period ended</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enrollments Table -->
+    <div class="card" style="overflow:hidden">
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active">All<span class="tab-count">8</span></div>
+        <div class="tab">Active<span class="tab-count">5</span></div>
+        <div class="tab">Pending<span class="tab-count">1</span></div>
+        <div class="tab">Expired<span class="tab-count">2</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:22%">Device</th>
+            <th style="width:12%">Type</th>
+            <th style="width:16%">Status</th>
+            <th style="width:16%">Protection Level</th>
+            <th style="width:14%">Created</th>
+            <th style="width:10%">Expires</th>
+            <th style="width:10%">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Enrollment 1: Self enrollment, active, full protection -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.5l8-1.1V12H3zm0 .5h8v6.6l-8-1.1V12.5zm9-7.7L22 3v9.5h-10V4.8zM12 12.5H22V21l-10-1.4V12.5z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label">Home Desktop</div>
+                  <div class="device-sub">BB-DEV-001 / Windows 11</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-blue">Self</span></td>
+            <td><span class="status"><span class="status-dot active"></span>Active</span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill high" style="width:100%"></div></div>
+                <span class="protection-label" style="color:#16a34a">Full</span>
+              </div>
+            </td>
+            <td style="color:#64748b;font-size:12px">Jan 15, 2026</td>
+            <td style="color:#64748b;font-size:12px">Jan 15, 2027</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="More options">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 2: Partner enrollment, active, full protection -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon" style="background:#dcfce7;color:#16a34a">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V7H6v11zM3.5 7C2.67 7 2 7.67 2 8.5v7c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-7C5 7.67 4.33 7 3.5 7zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label">Pixel 8 Pro</div>
+                  <div class="device-sub">BB-DEV-003 / Android 15</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-purple">Partner</span></td>
+            <td><span class="status"><span class="status-dot active"></span>Active</span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill high" style="width:100%"></div></div>
+                <span class="protection-label" style="color:#16a34a">Full</span>
+              </div>
+            </td>
+            <td style="color:#64748b;font-size:12px">Feb 2, 2026</td>
+            <td style="color:#64748b;font-size:12px">Feb 2, 2027</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="More options">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 3: Authority enrollment, active, full protection -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon" style="background:#dcfce7;color:#16a34a">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V7H6v11zM3.5 7C2.67 7 2 7.67 2 8.5v7c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-7C5 7.67 4.33 7 3.5 7zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label">Galaxy Tab S9</div>
+                  <div class="device-sub">BB-DEV-007 / Android 14</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-indigo">Authority</span></td>
+            <td><span class="status"><span class="status-dot active"></span>Active</span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill high" style="width:100%"></div></div>
+                <span class="protection-label" style="color:#16a34a">Full</span>
+              </div>
+            </td>
+            <td style="color:#64748b;font-size:12px">Dec 1, 2025</td>
+            <td style="color:#64748b;font-size:12px">Dec 1, 2026</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="More options">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 4: Self enrollment, active, medium protection -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label">Work MacBook Pro</div>
+                  <div class="device-sub">BB-DEV-002 / macOS 15</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-blue">Self</span></td>
+            <td><span class="status"><span class="status-dot active"></span>Active</span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill medium" style="width:65%"></div></div>
+                <span class="protection-label" style="color:#d97706">Medium</span>
+              </div>
+            </td>
+            <td style="color:#64748b;font-size:12px">Feb 20, 2026</td>
+            <td style="color:#64748b;font-size:12px">Aug 20, 2026</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="More options">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 5: Partner enrollment, active, full protection -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon" style="background:#dbeafe;color:#2563eb">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.5l8-1.1V12H3zm0 .5h8v6.6l-8-1.1V12.5zm9-7.7L22 3v9.5h-10V4.8zM12 12.5H22V21l-10-1.4V12.5z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label">Surface Laptop</div>
+                  <div class="device-sub">BB-DEV-006 / Windows 11</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-purple">Partner</span></td>
+            <td><span class="status"><span class="status-dot active"></span>Active</span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill high" style="width:100%"></div></div>
+                <span class="protection-label" style="color:#16a34a">Full</span>
+              </div>
+            </td>
+            <td style="color:#64748b;font-size:12px">Jan 5, 2026</td>
+            <td style="color:#64748b;font-size:12px">Jan 5, 2027</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="More options">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 6: PENDING UNENROLL - highlighted row with countdown -->
+          <tr class="pending-row">
+            <td>
+              <div class="device-info">
+                <div class="device-icon" style="background:#fef3c7;color:#d97706">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label">iPhone 16</div>
+                  <div class="device-sub">BB-DEV-004 / iOS 18</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-blue">Self</span></td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span class="status"><span class="status-dot pending"></span>Pending Unenroll</span>
+                <div class="countdown">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  6d 14h 32m remaining
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill high" style="width:100%"></div></div>
+                <span class="protection-label" style="color:#16a34a">Full</span>
+              </div>
+            </td>
+            <td style="color:#64748b;font-size:12px">Mar 1, 2026</td>
+            <td style="color:#d97706;font-size:12px;font-weight:500">Mar 22, 2026</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="Cancel unenroll" style="color:#dc2626">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 7: Expired, Self -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon" style="opacity:0.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.43.868.07 1.723-.267 2.395-.466.7-.2 1.272-.4 1.568-.536.122-.066.22-.135.302-.2-.768-.092-1.344-.267-1.803-.334-.39-.058-.724.066-1.074.066-.349 0-.723-.2-.964-.534-.24-.334-.395-.735-.396-1.135-.001-.399.09-.8.236-1.135.145-.334.349-.6.572-.866.356-.426.812-.869 1.02-1.468a3.414 3.414 0 00.089-1.335c-.058-.401-.2-.746-.398-1.069-.199-.319-.458-.601-.726-.869a7.367 7.367 0 01-.712-.803c-.195-.267-.383-.535-.479-.869-.096-.334-.058-.734.196-1.002.148-.15.361-.267.561-.334.2-.064.4-.64.537-.064l.005-.001c.174-.1.29-.203.349-.403.058-.199-.034-.466-.199-.669-.167-.199-.397-.399-.535-.599a3.887 3.887 0 01-.412-.799 13.876 13.876 0 01-.258-.799c-.09-.334-.178-.668-.272-.87-.094-.199-.119-.267-.27-.467-.085-.117-.216-.207-.342-.267z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label" style="color:#94a3b8">Fedora Laptop</div>
+                  <div class="device-sub">BB-DEV-011 / Fedora 41</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-slate">Self</span></td>
+            <td><span class="status"><span class="status-dot expired"></span><span style="color:#94a3b8">Expired</span></span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill" style="width:0%;background:#cbd5e1"></div></div>
+                <span class="protection-label" style="color:#94a3b8">None</span>
+              </div>
+            </td>
+            <td style="color:#94a3b8;font-size:12px">Jun 10, 2025</td>
+            <td style="color:#94a3b8;font-size:12px">Dec 10, 2025</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="Re-enroll" style="color:#16a34a">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Enrollment 8: Expired, Partner -->
+          <tr>
+            <td>
+              <div class="device-info">
+                <div class="device-icon" style="opacity:0.5;background:#dcfce7;color:#16a34a">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V7H6v11zM3.5 7C2.67 7 2 7.67 2 8.5v7c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-7C5 7.67 4.33 7 3.5 7zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+                </div>
+                <div>
+                  <div class="device-label" style="color:#94a3b8">Old Samsung A54</div>
+                  <div class="device-sub">BB-DEV-012 / Android 13</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-slate">Partner</span></td>
+            <td><span class="status"><span class="status-dot expired"></span><span style="color:#94a3b8">Expired</span></span></td>
+            <td>
+              <div class="protection-bar-wrapper">
+                <div class="protection-bar"><div class="protection-fill" style="width:0%;background:#cbd5e1"></div></div>
+                <span class="protection-label" style="color:#94a3b8">None</span>
+              </div>
+            </td>
+            <td style="color:#94a3b8;font-size:12px">Mar 15, 2025</td>
+            <td style="color:#94a3b8;font-size:12px">Sep 15, 2025</td>
+            <td>
+              <div class="actions">
+                <button class="btn-ghost" title="View details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-ghost" title="Re-enroll" style="color:#16a34a">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BetBlocker - Analytics Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; display: flex; width: 1400px; min-height: 900px; }
+
+  /* Sidebar */
+  .sidebar { width: 256px; background: #f1f5f9; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { height: 64px; display: flex; align-items: center; gap: 8px; padding: 0 24px; font-weight: 700; font-size: 18px; border-bottom: 1px solid #e2e8f0; color: #0f172a; }
+  .sidebar-brand svg { color: #6366f1; }
+  .sidebar-nav { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; }
+  .nav-item:hover { background: #e2e8f0; color: #0f172a; }
+  .nav-item.active { background: #6366f1; color: #fff; }
+  .nav-section { padding: 16px 12px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
+  .nav-subsection { padding: 4px 12px 4px; font-size: 11px; color: #94a3b8; opacity: 0.7; }
+  .nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { height: 64px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: #fff; }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-left h1 { font-size: 20px; font-weight: 700; }
+  .topbar-left p { font-size: 13px; color: #64748b; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+  .content { flex: 1; padding: 24px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .card-header { padding: 16px 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 13px; font-weight: 500; color: #64748b; }
+  .card-content { padding: 8px 20px 16px; }
+  .card-value { font-size: 28px; font-weight: 700; }
+  .card-value.decrease { color: #10b981; }
+  .card-subtitle { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; align-items: flex-end; gap: 16px; padding: 16px 20px; }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-label { font-size: 11px; color: #64748b; }
+  .filter-input { height: 34px; padding: 0 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; background: #fff; color: #0f172a; }
+  .filter-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.15); }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; border: 1px solid #e2e8f0; background: #fff; color: #0f172a; cursor: pointer; }
+  .btn:hover { background: #f8fafc; }
+  .btn-primary { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .btn-primary:hover { background: #4f46e5; }
+
+  /* Trend badge */
+  .trend-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; }
+  .trend-badge.down { background: #dcfce7; color: #15803d; }
+  .trend-badge.up { background: #fef3c7; color: #92400e; }
+
+  /* Chart area */
+  .chart-container { padding: 16px 20px; }
+  .chart-section-title { font-size: 13px; font-weight: 500; color: #64748b; padding: 16px 20px 0; }
+
+  /* Heatmap */
+  .heatmap { display: flex; flex-direction: column; gap: 2px; }
+  .heatmap-row { display: flex; align-items: center; gap: 2px; }
+  .heatmap-label { width: 36px; text-align: right; font-size: 10px; color: #94a3b8; padding-right: 4px; flex-shrink: 0; }
+  .heatmap-cell { width: 20px; height: 20px; border-radius: 3px; flex-shrink: 0; }
+  .heatmap-hour-labels { display: flex; gap: 2px; margin-left: 38px; margin-bottom: 2px; }
+  .heatmap-hour-label { width: 20px; text-align: center; font-size: 9px; color: #94a3b8; flex-shrink: 0; }
+  .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; color: #94a3b8; }
+  .heatmap-legend-cell { width: 16px; height: 16px; border-radius: 3px; }
+
+  /* Intensity colors */
+  .int-0 { background: #f1f5f9; }
+  .int-1 { background: #dbeafe; }
+  .int-2 { background: #93c5fd; }
+  .int-3 { background: #60a5fa; }
+  .int-4 { background: #3b82f6; }
+  .int-5 { background: #1d4ed8; }
+
+  /* Icon placeholder */
+  .icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    BetBlocker
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Devices
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Partners
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Organizations
+    </a>
+    <a class="nav-item active" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+    <div class="nav-section">Admin</div>
+    <div class="nav-subsection">Blocklist</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Blocklist
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+      Review Queue
+    </a>
+    <div class="nav-subsection" style="padding-top:12px">Blocking</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      App Signatures
+    </a>
+  </nav>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <h1>Analytics Dashboard</h1>
+        <p>Deep-dive into block activity, trends and heatmaps for a specific device.</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+      <button class="btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Filters -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Filters</span></div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">Device ID</span>
+          <input class="filter-input" type="text" value="42" style="width:100px" readonly>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">From</span>
+          <input class="filter-input" type="text" value="2026-02-13" style="width:140px" readonly>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">To</span>
+          <input class="filter-input" type="text" value="2026-03-15" style="width:140px" readonly>
+        </div>
+        <button class="btn-primary btn">Apply</button>
+      </div>
+    </div>
+
+    <!-- Summary Stat Cards -->
+    <div class="stat-grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Blocks This Week</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">247</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <span class="trend-badge down">-15%</span>
+            <span class="card-subtitle">vs. last week</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Clean Streak</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">12 <span style="font-size:14px;font-weight:500;color:#64748b">days</span></div>
+          <div class="card-subtitle">Days without bypass attempts</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Peak Hour</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">10 PM</div>
+          <div class="card-subtitle">Hour with most block events</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Top Category</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value" style="font-size:22px">Sports Betting</div>
+          <div class="card-subtitle">63% of all blocked domains</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Chart -->
+    <div class="card">
+      <div class="chart-section-title">Daily Block Activity</div>
+      <div class="chart-container">
+        <svg viewBox="0 0 800 260" width="100%" style="display:block">
+          <!-- Grid lines -->
+          <line x1="50" y1="20" x2="50" y2="220" stroke="#e2e8f0" stroke-width="1"/>
+          <line x1="50" y1="220" x2="780" y2="220" stroke="#e2e8f0" stroke-width="1"/>
+          <line x1="50" y1="170" x2="780" y2="170" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="50" y1="120" x2="780" y2="120" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="50" y1="70" x2="780" y2="70" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="50" y1="20" x2="780" y2="20" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- Y axis labels -->
+          <text x="44" y="224" text-anchor="end" font-size="10" fill="#94a3b8">0</text>
+          <text x="44" y="174" text-anchor="end" font-size="10" fill="#94a3b8">10</text>
+          <text x="44" y="124" text-anchor="end" font-size="10" fill="#94a3b8">20</text>
+          <text x="44" y="74" text-anchor="end" font-size="10" fill="#94a3b8">30</text>
+          <text x="44" y="24" text-anchor="end" font-size="10" fill="#94a3b8">40</text>
+
+          <!-- X axis labels -->
+          <text x="50" y="240" font-size="10" fill="#94a3b8">Feb 13</text>
+          <text x="172" y="240" font-size="10" fill="#94a3b8">Feb 18</text>
+          <text x="294" y="240" font-size="10" fill="#94a3b8">Feb 23</text>
+          <text x="416" y="240" font-size="10" fill="#94a3b8">Feb 28</text>
+          <text x="538" y="240" font-size="10" fill="#94a3b8">Mar 5</text>
+          <text x="660" y="240" font-size="10" fill="#94a3b8">Mar 10</text>
+          <text x="750" y="240" font-size="10" fill="#94a3b8">Mar 15</text>
+
+          <!-- Block line (blue) - downward trend showing recovery -->
+          <polyline fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+            points="50,35 74,42 98,28 122,50 146,55 170,48 194,65 218,58 242,72 266,68 290,85 314,78 338,95 362,90 386,105 410,98 434,115 458,110 482,128 506,135 530,125 554,142 578,148 602,138 626,155 650,162 674,158 698,170 722,175 746,180 770,178" />
+
+          <!-- Bypass attempts line (orange) - decreasing faster -->
+          <polyline fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6,3"
+            points="50,80 74,95 98,88 122,105 146,115 170,120 194,130 218,140 242,148 266,155 290,160 314,168 338,172 362,178 386,182 410,188 434,190 458,194 482,198 506,200 530,202 554,205 578,208 602,208 626,210 650,212 674,212 698,214 722,215 746,216 770,217" />
+
+          <!-- Area fill under blue line -->
+          <polygon fill="url(#blueGradient)" opacity="0.12"
+            points="50,35 74,42 98,28 122,50 146,55 170,48 194,65 218,58 242,72 266,68 290,85 314,78 338,95 362,90 386,105 410,98 434,115 458,110 482,128 506,135 530,125 554,142 578,148 602,138 626,155 650,162 674,158 698,170 722,175 746,180 770,178 770,220 50,220" />
+
+          <defs>
+            <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3b82f6"/>
+              <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Legend -->
+          <line x1="560" y1="10" x2="580" y2="10" stroke="#3b82f6" stroke-width="2.5"/>
+          <text x="585" y="14" font-size="11" fill="#64748b">Blocks</text>
+          <line x1="640" y1="10" x2="660" y2="10" stroke="#f97316" stroke-width="2" stroke-dasharray="6,3"/>
+          <text x="665" y="14" font-size="11" fill="#64748b">Bypass attempts</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Activity Heatmap -->
+    <div class="card">
+      <div class="chart-section-title">Activity Heatmap (Hour of Day x Day of Week)</div>
+      <div class="chart-container">
+        <div class="heatmap">
+          <!-- Hour labels -->
+          <div class="heatmap-hour-labels">
+            <span class="heatmap-hour-label">0</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">3</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">6</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">9</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">12</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">15</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">18</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label">21</span>
+            <span class="heatmap-hour-label"></span>
+            <span class="heatmap-hour-label"></span>
+          </div>
+          <!-- Mon: low activity, slight bump at lunch and evening -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Mon</span>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-2"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div>
+          </div>
+          <!-- Tue -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Tue</span>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div>
+            <div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div>
+          </div>
+          <!-- Wed -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Wed</span>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-2"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div>
+          </div>
+          <!-- Thu -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Thu</span>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-3"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div>
+          </div>
+          <!-- Fri - more evening activity -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Fri</span>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div>
+            <div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-3"></div>
+            <div class="heatmap-cell int-3"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-2"></div>
+          </div>
+          <!-- Sat - heavy weekend -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Sat</span>
+            <div class="heatmap-cell int-1"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-3"></div>
+            <div class="heatmap-cell int-3"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-4"></div>
+            <div class="heatmap-cell int-4"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-3"></div>
+          </div>
+          <!-- Sun -->
+          <div class="heatmap-row">
+            <span class="heatmap-label">Sun</span>
+            <div class="heatmap-cell int-1"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div>
+            <div class="heatmap-cell int-0"></div><div class="heatmap-cell int-0"></div><div class="heatmap-cell int-1"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-2"></div><div class="heatmap-cell int-3"></div>
+            <div class="heatmap-cell int-3"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-3"></div>
+            <div class="heatmap-cell int-4"></div><div class="heatmap-cell int-4"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-5"></div><div class="heatmap-cell int-3"></div><div class="heatmap-cell int-2"></div>
+          </div>
+
+          <!-- Legend -->
+          <div class="heatmap-legend">
+            <span>Less</span>
+            <div class="heatmap-legend-cell int-0"></div>
+            <div class="heatmap-legend-cell int-1"></div>
+            <div class="heatmap-legend-cell int-2"></div>
+            <div class="heatmap-legend-cell int-3"></div>
+            <div class="heatmap-legend-cell int-4"></div>
+            <div class="heatmap-legend-cell int-5"></div>
+            <span>More</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
