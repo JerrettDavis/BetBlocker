@@ -7,19 +7,21 @@
 mod app_process_integration {
     use std::time::Duration;
 
-    use bb_agent_plugins::app_process::interceptor::{ProcessDetection, ProcessInterceptor};
     use bb_agent_plugins::app_process::install_watcher::{
         InstallAction, InstallDetection, InstallWatcher,
     };
+    use bb_agent_plugins::app_process::interceptor::{ProcessDetection, ProcessInterceptor};
     use bb_agent_plugins::app_process::scanner::AppInventoryScanner;
     use bb_agent_plugins::app_process::{
         AppProcessPlugin, DEFAULT_SCAN_INTERVAL_SECS, MAX_SCAN_INTERVAL_SECS,
         MIN_SCAN_INTERVAL_SECS,
     };
-    use bb_agent_plugins::blocklist::app_signatures::{AppSignatureStore, AppSignatureSummary};
     use bb_agent_plugins::blocklist::Blocklist;
+    use bb_agent_plugins::blocklist::app_signatures::{AppSignatureStore, AppSignatureSummary};
     use bb_agent_plugins::traits::{AppBlockingPlugin, BlockingPlugin};
-    use bb_agent_plugins::types::{AppIdentifier, AppMatch, AppMatchType, PluginConfig, PluginError};
+    use bb_agent_plugins::types::{
+        AppIdentifier, AppMatch, AppMatchType, PluginConfig, PluginError,
+    };
     use bb_common::enums::Platform;
     use chrono::Utc;
     use uuid::Uuid;
@@ -138,7 +140,9 @@ mod app_process_integration {
     }
 
     impl MockInterceptor {
-        fn new(pending: Vec<ProcessDetection>) -> (Self, std::sync::Arc<std::sync::Mutex<Vec<u32>>>) {
+        fn new(
+            pending: Vec<ProcessDetection>,
+        ) -> (Self, std::sync::Arc<std::sync::Mutex<Vec<u32>>>) {
             let killed = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
             let s = Self {
                 pending,
@@ -199,10 +203,8 @@ mod app_process_integration {
     fn scan_cycle_detects_blocked_app_that_is_running() {
         // Set up scanner: bet365.exe is installed AND running at PID 4242
         let bet365 = app_id_with_exe("bet365.exe");
-        let scanner = MockScanner::new(
-            vec![bet365.clone()],
-            vec![("bet365.exe".to_string(), 4242)],
-        );
+        let scanner =
+            MockScanner::new(vec![bet365.clone()], vec![("bet365.exe".to_string(), 4242)]);
         let (interceptor, _killed) = MockInterceptor::new(vec![]);
         let watcher = MockInstallWatcher::new(vec![]);
 
@@ -310,7 +312,10 @@ mod app_process_integration {
     /// and event emitted.
     #[test]
     fn tick_install_watcher_detection_emits_install_event() {
-        let install = make_install_detection("C:\\Users\\test\\bet365_setup.exe", InstallAction::Quarantined);
+        let install = make_install_detection(
+            "C:\\Users\\test\\bet365_setup.exe",
+            InstallAction::Quarantined,
+        );
         let (interceptor, _) = MockInterceptor::new(vec![]);
         let watcher = MockInstallWatcher::new(vec![install]);
 
@@ -390,7 +395,10 @@ mod app_process_integration {
 
         // Now the app should be blocked
         let decision = plugin.check_app(&app);
-        assert!(decision.is_blocked(), "should be blocked after signature update");
+        assert!(
+            decision.is_blocked(),
+            "should be blocked after signature update"
+        );
 
         plugin.deactivate().unwrap();
     }
@@ -442,7 +450,11 @@ mod app_process_integration {
         plugin.run_scan_cycle();
 
         let detected = plugin.drain_detected_events();
-        assert_eq!(detected.len(), 1, "should detect pokerstars after signature update");
+        assert_eq!(
+            detected.len(),
+            1,
+            "should detect pokerstars after signature update"
+        );
         assert_eq!(detected[0].app_match.signature_name, "PokerStars");
 
         plugin.deactivate().unwrap();
@@ -452,10 +464,8 @@ mod app_process_integration {
     #[test]
     fn removing_signature_allows_previously_blocked_app() {
         let bet365 = app_id_with_exe("bet365.exe");
-        let scanner = MockScanner::new(
-            vec![bet365.clone()],
-            vec![("bet365.exe".to_string(), 1234)],
-        );
+        let scanner =
+            MockScanner::new(vec![bet365.clone()], vec![("bet365.exe".to_string(), 1234)]);
         let (interceptor, _) = MockInterceptor::new(vec![]);
         let watcher = MockInstallWatcher::new(vec![]);
 
@@ -473,7 +483,11 @@ mod app_process_integration {
         plugin.set_last_scan(Some(Utc::now()));
 
         plugin.run_scan_cycle();
-        assert_eq!(plugin.drain_detected_events().len(), 1, "bet365 should be detected initially");
+        assert_eq!(
+            plugin.drain_detected_events().len(),
+            1,
+            "bet365 should be detected initially"
+        );
 
         // Now remove the bet365 signature (replace with empty store)
         plugin.update_signatures(AppSignatureStore::new());
@@ -580,7 +594,10 @@ mod app_process_integration {
             .settings
             .insert("scan_interval_secs".to_string(), serde_json::json!(10u64)); // below 60
         let result = plugin.init(&config);
-        assert!(result.is_err(), "init should fail for interval below minimum");
+        assert!(
+            result.is_err(),
+            "init should fail for interval below minimum"
+        );
     }
 
     /// T26-8: init() without scan_interval_secs uses the default.
@@ -610,7 +627,7 @@ mod app_process_integration {
 
     #[test]
     fn mac_detect_returns_none_on_non_linux_host() {
-        use bb_shim_linux::mac::{detect_mac_system, MacSystem};
+        use bb_shim_linux::mac::{MacSystem, detect_mac_system};
         let system = detect_mac_system();
         // On Windows / macOS (where CI typically runs) there is no AppArmor or
         // SELinux sysfs, so we must get None.  On Linux CI the answer will

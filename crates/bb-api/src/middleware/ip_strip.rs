@@ -68,10 +68,12 @@ mod tests {
                 } else {
                     StatusCode::OK
                 };
-                Ok::<_, std::convert::Infallible>(axum::response::Response::builder()
-                    .status(status)
-                    .body(Body::empty())
-                    .unwrap())
+                Ok::<_, std::convert::Infallible>(
+                    axum::response::Response::builder()
+                        .status(status)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
             }));
 
         let req = Request::builder()
@@ -84,7 +86,11 @@ mod tests {
             .unwrap();
 
         let response = svc.oneshot(req).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK, "IP headers should have been stripped");
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "IP headers should have been stripped"
+        );
     }
 
     #[tokio::test]
@@ -98,10 +104,12 @@ mod tests {
                 } else {
                     StatusCode::BAD_REQUEST
                 };
-                Ok::<_, std::convert::Infallible>(axum::response::Response::builder()
-                    .status(status)
-                    .body(Body::empty())
-                    .unwrap())
+                Ok::<_, std::convert::Infallible>(
+                    axum::response::Response::builder()
+                        .status(status)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
             }));
 
         let req = Request::builder()
@@ -111,6 +119,10 @@ mod tests {
             .unwrap();
 
         let response = svc.oneshot(req).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK, "non-IP headers should be preserved");
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "non-IP headers should be preserved"
+        );
     }
 }

@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
-    Json,
 };
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -11,9 +11,7 @@ use uuid::Uuid;
 use crate::error::ApiError;
 use crate::extractors::{AuthenticatedAccount, Pagination};
 use crate::response::{ApiResponse, PaginatedResponse};
-use crate::services::{
-    account_service, device_service, enrollment_service, partner_service,
-};
+use crate::services::{account_service, device_service, enrollment_service, partner_service};
 use crate::state::AppState;
 
 // ---------------------------------------------------------------------------
@@ -64,8 +62,7 @@ pub async fn create_enrollment(
     auth: AuthenticatedAccount,
     Json(req): Json<CreateEnrollmentRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     // Look up device
     let device = device_service::get_device_by_public_id(&state.db, req.device_id)
@@ -124,8 +121,9 @@ pub async fn create_enrollment(
     }
 
     // Apply tier defaults for omitted configs
-    let protection_config = req.protection_config.unwrap_or_else(|| {
-        match req.tier.as_str() {
+    let protection_config = req
+        .protection_config
+        .unwrap_or_else(|| match req.tier.as_str() {
             "self" => json!({
                 "dns_blocking": true, "app_blocking": false, "browser_blocking": false,
                 "vpn_detection": "log", "tamper_response": "log"
@@ -139,11 +137,11 @@ pub async fn create_enrollment(
                 "vpn_detection": "lockdown", "tamper_response": "alert_authority"
             }),
             _ => json!({}),
-        }
-    });
+        });
 
-    let reporting_config = req.reporting_config.unwrap_or_else(|| {
-        match req.tier.as_str() {
+    let reporting_config = req
+        .reporting_config
+        .unwrap_or_else(|| match req.tier.as_str() {
             "self" => json!({
                 "level": "none", "blocked_attempt_counts": true,
                 "domain_details": false, "tamper_alerts": true
@@ -157,11 +155,11 @@ pub async fn create_enrollment(
                 "domain_details": true, "tamper_alerts": true
             }),
             _ => json!({}),
-        }
-    });
+        });
 
-    let unenrollment_policy = req.unenrollment_policy.unwrap_or_else(|| {
-        match req.tier.as_str() {
+    let unenrollment_policy = req
+        .unenrollment_policy
+        .unwrap_or_else(|| match req.tier.as_str() {
             "self" => json!({
                 "type": "time_delayed", "cooldown_hours": 48,
                 "requires_approval_from": null
@@ -175,8 +173,7 @@ pub async fn create_enrollment(
                 "requires_approval_from": caller.public_id.to_string()
             }),
             _ => json!({}),
-        }
-    });
+        });
 
     // Validate self-tier cooldown_hours
     if req.tier == "self" {
@@ -216,8 +213,7 @@ pub async fn list_enrollments(
     pagination: Pagination,
     Query(filters): Query<EnrollmentFilters>,
 ) -> Result<PaginatedResponse<serde_json::Value>, ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     // Resolve device_id filter if provided (UUID -> internal ID)
     let device_id_internal = if let Some(device_uuid) = filters.device_id {
@@ -257,8 +253,7 @@ pub async fn get_enrollment(
     auth: AuthenticatedAccount,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let enrollment = enrollment_service::get_enrollment_by_public_id(&state.db, id)
         .await?
@@ -290,8 +285,7 @@ pub async fn update_enrollment(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateEnrollmentRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let enrollment = enrollment_service::get_enrollment_by_public_id(&state.db, id)
         .await?
@@ -312,14 +306,17 @@ pub async fn update_enrollment(
         "partner" => {
             if enrollment.enrolled_by != caller.id && caller.role != "admin" {
                 return Err(ApiError::Forbidden {
-                    message: "Only the enrolling partner can modify partner-tier enrollments".into(),
+                    message: "Only the enrolling partner can modify partner-tier enrollments"
+                        .into(),
                 });
             }
         }
         "authority" => {
             if enrollment.enrolled_by != caller.id && caller.role != "admin" {
                 return Err(ApiError::Forbidden {
-                    message: "Only the authority representative can modify authority-tier enrollments".into(),
+                    message:
+                        "Only the authority representative can modify authority-tier enrollments"
+                            .into(),
                 });
             }
         }
@@ -349,8 +346,7 @@ pub async fn request_unenroll(
     Path(id): Path<Uuid>,
     body: Option<Json<UnenrollRequest>>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let enrollment = enrollment_service::get_enrollment_by_public_id(&state.db, id)
         .await?
@@ -418,8 +414,7 @@ pub async fn request_unenroll(
                 let uuid = Uuid::parse_str(uuid_str).map_err(|_| ApiError::Internal {
                     message: "Invalid approver UUID in policy".into(),
                 })?;
-                let approver =
-                    account_service::get_account_by_public_id(&state.db, uuid).await?;
+                let approver = account_service::get_account_by_public_id(&state.db, uuid).await?;
                 Some(approver.id)
             } else {
                 None
@@ -468,8 +463,7 @@ pub async fn approve_unenroll(
     Path(id): Path<Uuid>,
     Json(req): Json<ApproveUnenrollRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let enrollment = enrollment_service::get_enrollment_by_public_id(&state.db, id)
         .await?
@@ -487,11 +481,12 @@ pub async fn approve_unenroll(
 
     // Verify caller is the designated approver
     let policy = &enrollment.unenrollment_policy;
-    let approver_uuid_str = policy["requires_approval_from"]
-        .as_str()
-        .ok_or(ApiError::Internal {
-            message: "Enrollment missing approval authority".into(),
-        })?;
+    let approver_uuid_str =
+        policy["requires_approval_from"]
+            .as_str()
+            .ok_or(ApiError::Internal {
+                message: "Enrollment missing approval authority".into(),
+            })?;
     let approver_uuid = Uuid::parse_str(approver_uuid_str).map_err(|_| ApiError::Internal {
         message: "Invalid approver UUID".into(),
     })?;
@@ -505,12 +500,8 @@ pub async fn approve_unenroll(
     if req.approved {
         enrollment_service::resolve_unenroll_request(&state.db, enrollment.id, caller.id, true)
             .await?;
-        enrollment_service::update_enrollment_status(
-            &state.db,
-            enrollment.id,
-            "unenroll_approved",
-        )
-        .await?;
+        enrollment_service::update_enrollment_status(&state.db, enrollment.id, "unenroll_approved")
+            .await?;
 
         // Update device status to unenrolling
         device_service::update_device_status(&state.db, enrollment.device_id, "unenrolling")

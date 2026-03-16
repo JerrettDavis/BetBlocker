@@ -2,9 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::enums::{
-    AppSignaturePlatform, AppSignatureStatus, BlocklistSource, GamblingCategory,
-};
+use crate::enums::{AppSignaturePlatform, AppSignatureStatus, BlocklistSource, GamblingCategory};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSignature {

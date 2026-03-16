@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -78,13 +78,9 @@ pub async fn create_org(
         });
     }
 
-    let org = organization_service::create_organization(
-        &state.db,
-        &req.name,
-        &req.org_type,
-        caller.id,
-    )
-    .await?;
+    let org =
+        organization_service::create_organization(&state.db, &req.name, &req.org_type, caller.id)
+            .await?;
 
     tracing::info!(org_id = org.id, "Organization created");
 
@@ -258,16 +254,15 @@ pub async fn invite_member(
         });
     }
 
-    let member = organization_service::invite_member(
-        &state.db,
-        org.id,
-        &req.email,
-        &req.role,
-        caller.id,
-    )
-    .await?;
+    let member =
+        organization_service::invite_member(&state.db, org.id, &req.email, &req.role, caller.id)
+            .await?;
 
-    tracing::info!(org_id = org.id, member_id = member.account_id, "Member invited to organization");
+    tracing::info!(
+        org_id = org.id,
+        member_id = member.account_id,
+        "Member invited to organization"
+    );
 
     Ok(ApiResponse::created(json!({
         "id": member.id,
@@ -393,13 +388,7 @@ pub async fn remove_member(
     // Look up the target member by their public account ID
     let target_account = account_service::get_account_by_public_id(&state.db, member_id).await?;
 
-    organization_service::remove_member(
-        &state.db,
-        org.id,
-        target_account.id,
-        caller.id,
-    )
-    .await?;
+    organization_service::remove_member(&state.db, org.id, target_account.id, caller.id).await?;
 
     tracing::info!(
         org_id = org.id,
@@ -430,15 +419,14 @@ pub async fn assign_device(
     // Require admin+
     organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
 
-    let device = organization_service::assign_device(
-        &state.db,
-        org.id,
-        req.device_id,
-        caller.id,
-    )
-    .await?;
+    let device =
+        organization_service::assign_device(&state.db, org.id, req.device_id, caller.id).await?;
 
-    tracing::info!(org_id = org.id, device_id = req.device_id, "Device assigned to organization");
+    tracing::info!(
+        org_id = org.id,
+        device_id = req.device_id,
+        "Device assigned to organization"
+    );
 
     Ok(ApiResponse::created(json!({
         "id": device.id,
@@ -466,7 +454,11 @@ pub async fn unassign_device(
 
     organization_service::unassign_device(&state.db, org.id, device_id).await?;
 
-    tracing::info!(org_id = org.id, device_id = device_id, "Device unassigned from organization");
+    tracing::info!(
+        org_id = org.id,
+        device_id = device_id,
+        "Device unassigned from organization"
+    );
 
     Ok(ApiResponse::ok(json!({
         "deleted": true,
@@ -549,7 +541,11 @@ pub async fn create_token(
     )
     .await?;
 
-    tracing::info!(org_id = org.id, token_id = token.id, "Enrollment token created");
+    tracing::info!(
+        org_id = org.id,
+        token_id = token.id,
+        "Enrollment token created"
+    );
 
     Ok(ApiResponse::created(json!({
         "id": token.id,
@@ -627,20 +623,20 @@ pub async fn revoke_token(
     organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
 
     // Verify token belongs to org
-    let _token = enrollment_token_service::get_enrollment_token_by_id(
-        &state.db,
-        token_id,
-        org.id,
-    )
-    .await
-    .map_err(|_| ApiError::NotFound {
-        code: "TOKEN_NOT_FOUND".into(),
-        message: "Enrollment token not found in this organization".into(),
-    })?;
+    let _token = enrollment_token_service::get_enrollment_token_by_id(&state.db, token_id, org.id)
+        .await
+        .map_err(|_| ApiError::NotFound {
+            code: "TOKEN_NOT_FOUND".into(),
+            message: "Enrollment token not found in this organization".into(),
+        })?;
 
     enrollment_token_service::revoke_enrollment_token(&state.db, token_id).await?;
 
-    tracing::info!(org_id = org.id, token_id = token_id, "Enrollment token revoked");
+    tracing::info!(
+        org_id = org.id,
+        token_id = token_id,
+        "Enrollment token revoked"
+    );
 
     Ok(ApiResponse::ok(json!({
         "revoked": true,
@@ -698,21 +694,21 @@ pub async fn get_token_qr(
     organization_service::check_org_permission(&state.db, org.id, caller.id, "admin").await?;
 
     // Verify token belongs to org
-    let token = enrollment_token_service::get_enrollment_token_by_id(
-        &state.db,
-        token_id,
-        org.id,
-    )
-    .await
-    .map_err(|_| ApiError::NotFound {
-        code: "TOKEN_NOT_FOUND".into(),
-        message: "Enrollment token not found in this organization".into(),
-    })?;
+    let token = enrollment_token_service::get_enrollment_token_by_id(&state.db, token_id, org.id)
+        .await
+        .map_err(|_| ApiError::NotFound {
+            code: "TOKEN_NOT_FOUND".into(),
+            message: "Enrollment token not found in this organization".into(),
+        })?;
 
     // Build the enrollment URL
     let enroll_url = format!(
         "{}/v1/enroll/{}",
-        state.config.public_base_url.as_deref().unwrap_or("https://api.betblocker.org"),
+        state
+            .config
+            .public_base_url
+            .as_deref()
+            .unwrap_or("https://api.betblocker.org"),
         token.public_id
     );
 

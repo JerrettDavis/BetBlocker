@@ -180,27 +180,26 @@ impl DomainCrawler for WhoisCrawler {
         let mut seen_domains = std::collections::HashSet::new();
 
         for registrant_pattern in &self.known_registrants {
-            let records = match Self::query_registrant(ctx, &self.api_endpoint, registrant_pattern)
-                .await
-            {
-                Ok(r) => r,
-                Err(CrawlError::Http(e)) => {
-                    tracing::warn!(
-                        pattern = %registrant_pattern,
-                        error = %e,
-                        "HTTP error querying WHOIS API, skipping pattern"
-                    );
-                    continue;
-                }
-                Err(e) => {
-                    tracing::warn!(
-                        pattern = %registrant_pattern,
-                        error = %e,
-                        "error querying WHOIS API, skipping pattern"
-                    );
-                    continue;
-                }
-            };
+            let records =
+                match Self::query_registrant(ctx, &self.api_endpoint, registrant_pattern).await {
+                    Ok(r) => r,
+                    Err(CrawlError::Http(e)) => {
+                        tracing::warn!(
+                            pattern = %registrant_pattern,
+                            error = %e,
+                            "HTTP error querying WHOIS API, skipping pattern"
+                        );
+                        continue;
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            pattern = %registrant_pattern,
+                            error = %e,
+                            "error querying WHOIS API, skipping pattern"
+                        );
+                        continue;
+                    }
+                };
 
             for record in records {
                 let domain = record.domain.to_lowercase();
@@ -271,10 +270,7 @@ mod tests {
         let records = WhoisCrawler::parse_response(RESPONSE_ENVELOPE).expect("should parse");
         assert_eq!(records.len(), 2);
         assert_eq!(records[0].domain, "new-casino.example.com");
-        assert_eq!(
-            records[0].registrant_org.as_deref(),
-            Some("Betsson Group")
-        );
+        assert_eq!(records[0].registrant_org.as_deref(), Some("Betsson Group"));
         assert_eq!(records[1].domain, "poker-hub.example.bet");
     }
 
@@ -283,7 +279,10 @@ mod tests {
         let records = WhoisCrawler::parse_response(RESPONSE_BARE_ARRAY).expect("should parse");
         assert_eq!(records.len(), 2);
         assert_eq!(records[0].domain, "lucky-slots.example.casino");
-        assert!(records[1].registrant_org.is_none(), "optional org should be None");
+        assert!(
+            records[1].registrant_org.is_none(),
+            "optional org should be None"
+        );
     }
 
     #[test]
@@ -337,10 +336,12 @@ mod tests {
         let crawler = WhoisCrawler::with_defaults("https://whois-api.example/");
         assert!(!crawler.known_registrants.is_empty());
         assert!(!crawler.tlds.is_empty());
-        assert!(crawler
-            .tlds
-            .iter()
-            .any(|t| t == "bet" || t == "casino" || t == "com"));
+        assert!(
+            crawler
+                .tlds
+                .iter()
+                .any(|t| t == "bet" || t == "casino" || t == "com")
+        );
     }
 
     // -----------------------------------------------------------------------

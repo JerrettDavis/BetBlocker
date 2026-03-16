@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -10,9 +10,7 @@ use uuid::Uuid;
 use crate::error::ApiError;
 use crate::extractors::{AuthenticatedAccount, Pagination};
 use crate::response::{ApiResponse, PaginatedResponse};
-use crate::services::{
-    account_service, auth_service, device_service, enrollment_service,
-};
+use crate::services::{account_service, auth_service, device_service, enrollment_service};
 use crate::state::AppState;
 
 // ---------------------------------------------------------------------------
@@ -95,8 +93,7 @@ pub async fn register_device(
         });
     }
 
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let device = device_service::create_device(
         &state.db,
@@ -158,8 +155,7 @@ pub async fn list_devices(
     pagination: Pagination,
     Query(filters): Query<DeviceFilters>,
 ) -> Result<PaginatedResponse<DeviceResponse>, ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let (devices, total) = device_service::list_devices_for_account(
         &state.db,
@@ -171,7 +167,10 @@ pub async fn list_devices(
     )
     .await?;
 
-    let data: Vec<DeviceResponse> = devices.into_iter().map(|d| device_to_response(&d)).collect();
+    let data: Vec<DeviceResponse> = devices
+        .into_iter()
+        .map(|d| device_to_response(&d))
+        .collect();
 
     Ok(PaginatedResponse::new(
         data,
@@ -190,8 +189,7 @@ pub async fn get_device(
     auth: AuthenticatedAccount,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, Json<ApiResponse<DeviceResponse>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let device = device_service::get_device_by_public_id(&state.db, id)
         .await?
@@ -229,8 +227,7 @@ pub async fn delete_device(
     Path(id): Path<Uuid>,
     body: Option<Json<DeleteDeviceRequest>>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let device = device_service::get_device_by_public_id(&state.db, id)
         .await?
@@ -268,8 +265,7 @@ pub async fn delete_device(
         match policy_type {
             "time_delayed" => {
                 let cooldown_hours = policy["cooldown_hours"].as_i64().unwrap_or(48);
-                let eligible_at =
-                    chrono::Utc::now() + chrono::Duration::hours(cooldown_hours);
+                let eligible_at = chrono::Utc::now() + chrono::Duration::hours(cooldown_hours);
 
                 enrollment_service::insert_unenroll_request(
                     &state.db,
@@ -299,14 +295,12 @@ pub async fn delete_device(
                 let approver_uuid = policy["requires_approval_from"].as_str();
 
                 let required_approver_id = if let Some(approver_uuid_str) = approver_uuid {
-                    let approver_uuid = Uuid::parse_str(approver_uuid_str).map_err(|_| {
-                        ApiError::Internal {
+                    let approver_uuid =
+                        Uuid::parse_str(approver_uuid_str).map_err(|_| ApiError::Internal {
                             message: "Invalid approver UUID in policy".into(),
-                        }
-                    })?;
+                        })?;
                     let approver =
-                        account_service::get_account_by_public_id(&state.db, approver_uuid)
-                            .await?;
+                        account_service::get_account_by_public_id(&state.db, approver_uuid).await?;
                     Some(approver.id)
                 } else {
                     None
@@ -371,8 +365,7 @@ pub async fn heartbeat(
         })?;
 
     // Verify caller owns this device
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
     if device.account_id != account.id {
         return Err(ApiError::Forbidden {
             message: "Device does not belong to authenticated account".into(),
@@ -429,8 +422,7 @@ pub async fn get_device_config(
         })?;
 
     // Verify caller owns this device
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
     if device.account_id != account.id {
         return Err(ApiError::Forbidden {
             message: "Device does not belong to authenticated account".into(),

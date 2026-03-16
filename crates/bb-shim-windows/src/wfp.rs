@@ -127,13 +127,10 @@ impl WfpStats {
                 got: buf.len(),
             });
         }
-        let blocked_queries =
-            u64::from_le_bytes(buf[0..8].try_into().expect("slice is 8 bytes"));
-        let active_rules =
-            u32::from_le_bytes(buf[8..12].try_into().expect("slice is 4 bytes"));
+        let blocked_queries = u64::from_le_bytes(buf[0..8].try_into().expect("slice is 8 bytes"));
+        let active_rules = u32::from_le_bytes(buf[8..12].try_into().expect("slice is 4 bytes"));
         // bytes 12..16 are padding
-        let uptime_secs =
-            u64::from_le_bytes(buf[16..24].try_into().expect("slice is 8 bytes"));
+        let uptime_secs = u64::from_le_bytes(buf[16..24].try_into().expect("slice is 8 bytes"));
         Ok(Self {
             blocked_queries,
             active_rules,
@@ -352,7 +349,10 @@ mod tests {
         ];
         for i in 0..codes.len() {
             for j in (i + 1)..codes.len() {
-                assert_ne!(codes[i], codes[j], "IOCTL codes[{i}] and codes[{j}] collide");
+                assert_ne!(
+                    codes[i], codes[j],
+                    "IOCTL codes[{i}] and codes[{j}] collide"
+                );
             }
         }
     }

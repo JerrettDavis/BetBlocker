@@ -104,7 +104,10 @@ impl BypassResponseHandler {
     pub fn handle_detection(&self, result: &BypassDetectionResult) -> BypassAction {
         let anything_detected = result.vpn.is_some()
             || result.proxy.is_some()
-            || result.tor.as_ref().is_some_and(|t| t.process_detected || t.exit_node_match);
+            || result
+                .tor
+                .as_ref()
+                .is_some_and(|t| t.process_detected || t.exit_node_match);
 
         match self.mode {
             BypassResponseMode::Log => {
@@ -126,21 +129,19 @@ impl BypassResponseHandler {
                     return BypassAction::None;
                 }
                 match &self.kernel_control {
-                    Some(kc) => {
-                        match kc.block_vpn_interface() {
-                            Ok(()) => BypassAction::BlockNetwork,
-                            Err(BypassDetectionError::PlatformNotSupported) => {
-                                tracing::warn!(
-                                    "Block mode requested but platform not supported; falling back to alert"
-                                );
-                                BypassAction::EmitAlert
-                            }
-                            Err(e) => {
-                                tracing::error!(error = %e, "kernel block_vpn_interface failed");
-                                BypassAction::EmitAlert
-                            }
+                    Some(kc) => match kc.block_vpn_interface() {
+                        Ok(()) => BypassAction::BlockNetwork,
+                        Err(BypassDetectionError::PlatformNotSupported) => {
+                            tracing::warn!(
+                                "Block mode requested but platform not supported; falling back to alert"
+                            );
+                            BypassAction::EmitAlert
                         }
-                    }
+                        Err(e) => {
+                            tracing::error!(error = %e, "kernel block_vpn_interface failed");
+                            BypassAction::EmitAlert
+                        }
+                    },
                     None => {
                         tracing::warn!(
                             "Block mode requested but no kernel controller configured; falling back to alert"
@@ -154,21 +155,19 @@ impl BypassResponseHandler {
                     return BypassAction::None;
                 }
                 match &self.kernel_control {
-                    Some(kc) => {
-                        match kc.lockdown_network() {
-                            Ok(()) => BypassAction::EnterLockdown,
-                            Err(BypassDetectionError::PlatformNotSupported) => {
-                                tracing::warn!(
-                                    "Lockdown mode requested but platform not supported; falling back to alert"
-                                );
-                                BypassAction::EmitAlert
-                            }
-                            Err(e) => {
-                                tracing::error!(error = %e, "kernel lockdown_network failed");
-                                BypassAction::EmitAlert
-                            }
+                    Some(kc) => match kc.lockdown_network() {
+                        Ok(()) => BypassAction::EnterLockdown,
+                        Err(BypassDetectionError::PlatformNotSupported) => {
+                            tracing::warn!(
+                                "Lockdown mode requested but platform not supported; falling back to alert"
+                            );
+                            BypassAction::EmitAlert
                         }
-                    }
+                        Err(e) => {
+                            tracing::error!(error = %e, "kernel lockdown_network failed");
+                            BypassAction::EmitAlert
+                        }
+                    },
                     None => {
                         tracing::warn!(
                             "Lockdown mode requested but no kernel controller configured; falling back to alert"
@@ -241,7 +240,10 @@ mod tests {
     #[test]
     fn log_mode_nothing_detected() {
         let handler = BypassResponseHandler::new(BypassResponseMode::Log);
-        assert_eq!(handler.handle_detection(&empty_result()), BypassAction::None);
+        assert_eq!(
+            handler.handle_detection(&empty_result()),
+            BypassAction::None
+        );
     }
 
     #[test]
@@ -267,7 +269,10 @@ mod tests {
     #[test]
     fn alert_mode_nothing_detected() {
         let handler = BypassResponseHandler::new(BypassResponseMode::Alert);
-        assert_eq!(handler.handle_detection(&empty_result()), BypassAction::None);
+        assert_eq!(
+            handler.handle_detection(&empty_result()),
+            BypassAction::None
+        );
     }
 
     #[test]
@@ -293,7 +298,10 @@ mod tests {
     #[test]
     fn block_mode_nothing_detected() {
         let handler = BypassResponseHandler::new(BypassResponseMode::Block);
-        assert_eq!(handler.handle_detection(&empty_result()), BypassAction::None);
+        assert_eq!(
+            handler.handle_detection(&empty_result()),
+            BypassAction::None
+        );
     }
 
     #[test]
@@ -350,7 +358,10 @@ mod tests {
     #[test]
     fn lockdown_mode_nothing_detected() {
         let handler = BypassResponseHandler::new(BypassResponseMode::Lockdown);
-        assert_eq!(handler.handle_detection(&empty_result()), BypassAction::None);
+        assert_eq!(
+            handler.handle_detection(&empty_result()),
+            BypassAction::None
+        );
     }
 
     #[test]

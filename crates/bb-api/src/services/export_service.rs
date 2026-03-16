@@ -110,14 +110,20 @@ pub async fn generate_pdf_report(
         .map_err(|e| ApiError::Internal {
             message: format!("PDF font error: {e}"),
         })?;
-    let font_regular = doc
-        .add_builtin_font(BuiltinFont::Helvetica)
-        .map_err(|e| ApiError::Internal {
-            message: format!("PDF font error: {e}"),
-        })?;
+    let font_regular =
+        doc.add_builtin_font(BuiltinFont::Helvetica)
+            .map_err(|e| ApiError::Internal {
+                message: format!("PDF font error: {e}"),
+            })?;
 
     // Title
-    current_layer.use_text("BetBlocker Analytics Report", 20.0, Mm(20.0), Mm(277.0), &font);
+    current_layer.use_text(
+        "BetBlocker Analytics Report",
+        20.0,
+        Mm(20.0),
+        Mm(277.0),
+        &font,
+    );
 
     // Subtitle / date range
     let subtitle = format!(
@@ -151,7 +157,13 @@ pub async fn generate_pdf_report(
     // Daily stats section
     current_layer.use_text("Daily Statistics", 14.0, Mm(20.0), Mm(y), &font);
     y -= 8.0;
-    current_layer.use_text("Date            Event Type             Count", 9.0, Mm(20.0), Mm(y), &font);
+    current_layer.use_text(
+        "Date            Event Type             Count",
+        9.0,
+        Mm(20.0),
+        Mm(y),
+        &font,
+    );
     y -= 5.0;
 
     for row in daily.iter().take(30) {
@@ -219,9 +231,11 @@ mod tests {
             .has_headers(false)
             .from_writer(vec![]);
 
-        wtr.write_record(["date", "event_type", "event_count"]).unwrap();
+        wtr.write_record(["date", "event_type", "event_count"])
+            .unwrap();
         wtr.write_record(["2024-01-01", "block", "42"]).unwrap();
-        wtr.write_record(["2024-01-02", "bypass_attempt", "3"]).unwrap();
+        wtr.write_record(["2024-01-02", "bypass_attempt", "3"])
+            .unwrap();
 
         let data = wtr.into_inner().unwrap();
         let csv_str = String::from_utf8(data).unwrap();
@@ -247,8 +261,7 @@ mod tests {
     fn pdf_report_is_nonempty() {
         use printpdf::*;
 
-        let (doc, page1, layer1) =
-            PdfDocument::new("Test Report", Mm(210.0), Mm(297.0), "Layer 1");
+        let (doc, page1, layer1) = PdfDocument::new("Test Report", Mm(210.0), Mm(297.0), "Layer 1");
         let layer = doc.get_page(page1).get_layer(layer1);
         let font = doc.add_builtin_font(BuiltinFont::Helvetica).unwrap();
         layer.use_text("Hello PDF", 12.0, Mm(20.0), Mm(277.0), &font);
@@ -256,6 +269,9 @@ mod tests {
         let bytes = doc.save_to_bytes().unwrap();
         assert!(!bytes.is_empty(), "PDF output should be non-empty");
         // PDF magic bytes
-        assert!(bytes.starts_with(b"%PDF"), "Should start with PDF magic bytes");
+        assert!(
+            bytes.starts_with(b"%PDF"),
+            "Should start with PDF magic bytes"
+        );
     }
 }

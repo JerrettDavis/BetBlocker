@@ -319,20 +319,80 @@ mod tests {
     }
 
     // SP2 enums
-    serde_roundtrip!(discovery_candidate_status_pending, DiscoveryCandidateStatus, DiscoveryCandidateStatus::Pending, "\"pending\"");
-    serde_roundtrip!(discovery_candidate_status_deferred, DiscoveryCandidateStatus, DiscoveryCandidateStatus::Deferred, "\"deferred\"");
-    serde_roundtrip!(crawler_source_license_registry, CrawlerSource, CrawlerSource::LicenseRegistry, "\"license_registry\"");
-    serde_roundtrip!(crawler_source_search_engine, CrawlerSource, CrawlerSource::SearchEngine, "\"search_engine\"");
-    serde_roundtrip!(federated_aggregate_status_threshold_met, FederatedAggregateStatus, FederatedAggregateStatus::ThresholdMet, "\"threshold_met\"");
-    serde_roundtrip!(federated_aggregate_status_collecting, FederatedAggregateStatus, FederatedAggregateStatus::Collecting, "\"collecting\"");
+    serde_roundtrip!(
+        discovery_candidate_status_pending,
+        DiscoveryCandidateStatus,
+        DiscoveryCandidateStatus::Pending,
+        "\"pending\""
+    );
+    serde_roundtrip!(
+        discovery_candidate_status_deferred,
+        DiscoveryCandidateStatus,
+        DiscoveryCandidateStatus::Deferred,
+        "\"deferred\""
+    );
+    serde_roundtrip!(
+        crawler_source_license_registry,
+        CrawlerSource,
+        CrawlerSource::LicenseRegistry,
+        "\"license_registry\""
+    );
+    serde_roundtrip!(
+        crawler_source_search_engine,
+        CrawlerSource,
+        CrawlerSource::SearchEngine,
+        "\"search_engine\""
+    );
+    serde_roundtrip!(
+        federated_aggregate_status_threshold_met,
+        FederatedAggregateStatus,
+        FederatedAggregateStatus::ThresholdMet,
+        "\"threshold_met\""
+    );
+    serde_roundtrip!(
+        federated_aggregate_status_collecting,
+        FederatedAggregateStatus,
+        FederatedAggregateStatus::Collecting,
+        "\"collecting\""
+    );
 
     // VpnDetectionMode
-    serde_roundtrip!(vpn_detection_mode_block, VpnDetectionMode, VpnDetectionMode::Block, "\"block\"");
-    serde_roundtrip!(vpn_detection_mode_lockdown, VpnDetectionMode, VpnDetectionMode::Lockdown, "\"lockdown\"");
+    serde_roundtrip!(
+        vpn_detection_mode_block,
+        VpnDetectionMode,
+        VpnDetectionMode::Block,
+        "\"block\""
+    );
+    serde_roundtrip!(
+        vpn_detection_mode_lockdown,
+        VpnDetectionMode,
+        VpnDetectionMode::Lockdown,
+        "\"lockdown\""
+    );
 
     // SP3 enums
-    serde_roundtrip!(app_signature_status_active, AppSignatureStatus, AppSignatureStatus::Active, "\"active\"");
-    serde_roundtrip!(app_signature_status_pending_review, AppSignatureStatus, AppSignatureStatus::PendingReview, "\"pending_review\"");
-    serde_roundtrip!(app_signature_platform_all, AppSignaturePlatform, AppSignaturePlatform::All, "\"all\"");
-    serde_roundtrip!(app_signature_platform_macos, AppSignaturePlatform, AppSignaturePlatform::Macos, "\"macos\"");
+    serde_roundtrip!(
+        app_signature_status_active,
+        AppSignatureStatus,
+        AppSignatureStatus::Active,
+        "\"active\""
+    );
+    serde_roundtrip!(
+        app_signature_status_pending_review,
+        AppSignatureStatus,
+        AppSignatureStatus::PendingReview,
+        "\"pending_review\""
+    );
+    serde_roundtrip!(
+        app_signature_platform_all,
+        AppSignaturePlatform,
+        AppSignaturePlatform::All,
+        "\"all\""
+    );
+    serde_roundtrip!(
+        app_signature_platform_macos,
+        AppSignaturePlatform,
+        AppSignaturePlatform::Macos,
+        "\"macos\""
+    );
 }

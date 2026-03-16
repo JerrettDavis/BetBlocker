@@ -61,7 +61,12 @@ mod tests {
 
     #[test]
     fn vpn_interface_type_roundtrips() {
-        for variant in [VpnInterfaceType::Tun, VpnInterfaceType::Tap, VpnInterfaceType::WireGuard, VpnInterfaceType::Unknown] {
+        for variant in [
+            VpnInterfaceType::Tun,
+            VpnInterfaceType::Tap,
+            VpnInterfaceType::WireGuard,
+            VpnInterfaceType::Unknown,
+        ] {
             let json = serde_json::to_string(&variant).unwrap();
             let back: VpnInterfaceType = serde_json::from_str(&json).unwrap();
             assert_eq!(variant, back);
@@ -70,7 +75,12 @@ mod tests {
 
     #[test]
     fn proxy_type_roundtrips() {
-        for variant in [ProxyType::Http, ProxyType::Https, ProxyType::Socks4, ProxyType::Socks5] {
+        for variant in [
+            ProxyType::Http,
+            ProxyType::Https,
+            ProxyType::Socks4,
+            ProxyType::Socks5,
+        ] {
             let json = serde_json::to_string(&variant).unwrap();
             let back: ProxyType = serde_json::from_str(&json).unwrap();
             assert_eq!(variant, back);
@@ -79,7 +89,11 @@ mod tests {
 
     #[test]
     fn proxy_source_roundtrips() {
-        for variant in [ProxySource::SystemSettings, ProxySource::EnvironmentVariable, ProxySource::BrowserConfig] {
+        for variant in [
+            ProxySource::SystemSettings,
+            ProxySource::EnvironmentVariable,
+            ProxySource::BrowserConfig,
+        ] {
             let json = serde_json::to_string(&variant).unwrap();
             let back: ProxySource = serde_json::from_str(&json).unwrap();
             assert_eq!(variant, back);
@@ -107,9 +121,18 @@ mod tests {
         };
         let json = serde_json::to_string(&result).unwrap();
         let back: BypassDetectionResult = serde_json::from_str(&json).unwrap();
-        assert_eq!(result.vpn.as_ref().unwrap().interface_name, back.vpn.as_ref().unwrap().interface_name);
-        assert_eq!(result.proxy.as_ref().unwrap().proxy_type, back.proxy.as_ref().unwrap().proxy_type);
-        assert_eq!(result.tor.as_ref().unwrap().process_detected, back.tor.as_ref().unwrap().process_detected);
+        assert_eq!(
+            result.vpn.as_ref().unwrap().interface_name,
+            back.vpn.as_ref().unwrap().interface_name
+        );
+        assert_eq!(
+            result.proxy.as_ref().unwrap().proxy_type,
+            back.proxy.as_ref().unwrap().proxy_type
+        );
+        assert_eq!(
+            result.tor.as_ref().unwrap().process_detected,
+            back.tor.as_ref().unwrap().process_detected
+        );
     }
 
     #[test]

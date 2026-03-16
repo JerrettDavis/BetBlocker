@@ -182,11 +182,7 @@ impl PluginRegistry {
 
     /// Initialize all plugins. Returns errors for plugins that failed init.
     /// Failed plugins are removed from the registry.
-    pub fn init_all(
-        &mut self,
-        config: &PluginConfig,
-        blocklist: &Blocklist,
-    ) -> Vec<PluginError> {
+    pub fn init_all(&mut self, config: &PluginConfig, blocklist: &Blocklist) -> Vec<PluginError> {
         let mut errors = Vec::new();
         let mut i = 0;
         while i < self.plugins.len() {

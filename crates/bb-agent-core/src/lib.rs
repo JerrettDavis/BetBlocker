@@ -14,11 +14,11 @@
 
 #[cfg(feature = "bypass-detection")]
 pub mod bypass_detection;
+pub mod comms;
 pub mod config;
 pub mod events;
-pub mod comms;
-pub mod tamper;
 pub mod federated;
+pub mod tamper;
 
 // Re-exports from bb-agent-plugins for convenience
 pub use bb_agent_plugins::blocklist;

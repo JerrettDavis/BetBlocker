@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use serde::Serialize;
 use serde_json::json;
@@ -80,18 +80,12 @@ impl IntoResponse for ApiError {
                 message.clone(),
                 None,
             ),
-            Self::NotFound { code, message } => (
-                StatusCode::NOT_FOUND,
-                code.clone(),
-                message.clone(),
-                None,
-            ),
-            Self::Conflict { code, message } => (
-                StatusCode::CONFLICT,
-                code.clone(),
-                message.clone(),
-                None,
-            ),
+            Self::NotFound { code, message } => {
+                (StatusCode::NOT_FOUND, code.clone(), message.clone(), None)
+            }
+            Self::Conflict { code, message } => {
+                (StatusCode::CONFLICT, code.clone(), message.clone(), None)
+            }
             Self::PayloadTooLarge => (
                 StatusCode::PAYLOAD_TOO_LARGE,
                 "PAYLOAD_TOO_LARGE".to_string(),
@@ -142,9 +136,7 @@ impl From<sqlx::Error> for ApiError {
                 if db_err.code().as_deref() == Some("23505") {
                     return Self::Conflict {
                         code: "CONFLICT".to_string(),
-                        message: db_err
-                            .message()
-                            .to_string(),
+                        message: db_err.message().to_string(),
                     };
                 }
                 // Foreign key violation

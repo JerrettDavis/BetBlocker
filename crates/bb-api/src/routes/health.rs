@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{Json, extract::State, http::StatusCode};
 use serde::Serialize;
 
 use crate::state::AppState;
@@ -28,11 +28,7 @@ pub async fn health_check(State(state): State<AppState>) -> (StatusCode, Json<He
         Err(_) => false,
     };
 
-    let status = if db_ok && redis_ok {
-        "ok"
-    } else {
-        "degraded"
-    };
+    let status = if db_ok && redis_ok { "ok" } else { "degraded" };
 
     (
         StatusCode::OK,

@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{Json, extract::State, http::StatusCode};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -51,7 +51,10 @@ fn validate_payload(req: &IngestReportRequest) -> Result<(), ApiError> {
 
     if req.reports.len() > MAX_BATCH_SIZE {
         return Err(ApiError::Validation {
-            message: format!("batch size {len} exceeds limit of {MAX_BATCH_SIZE}", len = req.reports.len()),
+            message: format!(
+                "batch size {len} exceeds limit of {MAX_BATCH_SIZE}",
+                len = req.reports.len()
+            ),
             details: None,
         });
     }
@@ -71,7 +74,10 @@ fn validate_payload(req: &IngestReportRequest) -> Result<(), ApiError> {
         }
         if !(0.0..=1.0).contains(&r.heuristic_score) {
             return Err(ApiError::Validation {
-                message: format!("report[{i}].heuristic_score must be in 0.0–1.0, got {}", r.heuristic_score),
+                message: format!(
+                    "report[{i}].heuristic_score must be in 0.0–1.0, got {}",
+                    r.heuristic_score
+                ),
                 details: None,
             });
         }

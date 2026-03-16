@@ -107,10 +107,7 @@ impl SearchCrawler {
 
     /// Default constructor with common gambling keyword queries.
     #[must_use]
-    pub fn with_defaults(
-        api_endpoint: impl Into<String>,
-        api_key: Option<String>,
-    ) -> Self {
+    pub fn with_defaults(api_endpoint: impl Into<String>, api_key: Option<String>) -> Self {
         Self::new(
             vec![
                 "online casino real money".to_string(),
@@ -304,7 +301,10 @@ mod tests {
     fn parse_serpapi_response() {
         let parsed = SearchCrawler::parse_response(SERPAPI_RESPONSE).expect("should parse");
         assert_eq!(parsed.organic_results.len(), 3);
-        assert_eq!(parsed.organic_results[0].link, "https://casino-alpha.example.com/play");
+        assert_eq!(
+            parsed.organic_results[0].link,
+            "https://casino-alpha.example.com/play"
+        );
         assert_eq!(
             parsed.organic_results[0].title.as_deref(),
             Some("Casino Alpha – Best Online Casino")
@@ -352,8 +352,14 @@ mod tests {
 
     #[test]
     fn extract_domain_non_http_returns_none() {
-        assert_eq!(SearchCrawler::extract_domain("ftp://files.example.com"), None);
-        assert_eq!(SearchCrawler::extract_domain("mailto:info@example.com"), None);
+        assert_eq!(
+            SearchCrawler::extract_domain("ftp://files.example.com"),
+            None
+        );
+        assert_eq!(
+            SearchCrawler::extract_domain("mailto:info@example.com"),
+            None
+        );
     }
 
     #[test]
@@ -415,8 +421,14 @@ mod tests {
                 }
             }
         }
-        let count = unique.iter().filter(|d| *d == "casino-alpha.example.com").count();
-        assert_eq!(count, 1, "casino-alpha.example.com should appear exactly once");
+        let count = unique
+            .iter()
+            .filter(|d| *d == "casino-alpha.example.com")
+            .count();
+        assert_eq!(
+            count, 1,
+            "casino-alpha.example.com should appear exactly once"
+        );
     }
 
     // -----------------------------------------------------------------------

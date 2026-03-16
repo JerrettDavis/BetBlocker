@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Query, State},
     http::StatusCode,
-    Json,
 };
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -61,8 +61,7 @@ pub async fn batch_ingest(
         });
     }
 
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     // Find the caller's device and enrollment
     // For Phase 1, get the first device with an active enrollment
@@ -81,11 +80,13 @@ pub async fn batch_ingest(
 
     // Apply reporting_config filtering if enrollment exists
     let filtered_events = if let Some(_eid) = enrollment_id {
-        let enrollment =
-            crate::services::enrollment_service::get_enrollment_by_public_id(&state.db, uuid::Uuid::nil())
-                .await
-                .ok()
-                .flatten();
+        let enrollment = crate::services::enrollment_service::get_enrollment_by_public_id(
+            &state.db,
+            uuid::Uuid::nil(),
+        )
+        .await
+        .ok()
+        .flatten();
         // For simplicity in Phase 1, pass through all events.
         // Full filtering based on reporting_config would strip domain_details etc.
         let _ = enrollment;
@@ -115,8 +116,7 @@ pub async fn query_events(
     pagination: Pagination,
     Query(filters): Query<EventFilters>,
 ) -> Result<PaginatedResponse<serde_json::Value>, ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     // Get all enrollment IDs visible to this account
     let visible_ids = event_service::get_visible_enrollment_ids(&state.db, account.id).await?;
@@ -179,8 +179,7 @@ pub async fn event_summary(
     auth: AuthenticatedAccount,
     Query(params): Query<SummaryParams>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let visible_ids = event_service::get_visible_enrollment_ids(&state.db, account.id).await?;
 

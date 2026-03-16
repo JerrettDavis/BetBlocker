@@ -126,10 +126,8 @@ impl AppArmorProtection {
 impl MacProtection for AppArmorProtection {
     fn install(&self) -> Result<(), MacError> {
         // Copy profile to system profiles directory
-        self.command_runner.run(
-            "cp",
-            &[&self.profile_path, &self.dest_profile_path()],
-        )?;
+        self.command_runner
+            .run("cp", &[&self.profile_path, &self.dest_profile_path()])?;
 
         // Load/replace the profile in enforce mode
         self.command_runner
@@ -139,9 +137,7 @@ impl MacProtection for AppArmorProtection {
     }
 
     fn verify(&self) -> Result<MacStatus, MacError> {
-        let profiles_content = self
-            .command_runner
-            .run("cat", &[APPARMOR_PROFILES_PATH]);
+        let profiles_content = self.command_runner.run("cat", &[APPARMOR_PROFILES_PATH]);
 
         match profiles_content {
             Ok(content) => {
@@ -171,8 +167,7 @@ impl MacProtection for AppArmorProtection {
     }
 
     fn is_enforcing(&self) -> bool {
-        self.verify()
-            .is_ok_and(|status| status.enforcing)
+        self.verify().is_ok_and(|status| status.enforcing)
     }
 
     fn uninstall(&self) -> Result<(), MacError> {
@@ -245,7 +240,9 @@ mod tests {
         }
     }
 
-    fn make_protection(runner: MockCommandRunner) -> (AppArmorProtection, Arc<Mutex<Vec<(String, Vec<String>)>>>) {
+    fn make_protection(
+        runner: MockCommandRunner,
+    ) -> (AppArmorProtection, Arc<Mutex<Vec<(String, Vec<String>)>>>) {
         let calls = Arc::clone(&runner.calls);
         let prot = AppArmorProtection::new(
             "/deploy/apparmor/betblocker-agent".to_string(),
@@ -276,9 +273,7 @@ mod tests {
 
     #[test]
     fn install_copy_failure() {
-        let runner = MockCommandRunner::new(vec![
-            Err(MacError::PermissionDenied),
-        ]);
+        let runner = MockCommandRunner::new(vec![Err(MacError::PermissionDenied)]);
         let (prot, _calls) = make_protection(runner);
 
         let result = prot.install();
@@ -289,7 +284,9 @@ mod tests {
     fn install_parser_failure() {
         let runner = MockCommandRunner::new(vec![
             Ok(String::new()), // cp succeeds
-            Err(MacError::CommandFailed("apparmor_parser failed".to_string())),
+            Err(MacError::CommandFailed(
+                "apparmor_parser failed".to_string(),
+            )),
         ]);
         let (prot, _calls) = make_protection(runner);
 
@@ -333,9 +330,9 @@ mod tests {
 
     #[test]
     fn verify_read_failure_returns_not_loaded() {
-        let runner = MockCommandRunner::new(vec![
-            Err(MacError::CommandFailed("file not found".to_string())),
-        ]);
+        let runner = MockCommandRunner::new(vec![Err(MacError::CommandFailed(
+            "file not found".to_string(),
+        ))]);
         let (prot, _calls) = make_protection(runner);
 
         let status = prot.verify().expect("verify");
@@ -381,9 +378,8 @@ mod tests {
 
     #[test]
     fn uninstall_parser_failure() {
-        let runner = MockCommandRunner::new(vec![
-            Err(MacError::CommandFailed("not loaded".to_string())),
-        ]);
+        let runner =
+            MockCommandRunner::new(vec![Err(MacError::CommandFailed("not loaded".to_string()))]);
         let (prot, _calls) = make_protection(runner);
 
         let result = prot.uninstall();
@@ -411,9 +407,9 @@ mod tests {
         let profiles_after = "betblocker-agent (enforce)\n";
         let runner = MockCommandRunner::new(vec![
             Ok("other-profile (enforce)\n".to_string()), // initial verify: not found
-            Ok(String::new()),                            // install: cp
-            Ok(String::new()),                            // install: apparmor_parser -r
-            Ok(profiles_after.to_string()),               // re-verify after repair
+            Ok(String::new()),                           // install: cp
+            Ok(String::new()),                           // install: apparmor_parser -r
+            Ok(profiles_after.to_string()),              // re-verify after repair
         ]);
         let (prot, calls) = make_protection(runner);
 
@@ -430,9 +426,9 @@ mod tests {
     fn verify_and_repair_complain_mode_triggers_reinstall() {
         let runner = MockCommandRunner::new(vec![
             Ok("betblocker-agent (complain)\n".to_string()), // initial verify: complain
-            Ok(String::new()),                                // install: cp
-            Ok(String::new()),                                // install: apparmor_parser -r
-            Ok("betblocker-agent (enforce)\n".to_string()),   // re-verify
+            Ok(String::new()),                               // install: cp
+            Ok(String::new()),                               // install: apparmor_parser -r
+            Ok("betblocker-agent (enforce)\n".to_string()),  // re-verify
         ]);
         let (prot, _calls) = make_protection(runner);
 

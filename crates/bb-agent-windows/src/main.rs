@@ -111,7 +111,8 @@ async fn main() {
 fn handle_install_service(cli: &Cli) {
     use bb_shim_windows::service::{ServiceConfig, register_service, set_failure_actions};
 
-    let binary_path = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("bb-agent-windows.exe"));
+    let binary_path =
+        std::env::current_exe().unwrap_or_else(|_| PathBuf::from("bb-agent-windows.exe"));
 
     let config = ServiceConfig::new(
         SERVICE_NAME,
@@ -181,8 +182,7 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|| cli.config_dir.join("agent.toml"));
 
     let config = if config_path.exists() {
-        AgentConfig::load(&config_path)
-            .map_err(|e| format!("Failed to load config: {e}"))?
+        AgentConfig::load(&config_path).map_err(|e| format!("Failed to load config: {e}"))?
     } else {
         tracing::info!(
             path = %config_path.display(),
@@ -193,8 +193,8 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialise event store
     let events_db_path = config.data_dir.join("events.db");
-    let event_store = EventStore::new(&events_db_path)
-        .map_err(|e| format!("Failed to open event store: {e}"))?;
+    let event_store =
+        EventStore::new(&events_db_path).map_err(|e| format!("Failed to open event store: {e}"))?;
     let event_emitter = EventEmitter::new(event_store);
 
     // Initialise certificate store
@@ -206,7 +206,10 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     // Binary integrity
     let binary_integrity = match BinaryIntegrity::new(None) {
         Ok(bi) => {
-            tracing::info!(hash = bi.startup_hash_hex(), "Binary integrity check passed");
+            tracing::info!(
+                hash = bi.startup_hash_hex(),
+                "Binary integrity check passed"
+            );
             Some(bi)
         }
         Err(e) => {
@@ -279,7 +282,10 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     for err in &init_errors {
         tracing::warn!(error = %err, "Plugin initialization error");
     }
-    tracing::info!(active = plugin_registry.active_count(), "Plugin registry initialized");
+    tracing::info!(
+        active = plugin_registry.active_count(),
+        "Plugin registry initialized"
+    );
 
     // DNS redirect (Windows Firewall rules)
     let resolver_port = config.dns.listen_port;
@@ -517,6 +523,9 @@ mod tests {
         let result = run(cli).await;
         assert!(result.is_err(), "Expected error without device ID");
         let msg = result.unwrap_err().to_string();
-        assert!(msg.contains("enrollment") || msg.contains("device"), "Unexpected error: {msg}");
+        assert!(
+            msg.contains("enrollment") || msg.contains("device"),
+            "Unexpected error: {msg}"
+        );
     }
 }

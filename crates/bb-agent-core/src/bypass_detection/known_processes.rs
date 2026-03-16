@@ -37,15 +37,7 @@ pub const TOR_PROCESS_NAMES: &[&str] = &[
 
 /// Network interface name prefixes commonly used by VPN software.
 pub const VPN_INTERFACE_PREFIXES: &[&str] = &[
-    "tun",
-    "tap",
-    "wg",
-    "utun",
-    "gpd",
-    "ppp",
-    "nordlynx",
-    "proton",
-    "mullvad",
+    "tun", "tap", "wg", "utun", "gpd", "ppp", "nordlynx", "proton", "mullvad",
 ];
 
 #[cfg(test)]

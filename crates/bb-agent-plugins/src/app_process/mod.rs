@@ -1,5 +1,5 @@
-pub mod interceptor;
 pub mod install_watcher;
+pub mod interceptor;
 pub mod quarantine;
 pub mod scanner;
 
@@ -9,15 +9,15 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use tracing::{info, warn};
 
-use crate::blocklist::app_signatures::AppSignatureStore;
 use crate::blocklist::Blocklist;
+use crate::blocklist::app_signatures::AppSignatureStore;
 use crate::traits::{AppBlockingPlugin, BlockingPlugin};
 use crate::types::{
     AppIdentifier, AppMatch, BlockDecision, BlockingLayer, PluginConfig, PluginError, PluginHealth,
 };
 
-use interceptor::{create_interceptor, ProcessInterceptor};
-use install_watcher::{create_install_watcher, InstallAction, InstallWatcher};
+use install_watcher::{InstallAction, InstallWatcher, create_install_watcher};
+use interceptor::{ProcessInterceptor, create_interceptor};
 use scanner::{AppInventoryScanner, NoOpScanner};
 
 // ── Configuration constants ───────────────────────────────────────────────────
@@ -357,9 +357,9 @@ impl BlockingPlugin for AppProcessPlugin {
             .start()
             .map_err(|e| PluginError::ActivationFailed(format!("Interceptor start failed: {e}")))?;
 
-        self.install_watcher
-            .start()
-            .map_err(|e| PluginError::ActivationFailed(format!("Install watcher start failed: {e}")))?;
+        self.install_watcher.start().map_err(|e| {
+            PluginError::ActivationFailed(format!("Install watcher start failed: {e}"))
+        })?;
 
         self.active = true;
         info!("AppProcessPlugin activated");
@@ -421,9 +421,7 @@ impl BlockingPlugin for AppProcessPlugin {
 impl AppBlockingPlugin for AppProcessPlugin {
     fn check_app(&self, app_id: &AppIdentifier) -> BlockDecision {
         match self.signatures.check_app(app_id) {
-            Some(m) => BlockDecision::Block {
-                reason: m.reason,
-            },
+            Some(m) => BlockDecision::Block { reason: m.reason },
             None => BlockDecision::Allow,
         }
     }
@@ -639,12 +637,18 @@ mod tests {
         }
 
         impl ProcessInterceptor for MockInterceptor {
-            fn start(&mut self) -> Result<(), PluginError> { Ok(()) }
-            fn stop(&mut self) -> Result<(), PluginError> { Ok(()) }
+            fn start(&mut self) -> Result<(), PluginError> {
+                Ok(())
+            }
+            fn stop(&mut self) -> Result<(), PluginError> {
+                Ok(())
+            }
             fn poll_detections(&mut self) -> Vec<ProcessDetection> {
                 std::mem::take(&mut self.pending)
             }
-            fn kill_process(&self, _pid: u32) -> bool { true }
+            fn kill_process(&self, _pid: u32) -> bool {
+                true
+            }
         }
 
         let detection = ProcessDetection {
@@ -702,8 +706,12 @@ mod tests {
         }
 
         impl InstallWatcher for MockWatcher {
-            fn start(&mut self) -> Result<(), PluginError> { Ok(()) }
-            fn stop(&mut self) -> Result<(), PluginError> { Ok(()) }
+            fn start(&mut self) -> Result<(), PluginError> {
+                Ok(())
+            }
+            fn stop(&mut self) -> Result<(), PluginError> {
+                Ok(())
+            }
             fn poll_installations(&mut self) -> Vec<InstallDetection> {
                 std::mem::take(&mut self.pending)
             }

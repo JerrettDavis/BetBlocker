@@ -9,8 +9,6 @@ pub struct UuidV7RequestId;
 impl MakeRequestId for UuidV7RequestId {
     fn make_request_id<B>(&mut self, _request: &Request<B>) -> Option<RequestId> {
         let id = Uuid::now_v7().to_string();
-        HeaderValue::from_str(&id)
-            .ok()
-            .map(RequestId::new)
+        HeaderValue::from_str(&id).ok().map(RequestId::new)
     }
 }

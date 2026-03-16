@@ -25,7 +25,10 @@ impl VpnDetector {
     pub async fn detect(&self) -> Result<Vec<VpnInfo>, BypassDetectionError> {
         let mut results = self.interface_monitor.detect_vpn_interfaces().await?;
 
-        let processes = self.process_scanner.scan_for_processes(VPN_PROCESS_NAMES).await?;
+        let processes = self
+            .process_scanner
+            .scan_for_processes(VPN_PROCESS_NAMES)
+            .await?;
 
         // For each detected process that isn't already associated with an
         // interface result, create a standalone VpnInfo entry.
@@ -36,8 +39,7 @@ impl VpnDetector {
             if !already_linked {
                 results.push(VpnInfo {
                     interface_name: String::new(),
-                    interface_type:
-                        bb_common::models::bypass_detection::VpnInterfaceType::Unknown,
+                    interface_type: bb_common::models::bypass_detection::VpnInterfaceType::Unknown,
                     process_name: Some(proc_name),
                 });
             }
@@ -100,9 +102,7 @@ mod tests {
     #[tokio::test]
     async fn no_vpn_detected() {
         let detector = VpnDetector::new(
-            Box::new(MockInterfaceMonitor {
-                interfaces: vec![],
-            }),
+            Box::new(MockInterfaceMonitor { interfaces: vec![] }),
             Box::new(MockProcessScanner { found: vec![] }),
         );
         let results = detector.detect().await.unwrap();
@@ -129,9 +129,7 @@ mod tests {
     #[tokio::test]
     async fn vpn_process_found() {
         let detector = VpnDetector::new(
-            Box::new(MockInterfaceMonitor {
-                interfaces: vec![],
-            }),
+            Box::new(MockInterfaceMonitor { interfaces: vec![] }),
             Box::new(MockProcessScanner {
                 found: vec!["openvpn".to_string()],
             }),

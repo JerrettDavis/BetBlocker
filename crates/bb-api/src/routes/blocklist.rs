@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Query, State},
     http::StatusCode,
-    Json,
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -62,12 +62,9 @@ pub async fn get_delta(
         });
     }
 
-    let (additions, removals) = blocklist_service::get_delta(
-        &state.db,
-        params.from_version,
-        current.version_number,
-    )
-    .await?;
+    let (additions, removals) =
+        blocklist_service::get_delta(&state.db, params.from_version, current.version_number)
+            .await?;
 
     Ok(ApiResponse::ok(json!({
         "from_version": params.from_version,
@@ -118,13 +115,12 @@ pub async fn submit_report(
             .await?;
 
     // Find a device for this account (best effort)
-    let device_id = sqlx::query_scalar::<_, i64>(
-        "SELECT id FROM devices WHERE account_id = $1 LIMIT 1",
-    )
-    .bind(account.id)
-    .fetch_optional(&state.db)
-    .await?
-    .unwrap_or(0);
+    let device_id =
+        sqlx::query_scalar::<_, i64>("SELECT id FROM devices WHERE account_id = $1 LIMIT 1")
+            .bind(account.id)
+            .fetch_optional(&state.db)
+            .await?
+            .unwrap_or(0);
 
     let reports: Vec<(String, Option<String>, f64)> = req
         .reports

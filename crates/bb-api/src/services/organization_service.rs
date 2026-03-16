@@ -262,16 +262,14 @@ pub async fn invite_member(
     invited_by: i64,
 ) -> Result<OrgMemberRow, ApiError> {
     // Look up the account by email
-    let account = sqlx::query_scalar::<_, i64>(
-        r#"SELECT id FROM accounts WHERE email = $1"#,
-    )
-    .bind(email)
-    .fetch_optional(db)
-    .await?
-    .ok_or(ApiError::NotFound {
-        code: "ACCOUNT_NOT_FOUND".into(),
-        message: format!("No account found with email '{}'", email),
-    })?;
+    let account = sqlx::query_scalar::<_, i64>(r#"SELECT id FROM accounts WHERE email = $1"#)
+        .bind(email)
+        .fetch_optional(db)
+        .await?
+        .ok_or(ApiError::NotFound {
+            code: "ACCOUNT_NOT_FOUND".into(),
+            message: format!("No account found with email '{}'", email),
+        })?;
 
     // Check not already a member
     let existing = sqlx::query_scalar::<_, i64>(
@@ -293,7 +291,10 @@ pub async fn invite_member(
     // Validate role
     if role_level(role) == 0 {
         return Err(ApiError::Validation {
-            message: format!("Invalid role: '{}'. Must be 'member', 'admin', or 'owner'", role),
+            message: format!(
+                "Invalid role: '{}'. Must be 'member', 'admin', or 'owner'",
+                role
+            ),
             details: None,
         });
     }
@@ -360,7 +361,10 @@ pub async fn update_member_role(
     // Validate new_role
     if role_level(new_role) == 0 {
         return Err(ApiError::Validation {
-            message: format!("Invalid role: '{}'. Must be 'member', 'admin', or 'owner'", new_role),
+            message: format!(
+                "Invalid role: '{}'. Must be 'member', 'admin', or 'owner'",
+                new_role
+            ),
             details: None,
         });
     }
@@ -581,11 +585,7 @@ pub async fn assign_device(
 }
 
 /// Unassign a device from an organization.
-pub async fn unassign_device(
-    db: &PgPool,
-    org_id: i64,
-    device_id: i64,
-) -> Result<(), ApiError> {
+pub async fn unassign_device(db: &PgPool, org_id: i64, device_id: i64) -> Result<(), ApiError> {
     let result = sqlx::query(
         "DELETE FROM organization_devices WHERE organization_id = $1 AND device_id = $2",
     )

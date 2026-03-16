@@ -90,8 +90,7 @@ impl RateLimiter {
     /// Panics if either parameter is zero.
     #[must_use]
     pub fn new(requests_per_second: u32, burst_size: u32) -> Self {
-        let rps =
-            NonZeroU32::new(requests_per_second).expect("requests_per_second must be > 0");
+        let rps = NonZeroU32::new(requests_per_second).expect("requests_per_second must be > 0");
         let burst = NonZeroU32::new(burst_size).expect("burst_size must be > 0");
         let quota = Quota::per_second(rps).allow_burst(burst);
         Self {
@@ -134,11 +133,7 @@ impl CrawlerScheduler {
     /// Uses `ON CONFLICT (domain, source) DO NOTHING` so duplicate
     /// discoveries are silently ignored.
     #[allow(unused)]
-    pub async fn run_all(
-        &self,
-        db: &PgPool,
-        http: &reqwest::Client,
-    ) -> anyhow::Result<usize> {
+    pub async fn run_all(&self, db: &PgPool, http: &reqwest::Client) -> anyhow::Result<usize> {
         let mut total_inserted: usize = 0;
 
         for crawler in &self.crawlers {

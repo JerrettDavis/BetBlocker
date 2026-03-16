@@ -57,11 +57,7 @@ pub enum SyncError {
 }
 
 impl BlocklistSyncer {
-    pub fn new(
-        api_client: Arc<ApiClient>,
-        device_id: String,
-        signing_public_key: Vec<u8>,
-    ) -> Self {
+    pub fn new(api_client: Arc<ApiClient>, device_id: String, signing_public_key: Vec<u8>) -> Self {
         Self {
             api_client,
             device_id,
@@ -139,9 +135,7 @@ impl BlocklistSyncer {
 
     /// Perform a full sync (version=0), replacing the entire local blocklist.
     async fn full_sync(&mut self) -> Result<SyncResult, SyncError> {
-        let request = bb_proto::blocklist::BlocklistDeltaRequest {
-            current_version: 0,
-        };
+        let request = bb_proto::blocklist::BlocklistDeltaRequest { current_version: 0 };
 
         let path = format!("/api/v1/devices/{}/blocklist/sync", self.device_id);
         let response: bb_proto::blocklist::BlocklistDeltaResponse =
@@ -205,10 +199,8 @@ impl BlocklistSyncer {
         }
         let message_hash = hasher.finalize();
 
-        let public_key = signature::UnparsedPublicKey::new(
-            &signature::ED25519,
-            &self.signing_public_key,
-        );
+        let public_key =
+            signature::UnparsedPublicKey::new(&signature::ED25519, &self.signing_public_key);
 
         public_key
             .verify(&message_hash, &response.signature)

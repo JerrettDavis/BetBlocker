@@ -78,10 +78,7 @@ pub async fn create_signature(
 }
 
 /// Get an app signature by its public UUID.
-pub async fn get_signature(
-    db: &PgPool,
-    public_id: Uuid,
-) -> Result<AppSigRow, ApiError> {
+pub async fn get_signature(db: &PgPool, public_id: Uuid) -> Result<AppSigRow, ApiError> {
     let row = sqlx::query_as::<_, AppSigRow>(
         r#"SELECT id, public_id, name, package_names, executable_names,
                   cert_hashes, display_name_patterns, platforms,

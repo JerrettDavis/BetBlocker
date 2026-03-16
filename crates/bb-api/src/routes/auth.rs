@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -8,9 +8,9 @@ use crate::response::ApiResponse;
 use crate::services::{
     account_service,
     auth_service::{
-        clear_login_failures, check_lockout, generate_refresh_token,
-        generate_reset_token, hash_password, hash_token, issue_access_token,
-        record_failed_login, validate_password, verify_password,
+        check_lockout, clear_login_failures, generate_refresh_token, generate_reset_token,
+        hash_password, hash_token, issue_access_token, record_failed_login, validate_password,
+        verify_password,
     },
 };
 use crate::state::AppState;
@@ -491,12 +491,13 @@ pub async fn reset_password(
         .await
         .unwrap_or(None);
 
-    let account_id: i64 = account_id_str
-        .and_then(|s| s.parse().ok())
-        .ok_or(ApiError::Unauthorized {
-            code: "INVALID_RESET_TOKEN".into(),
-            message: "Invalid or expired reset token".into(),
-        })?;
+    let account_id: i64 =
+        account_id_str
+            .and_then(|s| s.parse().ok())
+            .ok_or(ApiError::Unauthorized {
+                code: "INVALID_RESET_TOKEN".into(),
+                message: "Invalid or expired reset token".into(),
+            })?;
 
     // Hash new password
     let hashed = hash_password(&req.new_password)?;
@@ -515,10 +516,12 @@ pub async fn reset_password(
     .await?;
 
     // Revoke all refresh tokens for this account
-    sqlx::query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE account_id = $1 AND revoked_at IS NULL")
-        .bind(account_id)
-        .execute(&state.db)
-        .await?;
+    sqlx::query(
+        "UPDATE refresh_tokens SET revoked_at = NOW() WHERE account_id = $1 AND revoked_at IS NULL",
+    )
+    .bind(account_id)
+    .execute(&state.db)
+    .await?;
 
     // Delete the reset token from Redis
     let _: () = redis::cmd("DEL")

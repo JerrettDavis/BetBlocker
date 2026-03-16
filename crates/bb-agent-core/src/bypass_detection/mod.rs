@@ -119,7 +119,9 @@ mod tests {
 
     #[async_trait]
     impl traits::NetworkInterfaceMonitor for MockInterfaceMonitor {
-        async fn detect_vpn_interfaces(&self) -> Result<Vec<VpnInfo>, traits::BypassDetectionError> {
+        async fn detect_vpn_interfaces(
+            &self,
+        ) -> Result<Vec<VpnInfo>, traits::BypassDetectionError> {
             Ok(self.interfaces.clone())
         }
 
@@ -187,13 +189,7 @@ mod tests {
 
     #[tokio::test]
     async fn all_clear() {
-        let detector = build_detector(
-            vec![],
-            vec![],
-            None,
-            vec![],
-            BypassResponseMode::Alert,
-        );
+        let detector = build_detector(vec![], vec![], None, vec![], BypassResponseMode::Alert);
 
         let (result, action) = detector.run_detection_cycle().await.unwrap();
         assert!(result.vpn.is_none());

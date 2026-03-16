@@ -191,7 +191,10 @@ mod tests {
 
         let domains: Vec<&str> = results.iter().map(|r| r.domain.as_str()).collect();
 
-        assert!(domains.contains(&"casino-one.com"), "should find casino-one.com");
+        assert!(
+            domains.contains(&"casino-one.com"),
+            "should find casino-one.com"
+        );
         assert!(
             domains.contains(&"sportsbet.example.org"),
             "should find sportsbet.example.org"
@@ -246,11 +249,8 @@ mod tests {
 
     #[test]
     fn bad_selector_returns_error() {
-        let result = AffiliateCrawler::extract_domains(
-            SAMPLE_HTML,
-            "https://example.com",
-            "a[[[invalid",
-        );
+        let result =
+            AffiliateCrawler::extract_domains(SAMPLE_HTML, "https://example.com", "a[[[invalid");
         assert!(result.is_err());
     }
 

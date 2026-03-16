@@ -1,6 +1,6 @@
 mod common;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Test device registration.
 #[tokio::test]
@@ -37,7 +37,9 @@ async fn test_device_registration() {
 async fn test_device_duplicate_hardware_id() {
     let app = common::TestApp::spawn().await;
 
-    let (_id, token, _rt) = app.register_user("dup_hw@example.com", "SecurePass123!").await;
+    let (_id, token, _rt) = app
+        .register_user("dup_hw@example.com", "SecurePass123!")
+        .await;
 
     let device_json = json!({
         "name": "Device 1",
@@ -75,7 +77,9 @@ async fn test_device_duplicate_hardware_id() {
 async fn test_device_listing() {
     let app = common::TestApp::spawn().await;
 
-    let (_id, token, _rt) = app.register_user("list@example.com", "SecurePass123!").await;
+    let (_id, token, _rt) = app
+        .register_user("list@example.com", "SecurePass123!")
+        .await;
 
     // Register 3 devices
     for i in 0..3 {

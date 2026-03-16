@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use chrono::{DateTime, Utc};
-use rusqlite::{params, Connection, Result as SqliteResult};
+use rusqlite::{Connection, Result as SqliteResult, params};
 
 use super::AgentEvent;
 use bb_common::enums::{EventCategory, EventSeverity, EventType};
@@ -54,12 +54,12 @@ impl EventStore {
 
     /// Insert an event and return its row ID.
     pub fn insert(&self, event: &AgentEvent) -> Result<i64, rusqlite::Error> {
-        let event_type = serde_json::to_string(&event.event_type)
-            .unwrap_or_else(|_| "\"unknown\"".to_string());
-        let category = serde_json::to_string(&event.category)
-            .unwrap_or_else(|_| "\"unknown\"".to_string());
-        let severity = serde_json::to_string(&event.severity)
-            .unwrap_or_else(|_| "\"unknown\"".to_string());
+        let event_type =
+            serde_json::to_string(&event.event_type).unwrap_or_else(|_| "\"unknown\"".to_string());
+        let category =
+            serde_json::to_string(&event.category).unwrap_or_else(|_| "\"unknown\"".to_string());
+        let severity =
+            serde_json::to_string(&event.severity).unwrap_or_else(|_| "\"unknown\"".to_string());
         let metadata = event.metadata.to_string();
         let timestamp = event.timestamp.to_rfc3339();
 
@@ -108,14 +108,11 @@ impl EventStore {
                     id: Some(id),
                     event_type: serde_json::from_str(&event_type_str)
                         .unwrap_or(EventType::Heartbeat),
-                    category: serde_json::from_str(&category_str)
-                        .unwrap_or(EventCategory::System),
-                    severity: serde_json::from_str(&severity_str)
-                        .unwrap_or(EventSeverity::Info),
+                    category: serde_json::from_str(&category_str).unwrap_or(EventCategory::System),
+                    severity: serde_json::from_str(&severity_str).unwrap_or(EventSeverity::Info),
                     domain,
                     plugin_id,
-                    metadata: serde_json::from_str(&metadata_str)
-                        .unwrap_or(serde_json::json!({})),
+                    metadata: serde_json::from_str(&metadata_str).unwrap_or(serde_json::json!({})),
                     timestamp: DateTime::parse_from_rfc3339(&timestamp_str)
                         .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc)),
                     reported: reported != 0,
@@ -207,7 +204,10 @@ mod tests {
 
         for i in 0..10 {
             store
-                .insert(&AgentEvent::dns_block(&format!("site{i}.com"), "dns.resolver"))
+                .insert(&AgentEvent::dns_block(
+                    &format!("site{i}.com"),
+                    "dns.resolver",
+                ))
                 .expect("insert");
         }
 
@@ -242,9 +242,7 @@ mod tests {
         let store = EventStore::in_memory().expect("create store");
         assert_eq!(store.count().expect("count"), 0);
 
-        store
-            .insert(&AgentEvent::heartbeat())
-            .expect("insert");
+        store.insert(&AgentEvent::heartbeat()).expect("insert");
         assert_eq!(store.count().expect("count"), 1);
     }
 }

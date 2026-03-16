@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
-    Json,
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -80,13 +80,15 @@ pub async fn create_entry(
         });
     }
 
-    let domain = req.domain.as_deref().or(req.pattern.as_deref()).unwrap_or_default();
+    let domain = req
+        .domain
+        .as_deref()
+        .or(req.pattern.as_deref())
+        .unwrap_or_default();
 
-    let caller = crate::services::account_service::get_account_by_public_id(
-        &state.db,
-        admin.0.account_id,
-    )
-    .await?;
+    let caller =
+        crate::services::account_service::get_account_by_public_id(&state.db, admin.0.account_id)
+            .await?;
 
     let entry = blocklist_service::create_blocklist_entry(
         &state.db,
@@ -298,11 +300,9 @@ pub async fn resolve_review(
     Path(domain): Path<String>,
     Json(req): Json<ResolveRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller = crate::services::account_service::get_account_by_public_id(
-        &state.db,
-        admin.0.account_id,
-    )
-    .await?;
+    let caller =
+        crate::services::account_service::get_account_by_public_id(&state.db, admin.0.account_id)
+            .await?;
 
     let resolved_entry_id = if req.action == "promote" {
         // Create a new blocklist entry from the aggregated reports

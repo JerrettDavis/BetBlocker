@@ -1,13 +1,13 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use hickory_resolver::TokioResolver;
 use hickory_resolver::config::{NameServerConfig, ResolverConfig};
 use hickory_resolver::name_server::TokioConnectionProvider;
 use hickory_resolver::proto::xfer::Protocol;
-use hickory_resolver::TokioResolver;
 use hickory_server::authority::MessageResponseBuilder;
 use hickory_server::proto::op::{Header, ResponseCode};
-use hickory_server::proto::rr::{rdata::A, Name, RData, Record};
+use hickory_server::proto::rr::{Name, RData, Record, rdata::A};
 use hickory_server::server::{Request, RequestHandler, ResponseHandler, ResponseInfo};
 use tracing::{debug, warn};
 
@@ -40,11 +40,9 @@ impl BlockingDnsHandler {
         for addr in upstream_servers {
             resolver_config.add_name_server(NameServerConfig::new(*addr, Protocol::Udp));
         }
-        let upstream = TokioResolver::builder_with_config(
-            resolver_config,
-            TokioConnectionProvider::default(),
-        )
-        .build();
+        let upstream =
+            TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default())
+                .build();
 
         Self {
             blocklist,
@@ -91,8 +89,7 @@ impl RequestHandler for BlockingDnsHandler {
 
             match self.block_response {
                 BlockResponse::NxDomain => {
-                    let response =
-                        builder.error_msg(request.header(), ResponseCode::NXDomain);
+                    let response = builder.error_msg(request.header(), ResponseCode::NXDomain);
                     return response_handle
                         .send_response(response)
                         .await
@@ -103,10 +100,8 @@ impl RequestHandler for BlockingDnsHandler {
                 }
                 BlockResponse::ZeroIp => {
                     let name_parsed =
-                        Name::from_str_relaxed(name.to_string().as_str())
-                            .unwrap_or_default();
-                    let record =
-                        Record::from_rdata(name_parsed, 60, RData::A(A::new(0, 0, 0, 0)));
+                        Name::from_str_relaxed(name.to_string().as_str()).unwrap_or_default();
+                    let record = Record::from_rdata(name_parsed, 60, RData::A(A::new(0, 0, 0, 0)));
 
                     let response = builder.build(
                         *request.header(),
@@ -150,8 +145,7 @@ impl RequestHandler for BlockingDnsHandler {
             Err(e) => {
                 warn!(domain = %domain, error = %e, "Upstream DNS lookup failed");
                 let builder = MessageResponseBuilder::from_message_request(request);
-                let response =
-                    builder.error_msg(request.header(), ResponseCode::ServFail);
+                let response = builder.error_msg(request.header(), ResponseCode::ServFail);
                 response_handle
                     .send_response(response)
                     .await

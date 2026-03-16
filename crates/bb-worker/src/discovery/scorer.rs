@@ -142,7 +142,10 @@ mod tests {
         let custom = ConfidenceScorer::new(1.0, 0.0, 0.0);
         let c = make_classification(0.7, 1.0, 1.0);
         let s = custom.score(&c);
-        assert!((s - 0.7).abs() < 1e-10, "only keyword weight should matter, got {s}");
+        assert!(
+            (s - 0.7).abs() < 1e-10,
+            "only keyword weight should matter, got {s}"
+        );
     }
 
     // ── Threshold categorisation ──────────────────────────────────────

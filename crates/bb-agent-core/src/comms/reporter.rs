@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::watch;
-use tokio::time::{interval, MissedTickBehavior};
+use tokio::time::{MissedTickBehavior, interval};
 
 use bb_common::enums::EnrollmentTier;
 use bb_common::models::ReportingConfig;

@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
-    Json,
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -128,8 +128,7 @@ pub async fn approve_item(
     Path(id): Path<i64>,
     Json(req): Json<ApproveRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
 
     review_queue_service::approve_item(&state.db, id, caller.id, &req.category).await?;
 
@@ -148,8 +147,7 @@ pub async fn reject_item(
     admin: RequireAdmin,
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
 
     review_queue_service::reject_item(&state.db, id, caller.id).await?;
 
@@ -168,8 +166,7 @@ pub async fn defer_item(
     admin: RequireAdmin,
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
 
     review_queue_service::defer_item(&state.db, id, caller.id).await?;
 
@@ -195,12 +192,10 @@ pub async fn bulk_approve(
         });
     }
 
-    let caller =
-        account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
 
     let count =
-        review_queue_service::bulk_approve(&state.db, &req.ids, caller.id, &req.category)
-            .await?;
+        review_queue_service::bulk_approve(&state.db, &req.ids, caller.id, &req.category).await?;
 
     Ok(ApiResponse::ok(json!({
         "approved": count,
@@ -223,11 +218,9 @@ pub async fn bulk_reject(
         });
     }
 
-    let caller =
-        account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, admin.0.account_id).await?;
 
-    let count =
-        review_queue_service::bulk_reject(&state.db, &req.ids, caller.id).await?;
+    let count = review_queue_service::bulk_reject(&state.db, &req.ids, caller.id).await?;
 
     Ok(ApiResponse::ok(json!({
         "rejected": count,

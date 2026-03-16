@@ -141,19 +141,17 @@ mod scm {
     use std::time::Duration;
     use tracing::info;
     use windows_service::service::{
-        ServiceAccess, ServiceErrorControl, ServiceFailureActions, ServiceFailureResetPeriod,
-        ServiceInfo, ServiceStartType, ServiceType, ServiceAction, ServiceActionType,
-        ServiceState,
+        ServiceAccess, ServiceAction, ServiceActionType, ServiceErrorControl,
+        ServiceFailureActions, ServiceFailureResetPeriod, ServiceInfo, ServiceStartType,
+        ServiceState, ServiceType,
     };
     use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
 
     /// Register (create) a Windows Service via the SCM.
     pub fn register_service(config: &ServiceConfig) -> Result<(), ServiceError> {
-        let manager = ServiceManager::local_computer(
-            None::<&str>,
-            ServiceManagerAccess::CREATE_SERVICE,
-        )
-        .map_err(|e| ServiceError::RegistrationFailed(e.to_string()))?;
+        let manager =
+            ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CREATE_SERVICE)
+                .map_err(|e| ServiceError::RegistrationFailed(e.to_string()))?;
 
         let service_info = ServiceInfo {
             name: OsString::from(&config.service_name),
@@ -169,7 +167,10 @@ mod scm {
         };
 
         let service = manager
-            .create_service(&service_info, ServiceAccess::CHANGE_CONFIG | ServiceAccess::START)
+            .create_service(
+                &service_info,
+                ServiceAccess::CHANGE_CONFIG | ServiceAccess::START,
+            )
             .map_err(|e| ServiceError::RegistrationFailed(e.to_string()))?;
 
         // Set the description.
@@ -187,11 +188,8 @@ mod scm {
 
     /// Unregister (stop + delete) a Windows Service.
     pub fn unregister_service(service_name: &str) -> Result<(), ServiceError> {
-        let manager = ServiceManager::local_computer(
-            None::<&str>,
-            ServiceManagerAccess::CONNECT,
-        )
-        .map_err(|e| ServiceError::Win32(e.to_string()))?;
+        let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)
+            .map_err(|e| ServiceError::Win32(e.to_string()))?;
 
         let service = manager
             .open_service(
@@ -220,11 +218,8 @@ mod scm {
 
     /// Configure automatic restart failure actions: restart after 0 s, 5 s, 30 s.
     pub fn set_failure_actions(service_name: &str) -> Result<(), ServiceError> {
-        let manager = ServiceManager::local_computer(
-            None::<&str>,
-            ServiceManagerAccess::CONNECT,
-        )
-        .map_err(|e| ServiceError::Win32(e.to_string()))?;
+        let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)
+            .map_err(|e| ServiceError::Win32(e.to_string()))?;
 
         let service = manager
             .open_service(service_name, ServiceAccess::CHANGE_CONFIG)
@@ -256,16 +251,18 @@ mod scm {
             .update_failure_actions(failure_actions)
             .map_err(|e| ServiceError::Win32(e.to_string()))?;
 
-        info!(service_name, "failure actions configured (restart 0s/5s/30s)");
+        info!(
+            service_name,
+            "failure actions configured (restart 0s/5s/30s)"
+        );
         Ok(())
     }
 
     /// Check whether a service is installed (exists) in the SCM.
     pub fn is_service_installed(service_name: &str) -> bool {
-        let Ok(manager) = ServiceManager::local_computer(
-            None::<&str>,
-            ServiceManagerAccess::CONNECT,
-        ) else {
+        let Ok(manager) =
+            ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)
+        else {
             return false;
         };
 
@@ -276,10 +273,9 @@ mod scm {
 
     /// Check whether a service is currently running.
     pub fn is_service_running(service_name: &str) -> bool {
-        let Ok(manager) = ServiceManager::local_computer(
-            None::<&str>,
-            ServiceManagerAccess::CONNECT,
-        ) else {
+        let Ok(manager) =
+            ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)
+        else {
             return false;
         };
 
@@ -349,7 +345,10 @@ mod tests {
     #[test]
     fn service_error_display_registration_failed() {
         let err = ServiceError::RegistrationFailed("access denied".into());
-        assert_eq!(err.to_string(), "service registration failed: access denied");
+        assert_eq!(
+            err.to_string(),
+            "service registration failed: access denied"
+        );
     }
 
     #[test]

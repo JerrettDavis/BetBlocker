@@ -62,7 +62,9 @@ impl SELinuxProtection {
         output.lines().any(|line| {
             let trimmed = line.trim();
             // semodule -l output: "module_name  version" or just "module_name"
-            trimmed == module_name || trimmed.starts_with(&format!("{module_name}\t")) || trimmed.starts_with(&format!("{module_name} "))
+            trimmed == module_name
+                || trimmed.starts_with(&format!("{module_name}\t"))
+                || trimmed.starts_with(&format!("{module_name} "))
         })
     }
 }
@@ -80,10 +82,8 @@ impl MacProtection for SELinuxProtection {
         let fc_file = format!("{}/{}.fc", self.policy_source_dir, self.module_name);
 
         // Step 1: Compile .te -> .mod
-        self.command_runner.run(
-            "checkmodule",
-            &["-M", "-m", "-o", &mod_file, &te_file],
-        )?;
+        self.command_runner
+            .run("checkmodule", &["-M", "-m", "-o", &mod_file, &te_file])?;
 
         // Step 2: Package .mod + .fc -> .pp
         self.command_runner.run(
@@ -117,9 +117,7 @@ impl MacProtection for SELinuxProtection {
     /// and that SELinux is in enforcing mode (via `getenforce`).
     fn verify(&self) -> Result<MacStatus, MacError> {
         // Check if module is loaded
-        let module_list = self
-            .command_runner
-            .run("semodule", &["-l"]);
+        let module_list = self.command_runner.run("semodule", &["-l"]);
 
         let profile_loaded = match &module_list {
             Ok(output) => Self::is_module_listed(output, &self.module_name),
@@ -265,9 +263,9 @@ mod tests {
 
     #[test]
     fn install_checkmodule_failure() {
-        let runner = MockCommandRunner::new(vec![
-            Err(MacError::CommandFailed("checkmodule failed".to_string())),
-        ]);
+        let runner = MockCommandRunner::new(vec![Err(MacError::CommandFailed(
+            "checkmodule failed".to_string(),
+        ))]);
         let (prot, _calls) = make_protection(runner);
 
         let result = prot.install();
@@ -278,7 +276,7 @@ mod tests {
     fn verify_module_loaded_and_enforcing() {
         let runner = MockCommandRunner::new(vec![
             Ok("betblocker\t1.0.0\nother_module\t2.0\n".to_string()), // semodule -l
-            Ok("Enforcing\n".to_string()),                             // getenforce
+            Ok("Enforcing\n".to_string()),                            // getenforce
         ]);
         let (prot, _calls) = make_protection(runner);
 
@@ -292,7 +290,7 @@ mod tests {
     fn verify_module_not_loaded() {
         let runner = MockCommandRunner::new(vec![
             Ok("other_module\t2.0\n".to_string()), // semodule -l
-            Ok("Enforcing\n".to_string()),           // getenforce
+            Ok("Enforcing\n".to_string()),         // getenforce
         ]);
         let (prot, _calls) = make_protection(runner);
 
@@ -305,7 +303,7 @@ mod tests {
     fn verify_permissive_mode() {
         let runner = MockCommandRunner::new(vec![
             Ok("betblocker\t1.0.0\n".to_string()), // semodule -l
-            Ok("Permissive\n".to_string()),          // getenforce
+            Ok("Permissive\n".to_string()),        // getenforce
         ]);
         let (prot, _calls) = make_protection(runner);
 
@@ -316,9 +314,7 @@ mod tests {
 
     #[test]
     fn is_enforcing_true() {
-        let runner = MockCommandRunner::new(vec![
-            Ok("Enforcing\n".to_string()),
-        ]);
+        let runner = MockCommandRunner::new(vec![Ok("Enforcing\n".to_string())]);
         let (prot, _calls) = make_protection(runner);
 
         assert!(prot.is_enforcing());
@@ -326,9 +322,7 @@ mod tests {
 
     #[test]
     fn is_enforcing_false_permissive() {
-        let runner = MockCommandRunner::new(vec![
-            Ok("Permissive\n".to_string()),
-        ]);
+        let runner = MockCommandRunner::new(vec![Ok("Permissive\n".to_string())]);
         let (prot, _calls) = make_protection(runner);
 
         assert!(!prot.is_enforcing());
@@ -336,9 +330,7 @@ mod tests {
 
     #[test]
     fn is_enforcing_false_disabled() {
-        let runner = MockCommandRunner::new(vec![
-            Ok("Disabled\n".to_string()),
-        ]);
+        let runner = MockCommandRunner::new(vec![Ok("Disabled\n".to_string())]);
         let (prot, _calls) = make_protection(runner);
 
         assert!(!prot.is_enforcing());
@@ -346,9 +338,8 @@ mod tests {
 
     #[test]
     fn is_enforcing_false_on_error() {
-        let runner = MockCommandRunner::new(vec![
-            Err(MacError::CommandFailed("not found".to_string())),
-        ]);
+        let runner =
+            MockCommandRunner::new(vec![Err(MacError::CommandFailed("not found".to_string()))]);
         let (prot, _calls) = make_protection(runner);
 
         assert!(!prot.is_enforcing());
@@ -372,9 +363,9 @@ mod tests {
 
     #[test]
     fn uninstall_failure() {
-        let runner = MockCommandRunner::new(vec![
-            Err(MacError::CommandFailed("module not found".to_string())),
-        ]);
+        let runner = MockCommandRunner::new(vec![Err(MacError::CommandFailed(
+            "module not found".to_string(),
+        ))]);
         let (prot, _calls) = make_protection(runner);
 
         let result = prot.uninstall();
@@ -385,7 +376,7 @@ mod tests {
     fn verify_and_repair_already_loaded() {
         let runner = MockCommandRunner::new(vec![
             Ok("betblocker\t1.0.0\n".to_string()), // semodule -l (verify)
-            Ok("Enforcing\n".to_string()),           // getenforce (verify)
+            Ok("Enforcing\n".to_string()),         // getenforce (verify)
         ]);
         let (prot, calls) = make_protection(runner);
 
@@ -403,7 +394,7 @@ mod tests {
         let runner = MockCommandRunner::new(vec![
             // Initial verify
             Ok("other_module\t1.0\n".to_string()), // semodule -l: not found
-            Ok("Enforcing\n".to_string()),           // getenforce
+            Ok("Enforcing\n".to_string()),         // getenforce
             // install
             Ok(String::new()), // checkmodule
             Ok(String::new()), // semodule_package
@@ -414,7 +405,7 @@ mod tests {
             Ok(String::new()), // rm
             // Re-verify
             Ok("betblocker\t1.0.0\n".to_string()), // semodule -l
-            Ok("Enforcing\n".to_string()),           // getenforce
+            Ok("Enforcing\n".to_string()),         // getenforce
         ]);
         let (prot, calls) = make_protection(runner);
 

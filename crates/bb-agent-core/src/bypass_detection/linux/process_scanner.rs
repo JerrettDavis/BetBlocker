@@ -74,9 +74,7 @@ mod tests {
     #[tokio::test]
     async fn scan_returns_ok() {
         let scanner = LinuxProcessScanner::new();
-        let result = scanner
-            .scan_for_processes(&["openvpn", "tor"])
-            .await;
+        let result = scanner.scan_for_processes(&["openvpn", "tor"]).await;
         assert!(result.is_ok());
     }
 

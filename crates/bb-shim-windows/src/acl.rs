@@ -187,7 +187,10 @@ pub fn verify_acl(path: &Path) -> Result<bool, AclError> {
     // Look for patterns like "Users:(W)" or "Users:(M)" or "Users:(F)"
     let has_user_write = stdout.lines().any(|line| {
         let line_upper = line.to_uppercase();
-        line_upper.contains("USERS") && (line_upper.contains("(F)") || line_upper.contains("(M)") || line_upper.contains("(W)"))
+        line_upper.contains("USERS")
+            && (line_upper.contains("(F)")
+                || line_upper.contains("(M)")
+                || line_upper.contains("(W)"))
     });
 
     Ok(!has_user_write)

@@ -46,7 +46,10 @@ impl DnsMonitor {
     /// Watches for DNS configuration changes and re-enforces settings.
     /// Runs until the shutdown signal is received.
     #[cfg(target_os = "macos")]
-    pub async fn start(&self, mut shutdown_rx: watch::Receiver<bool>) -> Result<(), DnsMonitorError> {
+    pub async fn start(
+        &self,
+        mut shutdown_rx: watch::Receiver<bool>,
+    ) -> Result<(), DnsMonitorError> {
         tracing::info!(servers = ?self.enforced_servers, "DNS monitor starting");
 
         // Initial enforcement
@@ -83,7 +86,10 @@ impl DnsMonitor {
 
     /// Stub start for non-macOS platforms.
     #[cfg(not(target_os = "macos"))]
-    pub async fn start(&self, mut shutdown_rx: watch::Receiver<bool>) -> Result<(), DnsMonitorError> {
+    pub async fn start(
+        &self,
+        mut shutdown_rx: watch::Receiver<bool>,
+    ) -> Result<(), DnsMonitorError> {
         tracing::info!("DNS monitor is a no-op on non-macOS");
         // Wait for shutdown signal to keep the API consistent
         let _ = shutdown_rx.changed().await;

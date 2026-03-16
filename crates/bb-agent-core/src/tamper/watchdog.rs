@@ -155,10 +155,7 @@ impl WatchdogMonitor {
         );
 
         // Log tamper event
-        let _ = self
-            .recovery_tx
-            .send(RecoveryAction::LogTamperEvent)
-            .await;
+        let _ = self.recovery_tx.send(RecoveryAction::LogTamperEvent).await;
 
         // Try restart
         if self.failed_restarts < self.max_restart_attempts {
@@ -173,10 +170,7 @@ impl WatchdogMonitor {
                 attempts = self.failed_restarts,
                 "Watchdog: max restart attempts exceeded, sending tamper alert"
             );
-            let _ = self
-                .recovery_tx
-                .send(RecoveryAction::SendTamperAlert)
-                .await;
+            let _ = self.recovery_tx.send(RecoveryAction::SendTamperAlert).await;
             self.failed_restarts = 0;
         }
     }
@@ -215,8 +209,7 @@ mod tests {
     #[tokio::test]
     async fn test_watchdog_receives_pings() {
         let expected_hash = vec![1, 2, 3, 4];
-        let (mut monitor, handle, mut recovery_rx) =
-            WatchdogMonitor::new(expected_hash.clone());
+        let (mut monitor, handle, mut recovery_rx) = WatchdogMonitor::new(expected_hash.clone());
 
         // Send a valid ping
         assert!(handle.ping(expected_hash.clone(), 1).await);
@@ -240,8 +233,7 @@ mod tests {
     #[tokio::test]
     async fn test_watchdog_detects_hash_mismatch() {
         let expected_hash = vec![1, 2, 3, 4];
-        let (mut monitor, handle, mut recovery_rx) =
-            WatchdogMonitor::new(expected_hash.clone());
+        let (mut monitor, handle, mut recovery_rx) = WatchdogMonitor::new(expected_hash.clone());
 
         // Send a ping with wrong hash
         let wrong_hash = vec![5, 6, 7, 8];
@@ -257,8 +249,7 @@ mod tests {
         shutdown_tx.send(true).expect("send shutdown");
 
         // Should have received a LogTamperEvent
-        let action = tokio::time::timeout(Duration::from_secs(1), recovery_rx.recv())
-            .await;
+        let action = tokio::time::timeout(Duration::from_secs(1), recovery_rx.recv()).await;
         // The action may or may not arrive depending on timing, but it should not panic
         drop(action);
 

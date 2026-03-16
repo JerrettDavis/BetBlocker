@@ -1,9 +1,9 @@
 use axum::{
+    Json,
     body::Body,
     extract::{Query, State},
-    http::{header, StatusCode},
+    http::{StatusCode, header},
     response::Response,
-    Json,
 };
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -62,17 +62,20 @@ pub async fn timeseries(
     auth: AuthenticatedAccount,
     Query(params): Query<TimeseriesParams>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;
 
     match params.period.as_str() {
         "hourly" | "hour" => {
-            let rows =
-                analytics_service::get_hourly_stats(&state.db, params.device_id, params.from, params.to)
-                    .await?;
+            let rows = analytics_service::get_hourly_stats(
+                &state.db,
+                params.device_id,
+                params.from,
+                params.to,
+            )
+            .await?;
             let data: Vec<serde_json::Value> = rows
                 .iter()
                 .map(|r| {
@@ -90,9 +93,13 @@ pub async fn timeseries(
             })))
         }
         "daily" | "day" => {
-            let rows =
-                analytics_service::get_daily_stats(&state.db, params.device_id, params.from, params.to)
-                    .await?;
+            let rows = analytics_service::get_daily_stats(
+                &state.db,
+                params.device_id,
+                params.from,
+                params.to,
+            )
+            .await?;
             let data: Vec<serde_json::Value> = rows
                 .iter()
                 .map(|r| {
@@ -125,8 +132,7 @@ pub async fn trends(
     auth: AuthenticatedAccount,
     Query(params): Query<TrendsParams>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;
@@ -136,8 +142,7 @@ pub async fn trends(
         .map(|m| m.split(',').map(|s| s.trim().to_string()).collect())
         .unwrap_or_default();
 
-    let rows =
-        analytics_service::get_trends(&state.db, params.device_id, &metric_names).await?;
+    let rows = analytics_service::get_trends(&state.db, params.device_id, &metric_names).await?;
 
     let data: Vec<serde_json::Value> = rows
         .iter()
@@ -166,15 +171,13 @@ pub async fn summary(
     auth: AuthenticatedAccount,
     Query(params): Query<SummaryParams>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;
 
     let s =
-        analytics_service::get_summary(&state.db, params.device_id, params.from, params.to)
-            .await?;
+        analytics_service::get_summary(&state.db, params.device_id, params.from, params.to).await?;
 
     Ok(ApiResponse::ok(json!({
         "total_events": s.total_events,
@@ -194,15 +197,13 @@ pub async fn heatmap(
     auth: AuthenticatedAccount,
     Query(params): Query<HeatmapParams>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;
 
     let cells =
-        analytics_service::get_heatmap(&state.db, params.device_id, params.from, params.to)
-            .await?;
+        analytics_service::get_heatmap(&state.db, params.device_id, params.from, params.to).await?;
 
     let data: Vec<serde_json::Value> = cells
         .iter()
@@ -242,8 +243,7 @@ pub async fn export_csv(
     auth: AuthenticatedAccount,
     Query(params): Query<ExportParams>,
 ) -> Result<Response<Body>, ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;
@@ -288,8 +288,7 @@ pub async fn export_pdf(
     auth: AuthenticatedAccount,
     Query(params): Query<ExportParams>,
 ) -> Result<Response<Body>, ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;

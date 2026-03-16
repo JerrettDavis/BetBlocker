@@ -1,6 +1,6 @@
 mod common;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 // Note: Partner invite flow requires email_verified = true, which
 // is not automatically set during registration. These tests verify
@@ -29,10 +29,12 @@ async fn test_partner_invite_requires_verified_email() {
 
     assert_eq!(resp.status().as_u16(), 403);
     let body: Value = resp.json().await.unwrap();
-    assert!(body["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("verified"));
+    assert!(
+        body["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("verified")
+    );
 }
 
 /// Test partner listing returns empty initially.

@@ -1,14 +1,15 @@
 mod common;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Test user registration.
 #[tokio::test]
 async fn test_register_user() {
     let app = common::TestApp::spawn().await;
 
-    let (account_id, access_token, refresh_token) =
-        app.register_user("test@example.com", "SecurePass123!").await;
+    let (account_id, access_token, refresh_token) = app
+        .register_user("test@example.com", "SecurePass123!")
+        .await;
 
     assert!(!account_id.is_empty());
     assert!(!access_token.is_empty());
@@ -45,7 +46,8 @@ async fn test_register_duplicate_email() {
 async fn test_login_success() {
     let app = common::TestApp::spawn().await;
 
-    app.register_user("login@example.com", "SecurePass123!").await;
+    app.register_user("login@example.com", "SecurePass123!")
+        .await;
     let (access_token, refresh_token) = app.login("login@example.com", "SecurePass123!").await;
 
     assert!(!access_token.is_empty());
@@ -57,7 +59,8 @@ async fn test_login_success() {
 async fn test_login_wrong_password() {
     let app = common::TestApp::spawn().await;
 
-    app.register_user("wrong@example.com", "SecurePass123!").await;
+    app.register_user("wrong@example.com", "SecurePass123!")
+        .await;
 
     let resp = app
         .client
@@ -101,7 +104,9 @@ async fn test_login_nonexistent_email() {
 async fn test_refresh_token_rotation() {
     let app = common::TestApp::spawn().await;
 
-    let (_id, _at, refresh1) = app.register_user("refresh@example.com", "SecurePass123!").await;
+    let (_id, _at, refresh1) = app
+        .register_user("refresh@example.com", "SecurePass123!")
+        .await;
 
     // Use refresh token to get new tokens
     let resp = app
@@ -137,8 +142,9 @@ async fn test_refresh_token_rotation() {
 async fn test_logout() {
     let app = common::TestApp::spawn().await;
 
-    let (_id, access_token, refresh_token) =
-        app.register_user("logout@example.com", "SecurePass123!").await;
+    let (_id, access_token, refresh_token) = app
+        .register_user("logout@example.com", "SecurePass123!")
+        .await;
 
     // Logout
     let resp = app
@@ -169,7 +175,8 @@ async fn test_forgot_password() {
     let app = common::TestApp::spawn().await;
 
     // Existing user
-    app.register_user("forgot@example.com", "SecurePass123!").await;
+    app.register_user("forgot@example.com", "SecurePass123!")
+        .await;
 
     let resp = app
         .client

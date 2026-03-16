@@ -145,7 +145,14 @@ impl DnsZoneCrawler {
                     .unwrap_or(line)
                     .trim_end_matches('.')
                     .to_lowercase();
-                if domain.is_empty() { None } else { Some(ZoneEntry { domain, registered_at: None }) }
+                if domain.is_empty() {
+                    None
+                } else {
+                    Some(ZoneEntry {
+                        domain,
+                        registered_at: None,
+                    })
+                }
             })
             .collect()
     }
@@ -182,26 +189,25 @@ impl DomainCrawler for DnsZoneCrawler {
         let mut seen_domains = std::collections::HashSet::new();
 
         for tld in &self.tlds {
-            let entries =
-                match Self::fetch_tld(ctx, &self.api_endpoint, tld, since).await {
-                    Ok(e) => e,
-                    Err(CrawlError::Http(e)) => {
-                        tracing::warn!(
-                            tld = %tld,
-                            error = %e,
-                            "HTTP error fetching zone data, skipping TLD"
-                        );
-                        continue;
-                    }
-                    Err(e) => {
-                        tracing::warn!(
-                            tld = %tld,
-                            error = %e,
-                            "error fetching zone data, skipping TLD"
-                        );
-                        continue;
-                    }
-                };
+            let entries = match Self::fetch_tld(ctx, &self.api_endpoint, tld, since).await {
+                Ok(e) => e,
+                Err(CrawlError::Http(e)) => {
+                    tracing::warn!(
+                        tld = %tld,
+                        error = %e,
+                        "HTTP error fetching zone data, skipping TLD"
+                    );
+                    continue;
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        tld = %tld,
+                        error = %e,
+                        "error fetching zone data, skipping TLD"
+                    );
+                    continue;
+                }
+            };
 
             for entry in entries {
                 if !Self::passes_since_filter(&entry, since) {
@@ -306,8 +312,14 @@ just-domain.bet.
         assert!(!domains.iter().any(|d| d.starts_with(';')));
         assert!(!domains.iter().any(|d| d.starts_with('#')));
         // Should extract from NS record lines (first token).
-        assert!(domains.contains(&"jackpot-city.bet"), "should find jackpot-city.bet");
-        assert!(domains.contains(&"royal-casino.casino"), "should find royal-casino.casino");
+        assert!(
+            domains.contains(&"jackpot-city.bet"),
+            "should find jackpot-city.bet"
+        );
+        assert!(
+            domains.contains(&"royal-casino.casino"),
+            "should find royal-casino.casino"
+        );
     }
 
     #[test]
@@ -382,10 +394,7 @@ just-domain.bet.
     fn with_defaults_has_gambling_tlds() {
         let crawler = DnsZoneCrawler::with_defaults("https://czds-api.example/");
         for tld in &["bet", "casino", "poker", "games", "bingo"] {
-            assert!(
-                crawler.tlds.iter().any(|t| t == tld),
-                "missing TLD: {tld}"
-            );
+            assert!(crawler.tlds.iter().any(|t| t == tld), "missing TLD: {tld}");
         }
     }
 

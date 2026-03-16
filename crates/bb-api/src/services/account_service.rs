@@ -59,7 +59,10 @@ pub async fn get_account_by_public_id(
 }
 
 /// Fetch account row by email (for login).
-pub async fn get_account_by_email(db: &PgPool, email: &str) -> Result<Option<AccountRow>, ApiError> {
+pub async fn get_account_by_email(
+    db: &PgPool,
+    email: &str,
+) -> Result<Option<AccountRow>, ApiError> {
     let row = sqlx::query_as::<_, AccountRow>(
         r#"SELECT id, public_id, email, password_hash, display_name,
                   role::text, email_verified, mfa_enabled, timezone, locale,
@@ -139,11 +142,7 @@ pub async fn update_account(
 }
 
 /// Update account role.
-pub async fn update_account_role(
-    db: &PgPool,
-    account_id: i64,
-    role: &str,
-) -> Result<(), ApiError> {
+pub async fn update_account_role(db: &PgPool, account_id: i64, role: &str) -> Result<(), ApiError> {
     sqlx::query("UPDATE accounts SET role = $2::account_role, updated_at = NOW() WHERE id = $1")
         .bind(account_id)
         .bind(role)

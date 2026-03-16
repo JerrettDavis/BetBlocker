@@ -28,9 +28,9 @@ pub enum FileProtectError {
 /// permissions. On non-macOS, returns an error.
 #[cfg(target_os = "macos")]
 pub fn set_agent_file_permissions(path: &Path) -> Result<(), FileProtectError> {
-    let path_str = path
-        .to_str()
-        .ok_or_else(|| FileProtectError::PermissionFailed(format!("invalid path: {}", path.display())))?;
+    let path_str = path.to_str().ok_or_else(|| {
+        FileProtectError::PermissionFailed(format!("invalid path: {}", path.display()))
+    })?;
 
     // Set owner to root:wheel
     let output = std::process::Command::new("chown")

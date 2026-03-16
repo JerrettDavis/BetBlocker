@@ -123,8 +123,7 @@ impl MinifilterStatus {
         }
         let active = buf[0] != 0;
         // bytes 1..4 padding
-        let protected_paths =
-            u32::from_le_bytes(buf[4..8].try_into().expect("slice is 4 bytes"));
+        let protected_paths = u32::from_le_bytes(buf[4..8].try_into().expect("slice is 4 bytes"));
         let blocked_operations =
             u64::from_le_bytes(buf[8..16].try_into().expect("slice is 8 bytes"));
         Ok(Self {
@@ -317,7 +316,10 @@ mod tests {
         ];
         for i in 0..codes.len() {
             for j in (i + 1)..codes.len() {
-                assert_ne!(codes[i], codes[j], "IOCTL codes[{i}] and codes[{j}] collide");
+                assert_ne!(
+                    codes[i], codes[j],
+                    "IOCTL codes[{i}] and codes[{j}] collide"
+                );
             }
         }
     }

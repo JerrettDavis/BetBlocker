@@ -139,7 +139,8 @@ impl PfManager {
             })?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let has_redirect = stdout.contains("rdr") && stdout.contains(&format!("port {}", self.resolver_port));
+        let has_redirect =
+            stdout.contains("rdr") && stdout.contains(&format!("port {}", self.resolver_port));
 
         if has_redirect {
             Ok(false) // Rules intact
@@ -215,10 +216,7 @@ mod tests {
             rules.contains("port 5353"),
             "should redirect to resolver port"
         );
-        assert!(
-            rules.contains("127.0.0.1"),
-            "should redirect to localhost"
-        );
+        assert!(rules.contains("127.0.0.1"), "should redirect to localhost");
     }
 
     #[test]
@@ -261,7 +259,10 @@ mod tests {
             let mut mgr = PfManager::new(5353);
             let result = mgr.verify_and_repair();
             assert!(result.is_ok());
-            assert!(!result.expect("should be ok"), "stub should report no tamper");
+            assert!(
+                !result.expect("should be ok"),
+                "stub should report no tamper"
+            );
         }
     }
 }

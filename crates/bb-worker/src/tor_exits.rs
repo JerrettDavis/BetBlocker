@@ -1,8 +1,7 @@
 use crate::scheduler::AppContext;
 
 /// URL of the Tor Project's bulk exit list.
-const TOR_BULK_EXIT_LIST_URL: &str =
-    "https://check.torproject.org/torbulkexitlist";
+const TOR_BULK_EXIT_LIST_URL: &str = "https://check.torproject.org/torbulkexitlist";
 
 // ---------------------------------------------------------------------------
 // TorExitNodeRefreshJob

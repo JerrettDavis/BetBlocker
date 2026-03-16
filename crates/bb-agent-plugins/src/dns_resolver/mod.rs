@@ -1,8 +1,8 @@
 pub mod handler;
 
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use hickory_server::ServerFuture;
 use tokio::net::UdpSocket;
@@ -18,8 +18,7 @@ const DEFAULT_UPSTREAM_1: SocketAddr =
     SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(8, 8, 8, 8), 53));
 const DEFAULT_UPSTREAM_2: SocketAddr =
     SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(1, 1, 1, 1), 53));
-const DEFAULT_LISTEN_ADDR: SocketAddr =
-    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 53));
+const DEFAULT_LISTEN_ADDR: SocketAddr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 53));
 
 /// DNS query counters for health reporting.
 #[derive(Debug, Default)]
@@ -111,9 +110,7 @@ impl BlockingPlugin for DnsResolverPlugin {
             && let Some(addr_str) = addr.as_str()
         {
             self.listen_addr = addr_str.parse().map_err(|e| {
-                PluginError::ConfigError(format!(
-                    "Invalid listen address '{addr_str}': {e}"
-                ))
+                PluginError::ConfigError(format!("Invalid listen address '{addr_str}': {e}"))
             })?;
         }
 
@@ -121,9 +118,8 @@ impl BlockingPlugin for DnsResolverPlugin {
         if let Some(port) = config.settings.get("listen_port")
             && let Some(p) = port.as_u64()
         {
-            let p = u16::try_from(p).map_err(|_| {
-                PluginError::ConfigError(format!("Invalid port number: {p}"))
-            })?;
+            let p = u16::try_from(p)
+                .map_err(|_| PluginError::ConfigError(format!("Invalid port number: {p}")))?;
             self.listen_addr.set_port(p);
         }
 
@@ -199,7 +195,10 @@ impl BlockingPlugin for DnsResolverPlugin {
         // For a full hot-swap, we'd need shared state (ArcSwap).
         // For now, the handler's blocklist is set at activation time.
         // A full restart is needed for blocklist updates to take effect in the DNS server.
-        info!(version = blocklist.version, "DNS resolver blocklist updated");
+        info!(
+            version = blocklist.version,
+            "DNS resolver blocklist updated"
+        );
         Ok(())
     }
 

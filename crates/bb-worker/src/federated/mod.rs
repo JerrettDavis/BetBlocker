@@ -32,10 +32,7 @@ impl Default for FederatedPipeline {
 ///
 /// * `federated_aggregator` – runs every 15 minutes.
 /// * `federated_promoter`   – runs every 30 minutes.
-pub async fn register_jobs(
-    scheduler: &JobScheduler,
-    ctx: Arc<AppContext>,
-) -> anyhow::Result<()> {
+pub async fn register_jobs(scheduler: &JobScheduler, ctx: Arc<AppContext>) -> anyhow::Result<()> {
     // Aggregator: every 15 minutes
     scheduler
         .add_job(

@@ -53,8 +53,7 @@ impl TokenRotator {
     }
 
     fn hmac_token(&self, message: &str) -> String {
-        let mut mac =
-            HmacSha256::new_from_slice(&self.seed).expect("HMAC accepts any key length");
+        let mut mac = HmacSha256::new_from_slice(&self.seed).expect("HMAC accepts any key length");
         mac.update(message.as_bytes());
         hex::encode(mac.finalize().into_bytes())
     }
@@ -99,7 +98,10 @@ mod tests {
         let day = Utc.with_ymd_and_hms(2024, 6, 15, 14, 37, 0).unwrap();
         let token1 = rotator.token_for_date(day);
         let token2 = rotator.token_for_date(day);
-        assert_eq!(token1, token2, "same seed + same day must produce same token");
+        assert_eq!(
+            token1, token2,
+            "same seed + same day must produce same token"
+        );
     }
 
     #[test]
@@ -110,7 +112,10 @@ mod tests {
         let day2 = Utc.with_ymd_and_hms(2024, 6, 16, 0, 0, 0).unwrap();
         let token1 = rotator.token_for_date(day1);
         let token2 = rotator.token_for_date(day2);
-        assert_ne!(token1, token2, "different days must produce different tokens");
+        assert_ne!(
+            token1, token2,
+            "different days must produce different tokens"
+        );
     }
 
     #[test]
@@ -145,7 +150,10 @@ mod tests {
     fn bucket_rounds_down_to_hour() {
         let ts = Utc.with_ymd_and_hms(2024, 6, 15, 14, 37, 22).unwrap();
         let bucketed = TemporalBucketer::bucket(ts);
-        assert_eq!(bucketed, Utc.with_ymd_and_hms(2024, 6, 15, 14, 0, 0).unwrap());
+        assert_eq!(
+            bucketed,
+            Utc.with_ymd_and_hms(2024, 6, 15, 14, 0, 0).unwrap()
+        );
     }
 
     #[test]
@@ -159,13 +167,19 @@ mod tests {
     fn bucket_midnight() {
         let ts = Utc.with_ymd_and_hms(2024, 6, 15, 0, 59, 59).unwrap();
         let bucketed = TemporalBucketer::bucket(ts);
-        assert_eq!(bucketed, Utc.with_ymd_and_hms(2024, 6, 15, 0, 0, 0).unwrap());
+        assert_eq!(
+            bucketed,
+            Utc.with_ymd_and_hms(2024, 6, 15, 0, 0, 0).unwrap()
+        );
     }
 
     #[test]
     fn bucket_end_of_day() {
         let ts = Utc.with_ymd_and_hms(2024, 6, 15, 23, 59, 59).unwrap();
         let bucketed = TemporalBucketer::bucket(ts);
-        assert_eq!(bucketed, Utc.with_ymd_and_hms(2024, 6, 15, 23, 0, 0).unwrap());
+        assert_eq!(
+            bucketed,
+            Utc.with_ymd_and_hms(2024, 6, 15, 23, 0, 0).unwrap()
+        );
     }
 }

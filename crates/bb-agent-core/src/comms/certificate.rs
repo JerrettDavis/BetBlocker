@@ -196,9 +196,7 @@ mod tests {
         // Store identity
         let cert = b"-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----";
         let key = b"test-key-data";
-        store
-            .store_identity(cert, key)
-            .expect("store identity");
+        store.store_identity(cert, key).expect("store identity");
 
         // Load identity
         let identity = store.load_identity().expect("load").expect("should exist");

@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -31,8 +31,7 @@ pub async fn invite_partner(
     auth: AuthenticatedAccount,
     Json(req): Json<InvitePartnerRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     // Require verified email
     if !caller.email_verified {
@@ -108,8 +107,7 @@ pub async fn accept_partner(
     auth: AuthenticatedAccount,
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let relationship = partner_service::get_partner_by_id(&state.db, id)
         .await?
@@ -155,8 +153,7 @@ pub async fn list_partners(
     auth: AuthenticatedAccount,
     pagination: Pagination,
 ) -> Result<PaginatedResponse<serde_json::Value>, ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let (partners, total) = partner_service::list_partners(
         &state.db,
@@ -200,8 +197,7 @@ pub async fn remove_partner(
     auth: AuthenticatedAccount,
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let relationship = partner_service::get_partner_by_id(&state.db, id)
         .await?

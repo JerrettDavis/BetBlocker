@@ -96,10 +96,7 @@ pub async fn list_enrollment_tokens(
 }
 
 /// Get an enrollment token by its public UUID.
-pub async fn get_enrollment_token(
-    db: &PgPool,
-    public_id: Uuid,
-) -> Result<TokenRow, ApiError> {
+pub async fn get_enrollment_token(db: &PgPool, public_id: Uuid) -> Result<TokenRow, ApiError> {
     let row = sqlx::query_as::<_, TokenRow>(
         r#"SELECT id, public_id, organization_id, created_by, label,
                   protection_config, reporting_config, unenrollment_policy,
@@ -136,16 +133,11 @@ pub async fn get_enrollment_token_by_id(
 }
 
 /// Revoke an enrollment token by setting its expires_at to now.
-pub async fn revoke_enrollment_token(
-    db: &PgPool,
-    token_id: i64,
-) -> Result<(), ApiError> {
-    let result = sqlx::query(
-        "UPDATE enrollment_tokens SET expires_at = NOW() WHERE id = $1",
-    )
-    .bind(token_id)
-    .execute(db)
-    .await?;
+pub async fn revoke_enrollment_token(db: &PgPool, token_id: i64) -> Result<(), ApiError> {
+    let result = sqlx::query("UPDATE enrollment_tokens SET expires_at = NOW() WHERE id = $1")
+        .bind(token_id)
+        .execute(db)
+        .await?;
 
     if result.rows_affected() == 0 {
         return Err(ApiError::NotFound {

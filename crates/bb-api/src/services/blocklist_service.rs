@@ -388,7 +388,7 @@ pub async fn resolve_review_queue_domain(
             return Err(ApiError::Validation {
                 message: "action must be 'promote' or 'reject'".into(),
                 details: None,
-            })
+            });
         }
     };
 

@@ -5,10 +5,7 @@ use chrono::Utc;
 use crate::events::AgentEvent;
 
 /// Create an `AgentEvent` for a VPN detection.
-pub fn create_vpn_detected_event(
-    detection_type: &str,
-    details: serde_json::Value,
-) -> AgentEvent {
+pub fn create_vpn_detected_event(detection_type: &str, details: serde_json::Value) -> AgentEvent {
     AgentEvent {
         id: None,
         event_type: EventType::VpnDetected,
@@ -71,10 +68,8 @@ mod tests {
 
     #[test]
     fn vpn_detected_event_structure() {
-        let event = create_vpn_detected_event(
-            "interface",
-            serde_json::json!({"interface_name": "tun0"}),
-        );
+        let event =
+            create_vpn_detected_event("interface", serde_json::json!({"interface_name": "tun0"}));
 
         assert_eq!(event.event_type, EventType::VpnDetected);
         assert_eq!(event.category, EventCategory::System);

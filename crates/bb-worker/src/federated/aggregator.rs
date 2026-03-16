@@ -31,7 +31,10 @@ impl FederatedAggregator {
             return Ok(());
         }
 
-        tracing::info!(count = domains.len(), "federated aggregator: processing domains");
+        tracing::info!(
+            count = domains.len(),
+            "federated aggregator: processing domains"
+        );
 
         let classifier = RuleBasedClassifier::new();
         let scorer = ConfidenceScorer::default();
@@ -87,7 +90,12 @@ async fn process_domain(
     )
     .bind(domain)
     .bind(confidence)
-    .bind(classification.category_guess.as_deref().unwrap_or("unknown"))
+    .bind(
+        classification
+            .category_guess
+            .as_deref()
+            .unwrap_or("unknown"),
+    )
     .bind(&classification.evidence)
     .fetch_one(&ctx.db)
     .await?;
@@ -132,7 +140,10 @@ mod tests {
         let scorer = ConfidenceScorer::default();
         let c = make_classification(0.8, 0.9);
         let score = scorer.score(&c);
-        assert!(score > 0.0 && score <= 1.0, "score {score} should be in (0,1]");
+        assert!(
+            score > 0.0 && score <= 1.0,
+            "score {score} should be in (0,1]"
+        );
     }
 
     #[test]

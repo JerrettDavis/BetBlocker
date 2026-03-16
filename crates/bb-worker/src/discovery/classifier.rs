@@ -78,15 +78,42 @@ impl RuleBasedClassifier {
     pub fn new() -> Self {
         Self {
             keywords: vec![
-                WeightedKeyword { keyword: "deposit bonus", weight: 2.0 },
-                WeightedKeyword { keyword: "free spins", weight: 2.0 },
-                WeightedKeyword { keyword: "casino", weight: 1.5 },
-                WeightedKeyword { keyword: "poker", weight: 1.5 },
-                WeightedKeyword { keyword: "slots", weight: 1.5 },
-                WeightedKeyword { keyword: "bet", weight: 1.0 },
-                WeightedKeyword { keyword: "wager", weight: 1.0 },
-                WeightedKeyword { keyword: "odds", weight: 1.0 },
-                WeightedKeyword { keyword: "18+", weight: 1.0 },
+                WeightedKeyword {
+                    keyword: "deposit bonus",
+                    weight: 2.0,
+                },
+                WeightedKeyword {
+                    keyword: "free spins",
+                    weight: 2.0,
+                },
+                WeightedKeyword {
+                    keyword: "casino",
+                    weight: 1.5,
+                },
+                WeightedKeyword {
+                    keyword: "poker",
+                    weight: 1.5,
+                },
+                WeightedKeyword {
+                    keyword: "slots",
+                    weight: 1.5,
+                },
+                WeightedKeyword {
+                    keyword: "bet",
+                    weight: 1.0,
+                },
+                WeightedKeyword {
+                    keyword: "wager",
+                    weight: 1.0,
+                },
+                WeightedKeyword {
+                    keyword: "odds",
+                    weight: 1.0,
+                },
+                WeightedKeyword {
+                    keyword: "18+",
+                    weight: 1.0,
+                },
             ],
         }
     }
@@ -122,7 +149,10 @@ impl RuleBasedClassifier {
         let density = (total_weight / word_count as f64) * 10.0;
         let score = density.min(1.0);
 
-        (score, serde_json::json!({ "matches": matches, "word_count": word_count }))
+        (
+            score,
+            serde_json::json!({ "matches": matches, "word_count": word_count }),
+        )
     }
 
     /// Analyse HTML structure for gambling-related elements.
@@ -191,7 +221,10 @@ impl RuleBasedClassifier {
     ///
     /// Future implementation will count outbound links to known gambling domains.
     pub fn link_graph_score(&self, _html: &str) -> (f64, serde_json::Value) {
-        (0.0, serde_json::json!({ "note": "stub – not yet implemented" }))
+        (
+            0.0,
+            serde_json::json!({ "note": "stub – not yet implemented" }),
+        )
     }
 
     /// Guess the gambling category based on keyword evidence.
@@ -202,12 +235,27 @@ impl RuleBasedClassifier {
         let categories: &[(&[&str], &str)] = &[
             (&["poker room", "poker tournament", "texas hold"], "poker"),
             (&["slot machine", "free spins", "slots"], "slots"),
-            (&["sports betting", "sportsbook", "odds", "moneyline", "spread"], "sports_betting"),
-            (&["casino", "blackjack", "roulette", "baccarat"], "online_casino"),
+            (
+                &[
+                    "sports betting",
+                    "sportsbook",
+                    "odds",
+                    "moneyline",
+                    "spread",
+                ],
+                "sports_betting",
+            ),
+            (
+                &["casino", "blackjack", "roulette", "baccarat"],
+                "online_casino",
+            ),
             (&["lottery", "lotto", "draw"], "lottery"),
             (&["bingo"], "bingo"),
             (&["fantasy sports", "daily fantasy"], "fantasy_sports"),
-            (&["crypto casino", "bitcoin gambling", "crypto betting"], "crypto_gambling"),
+            (
+                &["crypto casino", "bitcoin gambling", "crypto betting"],
+                "crypto_gambling",
+            ),
             (&["affiliate", "partner program", "referral"], "affiliate"),
         ];
 
@@ -293,7 +341,10 @@ mod tests {
         let text = "casino casino casino bet bet odds odds poker slots \
                     deposit bonus free spins wager wager 18+ casino poker";
         let (score, evidence) = classifier().keyword_score(text);
-        assert!(score > 0.5, "heavy gambling text should score high, got {score}");
+        assert!(
+            score > 0.5,
+            "heavy gambling text should score high, got {score}"
+        );
         let matches = evidence["matches"].as_array().unwrap();
         assert!(!matches.is_empty());
     }
@@ -371,7 +422,10 @@ mod tests {
         </body></html>
         "#;
         let (score, evidence) = classifier().structure_score(html);
-        assert!((score - 1.0).abs() < f64::EPSILON, "all 3 signals should give 1.0");
+        assert!(
+            (score - 1.0).abs() < f64::EPSILON,
+            "all 3 signals should give 1.0"
+        );
         assert_eq!(evidence["signals"].as_array().unwrap().len(), 3);
     }
 
@@ -387,7 +441,8 @@ mod tests {
 
     #[test]
     fn guess_category_casino() {
-        let cat = classifier().guess_category("Welcome to our online casino with blackjack and roulette");
+        let cat =
+            classifier().guess_category("Welcome to our online casino with blackjack and roulette");
         assert_eq!(cat, Some("online_casino".to_string()));
     }
 

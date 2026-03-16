@@ -240,7 +240,9 @@ impl FederatedReporter {
             })
             .collect();
 
-        let body = serde_json::to_vec(&FederatedReportBatch { reports: reports.clone() })?;
+        let body = serde_json::to_vec(&FederatedReportBatch {
+            reports: reports.clone(),
+        })?;
 
         self.api_client
             .post_raw("/v1/federated/reports", "application/json", body)
@@ -263,8 +265,7 @@ impl FederatedReporter {
     pub fn run(self: Arc<Self>) -> tokio::task::JoinHandle<()> {
         let interval_duration = self.config.batch_interval;
         tokio::spawn(async move {
-            let mut ticker =
-                tokio::time::interval(interval_duration);
+            let mut ticker = tokio::time::interval(interval_duration);
             ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
             // Skip the immediate first tick so we don't flush on startup.
             ticker.tick().await;
@@ -334,13 +335,15 @@ mod tests {
     #[tokio::test]
     async fn report_token_is_non_empty_hex() {
         let reporter = make_reporter("http://localhost:1".into());
-        reporter
-            .add_report("poker.example.com", 0.7, None)
-            .await;
+        reporter.add_report("poker.example.com", 0.7, None).await;
 
         let guard = reporter.buffer.lock().await;
         let report = guard.first().expect("one report");
-        assert_eq!(report.reporter_token.len(), 64, "token should be 64 hex chars");
+        assert_eq!(
+            report.reporter_token.len(),
+            64,
+            "token should be 64 hex chars"
+        );
         assert!(
             report.reporter_token.chars().all(|c| c.is_ascii_hexdigit()),
             "token should be hex"
@@ -350,9 +353,7 @@ mod tests {
     #[tokio::test]
     async fn reported_at_is_on_hour_boundary() {
         let reporter = make_reporter("http://localhost:1".into());
-        reporter
-            .add_report("slots.example.com", 0.9, None)
-            .await;
+        reporter.add_report("slots.example.com", 0.9, None).await;
 
         let guard = reporter.buffer.lock().await;
         let report = guard.first().expect("one report");
@@ -407,7 +408,11 @@ mod tests {
 
         let reporter = make_reporter(server.uri());
         reporter.add_report("casino.com", 0.9, None).await;
-        assert_eq!(reporter.buffer.lock().await.len(), 1, "buffer should have 1 report before flush");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            1,
+            "buffer should have 1 report before flush"
+        );
 
         reporter.flush().await.expect("flush should succeed");
 
@@ -433,17 +438,33 @@ mod tests {
         // Add reports in two separate batches
         reporter.add_report("site-a.com", 0.6, None).await;
         reporter.add_report("site-b.com", 0.7, None).await;
-        assert_eq!(reporter.buffer.lock().await.len(), 2, "should have 2 reports");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            2,
+            "should have 2 reports"
+        );
 
         reporter.add_report("site-c.com", 0.8, None).await;
-        assert_eq!(reporter.buffer.lock().await.len(), 3, "should have 3 reports before flush");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            3,
+            "should have 3 reports before flush"
+        );
 
         reporter.flush().await.expect("flush should succeed");
-        assert_eq!(reporter.buffer.lock().await.len(), 0, "buffer cleared after flush");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            0,
+            "buffer cleared after flush"
+        );
 
         // Add more after flush
         reporter.add_report("site-d.com", 0.9, None).await;
-        assert_eq!(reporter.buffer.lock().await.len(), 1, "should accumulate again after flush");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            1,
+            "should accumulate again after flush"
+        );
     }
 
     #[tokio::test]
@@ -456,8 +477,15 @@ mod tests {
         let reporter = FederatedReporter::with_seed(api, config, fixed_seed());
         // add_report should be a no-op
         reporter.add_report("casino.com", 0.9, None).await;
-        assert_eq!(reporter.buffer.lock().await.len(), 0, "disabled reporter should not buffer");
-        let err = reporter.flush().await.expect_err("flush should fail when disabled");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            0,
+            "disabled reporter should not buffer"
+        );
+        let err = reporter
+            .flush()
+            .await
+            .expect_err("flush should fail when disabled");
         assert!(matches!(err, FederatedError::Disabled));
     }
 
@@ -472,10 +500,20 @@ mod tests {
         reporter.add_report("casino.com", 0.9, None).await;
         reporter.add_report("casino2.com", 0.8, None).await;
         // only 2 reports, min is 3
-        let err = reporter.flush().await.expect_err("should fail with batch too small");
-        assert!(matches!(err, FederatedError::BatchTooSmall { min: 3, have: 2 }));
+        let err = reporter
+            .flush()
+            .await
+            .expect_err("should fail with batch too small");
+        assert!(matches!(
+            err,
+            FederatedError::BatchTooSmall { min: 3, have: 2 }
+        ));
         // buffer should NOT have been cleared
-        assert_eq!(reporter.buffer.lock().await.len(), 2, "buffer should be untouched on BatchTooSmall");
+        assert_eq!(
+            reporter.buffer.lock().await.len(),
+            2,
+            "buffer should be untouched on BatchTooSmall"
+        );
     }
 
     #[tokio::test]
@@ -501,8 +539,7 @@ mod tests {
         let requests = server.received_requests().await.expect("requests");
         assert_eq!(requests.len(), 1);
         let body = &requests[0].body;
-        let batch: FederatedReportBatch =
-            serde_json::from_slice(body).expect("parse batch JSON");
+        let batch: FederatedReportBatch = serde_json::from_slice(body).expect("parse batch JSON");
         let reports = batch.reports;
         assert_eq!(reports.len(), 2);
         let id0 = reports[0].batch_id;

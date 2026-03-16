@@ -15,9 +15,9 @@
 #[cfg(feature = "app-process")]
 pub mod app_process;
 pub mod blocklist;
+pub mod registry;
 pub mod traits;
 pub mod types;
-pub mod registry;
 
 #[cfg(feature = "dns-resolver")]
 pub mod dns_resolver;
@@ -28,8 +28,8 @@ pub mod hosts_file;
 // Re-exports for convenience
 pub use blocklist::Blocklist;
 pub use registry::{PluginInstance, PluginRegistry};
-pub use traits::{BlockingPlugin, DnsBlockingPlugin, AppBlockingPlugin, ContentBlockingPlugin};
+pub use traits::{AppBlockingPlugin, BlockingPlugin, ContentBlockingPlugin, DnsBlockingPlugin};
 pub use types::{
-    BlockDecision, BlockingLayer, PluginConfig, PluginError, PluginHealth,
-    AppIdentifier, AppMatch, AppMatchType, ContentRules, ExtensionHealth,
+    AppIdentifier, AppMatch, AppMatchType, BlockDecision, BlockingLayer, ContentRules,
+    ExtensionHealth, PluginConfig, PluginError, PluginHealth,
 };

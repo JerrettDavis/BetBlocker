@@ -160,13 +160,10 @@ impl ConfigIntegrity {
     /// Encrypt configuration data using AES-256-GCM.
     ///
     /// Key is derived via HKDF from the machine ID + a random salt.
-    pub fn encrypt_config(
-        plaintext: &[u8],
-        machine_id: &[u8],
-    ) -> Result<Vec<u8>, IntegrityError> {
+    pub fn encrypt_config(plaintext: &[u8], machine_id: &[u8]) -> Result<Vec<u8>, IntegrityError> {
         use aes_gcm::{
-            aead::{Aead, KeyInit},
             Aes256Gcm, Nonce,
+            aead::{Aead, KeyInit},
         };
         use hkdf::Hkdf;
         use sha2::Sha256 as HkdfSha256;
@@ -204,13 +201,10 @@ impl ConfigIntegrity {
     }
 
     /// Decrypt configuration data encrypted with `encrypt_config`.
-    pub fn decrypt_config(
-        encrypted: &[u8],
-        machine_id: &[u8],
-    ) -> Result<Vec<u8>, IntegrityError> {
+    pub fn decrypt_config(encrypted: &[u8], machine_id: &[u8]) -> Result<Vec<u8>, IntegrityError> {
         use aes_gcm::{
-            aead::{Aead, KeyInit},
             Aes256Gcm, Nonce,
+            aead::{Aead, KeyInit},
         };
         use hkdf::Hkdf;
         use sha2::Sha256 as HkdfSha256;
@@ -256,8 +250,7 @@ impl ConfigIntegrity {
                 .map_err(IntegrityError::ReadFailed)?;
         }
 
-        std::fs::write(&self.config_path, &encrypted)
-            .map_err(IntegrityError::ReadFailed)?;
+        std::fs::write(&self.config_path, &encrypted).map_err(IntegrityError::ReadFailed)?;
 
         Ok(())
     }
@@ -339,13 +332,11 @@ mod tests {
         let plaintext = b"sensitive config data: {\"tier\": \"partner\"}";
         let machine_id = b"test-machine-id-12345";
 
-        let encrypted =
-            ConfigIntegrity::encrypt_config(plaintext, machine_id).expect("encrypt");
+        let encrypted = ConfigIntegrity::encrypt_config(plaintext, machine_id).expect("encrypt");
         assert_ne!(encrypted, plaintext);
         assert!(encrypted.len() > plaintext.len()); // Salt + nonce + tag overhead
 
-        let decrypted =
-            ConfigIntegrity::decrypt_config(&encrypted, machine_id).expect("decrypt");
+        let decrypted = ConfigIntegrity::decrypt_config(&encrypted, machine_id).expect("decrypt");
         assert_eq!(decrypted, plaintext);
     }
 
@@ -355,8 +346,7 @@ mod tests {
         let machine_id = b"correct-machine-id";
         let wrong_id = b"wrong-machine-id-xx";
 
-        let encrypted =
-            ConfigIntegrity::encrypt_config(plaintext, machine_id).expect("encrypt");
+        let encrypted = ConfigIntegrity::encrypt_config(plaintext, machine_id).expect("encrypt");
 
         let result = ConfigIntegrity::decrypt_config(&encrypted, wrong_id);
         assert!(result.is_err());
@@ -410,8 +400,7 @@ mod tests {
             .expect("store v2");
 
         // Corrupt primary
-        std::fs::write(dir.path().join("config.enc"), b"corrupted")
-            .expect("corrupt");
+        std::fs::write(dir.path().join("config.enc"), b"corrupted").expect("corrupt");
 
         // Should fall back to backup (version 1)
         let loaded = integrity.load_encrypted(machine_id).expect("load");

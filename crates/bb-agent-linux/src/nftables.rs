@@ -111,7 +111,10 @@ impl NftablesManager {
         }
 
         self.rules_installed = true;
-        tracing::info!(port = self.resolver_port, "nftables DNS redirect rules installed");
+        tracing::info!(
+            port = self.resolver_port,
+            "nftables DNS redirect rules installed"
+        );
         Ok(())
     }
 
@@ -131,9 +134,7 @@ impl NftablesManager {
         // Ignore "no such table" errors (already removed)
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            if !stderr.contains("No such file or directory")
-                && !stderr.contains("does not exist")
-            {
+            if !stderr.contains("No such file or directory") && !stderr.contains("does not exist") {
                 return Err(NftablesError::CommandFailed(stderr.to_string()));
             }
         }
@@ -166,8 +167,8 @@ impl NftablesManager {
         let stdout = String::from_utf8_lossy(&output.stdout);
 
         // Check that our redirect rule is present
-        let has_redirect = stdout.contains("redirect to")
-            && stdout.contains(&format!(":{}", self.resolver_port));
+        let has_redirect =
+            stdout.contains("redirect to") && stdout.contains(&format!(":{}", self.resolver_port));
 
         Ok(has_redirect)
     }
@@ -179,7 +180,9 @@ impl NftablesManager {
         match self.verify_rules() {
             Ok(true) => Ok(false), // Rules intact
             Ok(false) => {
-                tracing::warn!("nftables rules removed externally -- re-installing (Level 1 tamper event)");
+                tracing::warn!(
+                    "nftables rules removed externally -- re-installing (Level 1 tamper event)"
+                );
                 self.install_rules()?;
                 Ok(true) // Tamper detected and repaired
             }

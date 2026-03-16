@@ -251,11 +251,7 @@ pub async fn bulk_approve(
 }
 
 /// Bulk reject multiple discovery candidates.
-pub async fn bulk_reject(
-    db: &PgPool,
-    ids: &[i64],
-    reviewer_id: i64,
-) -> Result<usize, ApiError> {
+pub async fn bulk_reject(db: &PgPool, ids: &[i64], reviewer_id: i64) -> Result<usize, ApiError> {
     let result = sqlx::query(
         r#"UPDATE discovery_candidates
            SET status = 'rejected'::discovery_candidate_status,

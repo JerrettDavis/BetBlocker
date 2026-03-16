@@ -32,16 +32,18 @@ impl LaunchdPlist {
     /// Create a new `LaunchdPlist` with default BetBlocker agent settings.
     pub fn new_agent() -> Self {
         Self {
-            plist_path: PathBuf::from(
-                "/Library/LaunchDaemons/com.betblocker.agent.plist",
-            ),
+            plist_path: PathBuf::from("/Library/LaunchDaemons/com.betblocker.agent.plist"),
             label: "com.betblocker.agent".to_string(),
             program_path: PathBuf::from("/usr/local/bin/bb-agent-macos"),
         }
     }
 
     /// Create a `LaunchdPlist` with custom paths.
-    pub fn new(plist_path: impl Into<PathBuf>, label: impl Into<String>, program_path: impl Into<PathBuf>) -> Self {
+    pub fn new(
+        plist_path: impl Into<PathBuf>,
+        label: impl Into<String>,
+        program_path: impl Into<PathBuf>,
+    ) -> Self {
         Self {
             plist_path: plist_path.into(),
             label: label.into(),
@@ -107,7 +109,9 @@ impl LaunchdPlist {
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             // Ignore "already bootstrapped" errors
-            if !stderr.contains("already bootstrapped") && !stderr.contains("service already loaded") {
+            if !stderr.contains("already bootstrapped")
+                && !stderr.contains("service already loaded")
+            {
                 return Err(LaunchdError::CommandFailed(stderr.to_string()));
             }
         }
@@ -186,9 +190,15 @@ mod tests {
         let plist = LaunchdPlist::new_agent();
         let xml = plist.generate();
 
-        assert!(xml.starts_with("<?xml version=\"1.0\""), "should start with XML declaration");
+        assert!(
+            xml.starts_with("<?xml version=\"1.0\""),
+            "should start with XML declaration"
+        );
         assert!(xml.contains("<!DOCTYPE plist"), "should contain DOCTYPE");
-        assert!(xml.contains("<plist version=\"1.0\">"), "should contain plist root");
+        assert!(
+            xml.contains("<plist version=\"1.0\">"),
+            "should contain plist root"
+        );
         assert!(xml.contains("</plist>"), "should close plist root");
     }
 
@@ -197,7 +207,10 @@ mod tests {
         let plist = LaunchdPlist::new_agent();
         let xml = plist.generate();
 
-        assert!(xml.contains("<key>KeepAlive</key>"), "should contain KeepAlive key");
+        assert!(
+            xml.contains("<key>KeepAlive</key>"),
+            "should contain KeepAlive key"
+        );
         assert!(xml.contains("<true/>"), "should have KeepAlive set to true");
     }
 
@@ -206,7 +219,10 @@ mod tests {
         let plist = LaunchdPlist::new_agent();
         let xml = plist.generate();
 
-        assert!(xml.contains("<key>RunAtLoad</key>"), "should contain RunAtLoad key");
+        assert!(
+            xml.contains("<key>RunAtLoad</key>"),
+            "should contain RunAtLoad key"
+        );
     }
 
     #[test]
@@ -214,10 +230,7 @@ mod tests {
         let plist = LaunchdPlist::new_agent();
         let xml = plist.generate();
 
-        assert!(
-            xml.contains("<key>Label</key>"),
-            "should contain Label key"
-        );
+        assert!(xml.contains("<key>Label</key>"), "should contain Label key");
         assert!(
             xml.contains("<string>com.betblocker.agent</string>"),
             "should contain the agent label value"

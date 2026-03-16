@@ -2,8 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use tracing::{debug, error};
 
-use super::store::EventStore;
 use super::AgentEvent;
+use super::store::EventStore;
 
 /// Event emitter with an in-memory buffer that flushes to SQLite.
 ///
@@ -45,9 +45,7 @@ impl EventEmitter {
             buf.len() >= self.flush_threshold
         };
 
-        if should_flush
-            && let Err(e) = self.flush()
-        {
+        if should_flush && let Err(e) = self.flush() {
             error!(error = %e, "Auto-flush failed");
         }
     }

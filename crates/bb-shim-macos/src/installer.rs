@@ -47,11 +47,7 @@ pub trait CommandRunner: Send + Sync {
     ///
     /// Returns `Ok((stdout, stderr))` when the process exits successfully,
     /// or an error string (stderr / reason) on failure.
-    fn run(
-        &self,
-        program: &str,
-        args: &[&str],
-    ) -> Result<(String, String), String>;
+    fn run(&self, program: &str, args: &[&str]) -> Result<(String, String), String>;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,11 +59,7 @@ pub trait CommandRunner: Send + Sync {
 pub struct ProcessRunner;
 
 impl CommandRunner for ProcessRunner {
-    fn run(
-        &self,
-        program: &str,
-        args: &[&str],
-    ) -> Result<(String, String), String> {
+    fn run(&self, program: &str, args: &[&str]) -> Result<(String, String), String> {
         let output = std::process::Command::new(program)
             .args(args)
             .output()
@@ -229,9 +221,10 @@ impl<R: CommandRunner> Installer<R> {
 
     /// Bootstrap the daemon into the system launchd domain.
     fn bootstrap_daemon(&self) -> Result<(), InstallerError> {
-        let result = self
-            .runner
-            .run("launchctl", &["bootstrap", "system", self.config.plist_path]);
+        let result = self.runner.run(
+            "launchctl",
+            &["bootstrap", "system", self.config.plist_path],
+        );
 
         match result {
             Ok(_) => {
@@ -347,9 +340,7 @@ impl<R: CommandRunner> Installer<R> {
     /// Return `true` if the BetBlocker daemon is currently loaded.
     pub fn is_installed(&self) -> bool {
         let service = format!("system/{}", self.config.label);
-        self.runner
-            .run("launchctl", &["print", &service])
-            .is_ok()
+        self.runner.run("launchctl", &["print", &service]).is_ok()
     }
 
     /// Return the installed version string, or `None` if not installed.
@@ -418,11 +409,7 @@ mod tests {
     }
 
     impl CommandRunner for MockRunner {
-        fn run(
-            &self,
-            program: &str,
-            args: &[&str],
-        ) -> Result<(String, String), String> {
+        fn run(&self, program: &str, args: &[&str]) -> Result<(String, String), String> {
             self.recorded.lock().unwrap().push(RecordedCommand {
                 program: program.to_string(),
                 args: args.iter().map(|s| s.to_string()).collect(),
@@ -468,7 +455,8 @@ mod tests {
         let cmds = installer.runner.recorded.lock().unwrap();
         // Only launchctl bootstrap expected (binary absent → permission steps skipped)
         assert!(
-            cmds.iter().any(|c| c.program == "launchctl" && c.args.contains(&"bootstrap".to_string())),
+            cmds.iter()
+                .any(|c| c.program == "launchctl" && c.args.contains(&"bootstrap".to_string())),
             "launchctl bootstrap must be called"
         );
     }
@@ -513,7 +501,8 @@ mod tests {
 
         let cmds = installer.runner.recorded.lock().unwrap();
         assert!(
-            cmds.iter().any(|c| c.program == "launchctl" && c.args.contains(&"bootout".to_string())),
+            cmds.iter()
+                .any(|c| c.program == "launchctl" && c.args.contains(&"bootout".to_string())),
             "launchctl bootout must be called"
         );
         assert!(
@@ -604,9 +593,25 @@ mod tests {
 
     #[test]
     fn installer_error_display() {
-        assert!(InstallerError::PkgBuildFailed("x".to_string()).to_string().contains("x"));
-        assert!(InstallerError::NotarizationFailed("y".to_string()).to_string().contains("y"));
-        assert!(InstallerError::LaunchdRegistrationFailed("z".to_string()).to_string().contains("z"));
-        assert!(InstallerError::PermissionDenied("denied".to_string()).to_string().contains("denied"));
+        assert!(
+            InstallerError::PkgBuildFailed("x".to_string())
+                .to_string()
+                .contains("x")
+        );
+        assert!(
+            InstallerError::NotarizationFailed("y".to_string())
+                .to_string()
+                .contains("y")
+        );
+        assert!(
+            InstallerError::LaunchdRegistrationFailed("z".to_string())
+                .to_string()
+                .contains("z")
+        );
+        assert!(
+            InstallerError::PermissionDenied("denied".to_string())
+                .to_string()
+                .contains("denied")
+        );
     }
 }

@@ -243,9 +243,8 @@ impl WindowsKeystore {
         }
 
         let b64 = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        base64_decode(&b64).map_err(|e| {
-            KeystoreError::SerializationError(format!("base64 decode failed: {e}"))
-        })
+        base64_decode(&b64)
+            .map_err(|e| KeystoreError::SerializationError(format!("base64 decode failed: {e}")))
     }
 }
 

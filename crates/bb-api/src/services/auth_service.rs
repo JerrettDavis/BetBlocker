@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
@@ -151,10 +151,7 @@ pub fn generate_device_token() -> String {
 
 /// Check if an account is locked out due to failed login attempts.
 /// Returns Some(remaining_seconds) if locked, None if not locked.
-pub async fn check_lockout(
-    redis: &redis::Client,
-    email: &str,
-) -> Result<Option<u64>, ApiError> {
+pub async fn check_lockout(redis: &redis::Client, email: &str) -> Result<Option<u64>, ApiError> {
     let mut conn = redis
         .get_multiplexed_async_connection()
         .await
@@ -177,10 +174,7 @@ pub async fn check_lockout(
 }
 
 /// Increment failed login counter. After 5 consecutive failures, set 15-minute lockout.
-pub async fn record_failed_login(
-    redis: &redis::Client,
-    email: &str,
-) -> Result<(), ApiError> {
+pub async fn record_failed_login(redis: &redis::Client, email: &str) -> Result<(), ApiError> {
     let mut conn = redis
         .get_multiplexed_async_connection()
         .await
@@ -221,10 +215,7 @@ pub async fn record_failed_login(
 }
 
 /// Clear failed login counter on successful login.
-pub async fn clear_login_failures(
-    redis: &redis::Client,
-    email: &str,
-) -> Result<(), ApiError> {
+pub async fn clear_login_failures(redis: &redis::Client, email: &str) -> Result<(), ApiError> {
     let mut conn = redis
         .get_multiplexed_async_connection()
         .await

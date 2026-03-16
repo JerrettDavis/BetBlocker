@@ -2,7 +2,7 @@ use axum::{
     extract::{FromRef, FromRequestParts, Query},
     http::request::Parts,
 };
-use jsonwebtoken::{decode, Algorithm, Validation};
+use jsonwebtoken::{Algorithm, Validation, decode};
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -46,13 +46,11 @@ where
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_issuer(&["betblocker-api"]);
 
-        let token_data =
-            decode::<Claims>(auth_header, &app_state.jwt_decoding_key, &validation).map_err(
-                |e| ApiError::Unauthorized {
-                    code: "INVALID_TOKEN".into(),
-                    message: format!("Invalid or expired token: {e}"),
-                },
-            )?;
+        let token_data = decode::<Claims>(auth_header, &app_state.jwt_decoding_key, &validation)
+            .map_err(|e| ApiError::Unauthorized {
+                code: "INVALID_TOKEN".into(),
+                message: format!("Invalid or expired token: {e}"),
+            })?;
 
         Ok(AuthenticatedAccount {
             account_id: token_data.claims.sub,

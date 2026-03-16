@@ -1,6 +1,6 @@
+pub mod accounts;
 pub mod admin_app_signatures;
 pub mod admin_blocklist;
-pub mod accounts;
 pub mod analytics;
 pub mod auth;
 pub mod billing;
@@ -16,8 +16,8 @@ pub mod review_queue;
 pub mod tor_exits;
 
 use axum::{
-    routing::{delete, get, patch, post},
     Router,
+    routing::{delete, get, patch, post},
 };
 use tower::ServiceBuilder;
 use tower_http::{
@@ -66,7 +66,10 @@ pub fn router(state: AppState) -> Router {
 
     // Device routes (authenticated)
     let device_routes = Router::new()
-        .route("/", post(devices::register_device).get(devices::list_devices))
+        .route(
+            "/",
+            post(devices::register_device).get(devices::list_devices),
+        )
         .route(
             "/{id}",
             get(devices::get_device).delete(devices::delete_device),
@@ -92,7 +95,10 @@ pub fn router(state: AppState) -> Router {
 
     // Organization routes (authenticated)
     let organization_routes = Router::new()
-        .route("/", post(organizations::create_org).get(organizations::list_orgs))
+        .route(
+            "/",
+            post(organizations::create_org).get(organizations::list_orgs),
+        )
         .route(
             "/{id}",
             get(organizations::get_org)
@@ -105,8 +111,7 @@ pub fn router(state: AppState) -> Router {
         )
         .route(
             "/{id}/members/{member_id}",
-            patch(organizations::update_member_role)
-                .delete(organizations::remove_member),
+            patch(organizations::update_member_role).delete(organizations::remove_member),
         )
         .route(
             "/{id}/devices",
@@ -146,8 +151,7 @@ pub fn router(state: AppState) -> Router {
     let admin_app_signature_routes = Router::new()
         .route(
             "/",
-            post(admin_app_signatures::create_signature)
-                .get(admin_app_signatures::list_signatures),
+            post(admin_app_signatures::create_signature).get(admin_app_signatures::list_signatures),
         )
         .route(
             "/{id}",
@@ -198,8 +202,8 @@ pub fn router(state: AppState) -> Router {
         .route("/summary", get(events::event_summary));
 
     // Enroll route (authenticated, standalone)
-    let enroll_routes = Router::new()
-        .route("/{token_public_id}", post(organizations::redeem_token));
+    let enroll_routes =
+        Router::new().route("/{token_public_id}", post(organizations::redeem_token));
 
     // Federated report routes (unauthenticated, IP-stripped)
     // StripSourceIp is applied only to this group so reporter IPs are never
@@ -209,8 +213,7 @@ pub fn router(state: AppState) -> Router {
         .layer(ServiceBuilder::new().layer(StripSourceIpLayer));
 
     // Tor exit node list (public read, updated by worker)
-    let tor_exits_routes = Router::new()
-        .route("/", get(tor_exits::get_tor_exits));
+    let tor_exits_routes = Router::new().route("/", get(tor_exits::get_tor_exits));
 
     // Assemble the API under /v1
     let mut api = Router::new()

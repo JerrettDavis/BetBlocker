@@ -148,11 +148,7 @@ impl XpcClient {
         // SAFETY: all pointers are valid CStrings; xpc_dictionary_create
         // is a no-fail system API.
         let dict = unsafe {
-            let d = sys::xpc_dictionary_create(
-                std::ptr::null(),
-                std::ptr::null_mut(),
-                0,
-            );
+            let d = sys::xpc_dictionary_create(std::ptr::null(), std::ptr::null_mut(), 0);
             let str_obj = sys::xpc_string_create(c_payload.as_ptr());
             sys::xpc_dictionary_set_value(d, key_payload.as_ptr(), str_obj);
             sys::xpc_release(str_obj);
@@ -161,9 +157,8 @@ impl XpcClient {
 
         // SAFETY: conn was returned by xpc_connection_create and has not
         // been cancelled.  dict is a valid xpc object.
-        let reply = unsafe {
-            sys::xpc_connection_send_message_with_reply_sync(conn as *mut _, dict)
-        };
+        let reply =
+            unsafe { sys::xpc_connection_send_message_with_reply_sync(conn as *mut _, dict) };
 
         // SAFETY: dict is no longer needed after the send.
         unsafe { sys::xpc_release(dict) };
@@ -181,9 +176,7 @@ impl XpcClient {
         }
 
         // Extract the "payload" string from the reply dictionary.
-        let response_cstr = unsafe {
-            sys::xpc_dictionary_get_string(reply, key_payload.as_ptr())
-        };
+        let response_cstr = unsafe { sys::xpc_dictionary_get_string(reply, key_payload.as_ptr()) };
 
         let response_str = if response_cstr.is_null() {
             unsafe { sys::xpc_release(reply) };
@@ -422,11 +415,15 @@ mod tests {
             blocked_count: 42,
         }));
 
-        let resp = client
-            .send_message(XpcMessage::GetStatus)
-            .expect("send ok");
+        let resp = client.send_message(XpcMessage::GetStatus).expect("send ok");
         assert!(
-            matches!(resp, XpcResponse::Status { active: true, blocked_count: 42 }),
+            matches!(
+                resp,
+                XpcResponse::Status {
+                    active: true,
+                    blocked_count: 42
+                }
+            ),
             "expected status response"
         );
     }
@@ -434,7 +431,9 @@ mod tests {
     #[test]
     fn mock_returns_queued_error() {
         let client = MockXpcClient::new();
-        client.push_response(Err(XpcError::RemoteError("extension not loaded".to_string())));
+        client.push_response(Err(XpcError::RemoteError(
+            "extension not loaded".to_string(),
+        )));
 
         let result = client.send_message(XpcMessage::EnableFiltering);
         assert!(
@@ -469,7 +468,11 @@ mod tests {
                 .to_string()
                 .contains("svc")
         );
-        assert!(XpcError::SendFailed("oops".to_string()).to_string().contains("oops"));
+        assert!(
+            XpcError::SendFailed("oops".to_string())
+                .to_string()
+                .contains("oops")
+        );
         assert!(
             XpcError::InvalidResponse("bad".to_string())
                 .to_string()

@@ -13,6 +13,9 @@ WORKDIR /build
 # Copy workspace manifests first for dependency caching
 COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
 COPY .cargo .cargo
+
+# Override cross-compilation linker: on Alpine the system cc is already musl-native
+RUN sed -i '/^\[target\.x86_64-unknown-linux-musl\]/,/^$/s/^linker.*/# linker auto-detected on Alpine/' .cargo/config.toml
 COPY crates/bb-common/Cargo.toml crates/bb-common/Cargo.toml
 COPY crates/bb-proto/Cargo.toml crates/bb-proto/Cargo.toml
 COPY crates/bb-api/Cargo.toml crates/bb-api/Cargo.toml

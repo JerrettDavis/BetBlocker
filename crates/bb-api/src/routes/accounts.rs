@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -46,8 +46,7 @@ pub async fn get_me(
     State(state): State<AppState>,
     auth: AuthenticatedAccount,
 ) -> Result<(StatusCode, Json<ApiResponse<AccountResponse>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     Ok(ApiResponse::ok(account_to_response(&account)))
 }
@@ -61,8 +60,7 @@ pub async fn update_me(
     auth: AuthenticatedAccount,
     Json(req): Json<UpdateAccountRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<AccountResponse>>), ApiError> {
-    let account =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let account = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     // If email or password change is requested, require current_password
     if (req.email.is_some() || req.new_password.is_some()) && req.current_password.is_none() {
@@ -147,8 +145,7 @@ pub async fn get_account(
     auth: AuthenticatedAccount,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, Json<ApiResponse<serde_json::Value>>), ApiError> {
-    let caller =
-        account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
+    let caller = account_service::get_account_by_public_id(&state.db, auth.account_id).await?;
 
     let target = account_service::get_account_by_public_id(&state.db, id)
         .await

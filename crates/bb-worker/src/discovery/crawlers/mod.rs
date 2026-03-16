@@ -7,7 +7,7 @@ pub mod whois;
 use crate::discovery::crawler::DomainCrawler;
 use crate::discovery::crawlers::affiliate::AffiliateCrawler;
 use crate::discovery::crawlers::dns_zone::DnsZoneCrawler;
-use crate::discovery::crawlers::registry::{RegistryCrawler};
+use crate::discovery::crawlers::registry::RegistryCrawler;
 use crate::discovery::crawlers::search::SearchCrawler;
 use crate::discovery::crawlers::whois::WhoisCrawler;
 
@@ -119,7 +119,11 @@ mod tests {
     fn build_crawlers_default_config_returns_five_crawlers() {
         let config = WorkerConfig::default();
         let crawlers = build_crawlers(&config);
-        assert_eq!(crawlers.len(), 5, "expected all 5 crawlers to be instantiated");
+        assert_eq!(
+            crawlers.len(),
+            5,
+            "expected all 5 crawlers to be instantiated"
+        );
     }
 
     #[test]

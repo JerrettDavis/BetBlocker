@@ -24,7 +24,7 @@ use bb_agent_core::tamper::watchdog::WatchdogMonitor;
 use bb_common::enums::EnrollmentTier;
 use bb_common::models::ReportingConfig;
 
-use bb_shim_linux::mac::{MacSystem, MacStatus};
+use bb_shim_linux::mac::{MacStatus, MacSystem};
 
 use nftables::NftablesManager;
 
@@ -88,9 +88,8 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             let mut sigint =
                 tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
                     .expect("Failed to register SIGINT handler");
-            let mut sighup =
-                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::hangup())
-                    .expect("Failed to register SIGHUP handler");
+            let mut sighup = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::hangup())
+                .expect("Failed to register SIGHUP handler");
 
             tokio::select! {
                 _ = sigterm.recv() => {
@@ -124,8 +123,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     // Ensure data directories exist
     #[cfg(unix)]
-    platform::ensure_directories()
-        .map_err(|e| format!("Failed to create directories: {e}"))?;
+    platform::ensure_directories().map_err(|e| format!("Failed to create directories: {e}"))?;
 
     // --- MAC (Mandatory Access Control) detection and verification ---
     let mac_system = bb_shim_linux::mac::detect_mac_system();
@@ -199,8 +197,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         .config
         .unwrap_or_else(|| cli.config_dir.join("agent.toml"));
     let config = if config_path.exists() {
-        AgentConfig::load(&config_path)
-            .map_err(|e| format!("Failed to load config: {e}"))?
+        AgentConfig::load(&config_path).map_err(|e| format!("Failed to load config: {e}"))?
     } else {
         tracing::info!(
             path = %config_path.display(),
@@ -211,8 +208,8 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize event store
     let events_db_path = config.data_dir.join("events.db");
-    let event_store = EventStore::new(&events_db_path)
-        .map_err(|e| format!("Failed to open event store: {e}"))?;
+    let event_store =
+        EventStore::new(&events_db_path).map_err(|e| format!("Failed to open event store: {e}"))?;
     let event_emitter = EventEmitter::new(event_store);
 
     // Initialize certificate store
@@ -245,10 +242,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     // --- Phase 2: Registration ---
 
     // Build initial API client (without mTLS identity for registration)
-    let ca_pem = cert_store
-        .load_ca_chain()
-        .ok()
-        .flatten();
+    let ca_pem = cert_store.load_ca_chain().ok().flatten();
 
     // Determine if we need to register
     let device_id = if let Some(enrollment_token) = &cli.enroll {
@@ -332,7 +326,9 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(unix)]
     match nft_manager.install_rules() {
         Ok(()) => tracing::info!("nftables DNS redirect rules installed"),
-        Err(e) => tracing::warn!(error = %e, "Failed to install nftables rules (DNS blocking may be limited)"),
+        Err(e) => {
+            tracing::warn!(error = %e, "Failed to install nftables rules (DNS blocking may be limited)")
+        }
     }
 
     // Start watchdog
@@ -405,7 +401,9 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 EnrollmentTier::SelfEnrolled,
                 ReportingConfig::default(),
             );
-            event_reporter.run(&reporter_store, reporter_shutdown_rx).await;
+            event_reporter
+                .run(&reporter_store, reporter_shutdown_rx)
+                .await;
         });
     });
 

@@ -19,7 +19,11 @@ impl TorExitNodeList {
 
     /// Parse a newline-delimited list of IP addresses (CSV-style, one per line).
     /// Lines that fail to parse are silently skipped.
-    pub fn parse_from_csv(data: &str, fetched_at: DateTime<Utc>, expires_at: DateTime<Utc>) -> Self {
+    pub fn parse_from_csv(
+        data: &str,
+        fetched_at: DateTime<Utc>,
+        expires_at: DateTime<Utc>,
+    ) -> Self {
         let nodes = data
             .lines()
             .filter_map(|line| {

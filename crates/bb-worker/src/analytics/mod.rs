@@ -13,16 +13,11 @@ use crate::scheduler::{AppContext, JobScheduler};
 /// Returns an error if a job cannot be registered.
 pub async fn register_jobs(scheduler: &JobScheduler, ctx: Arc<AppContext>) -> anyhow::Result<()> {
     scheduler
-        .add_job(
-            "trend_computation",
-            "0 0 * * * *",
-            ctx,
-            |ctx| async move {
-                if let Err(e) = trends::compute_trends(&ctx.db).await {
-                    tracing::error!(error = %e, "trend computation failed");
-                }
-            },
-        )
+        .add_job("trend_computation", "0 0 * * * *", ctx, |ctx| async move {
+            if let Err(e) = trends::compute_trends(&ctx.db).await {
+                tracing::error!(error = %e, "trend computation failed");
+            }
+        })
         .await?;
 
     Ok(())

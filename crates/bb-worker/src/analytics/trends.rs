@@ -16,10 +16,9 @@ pub async fn compute_trends(db: &PgPool) -> Result<()> {
     let period_end = now;
 
     // Fetch active device IDs.
-    let device_ids: Vec<(i64,)> =
-        sqlx::query_as("SELECT id FROM devices WHERE status = 'active'")
-            .fetch_all(db)
-            .await?;
+    let device_ids: Vec<(i64,)> = sqlx::query_as("SELECT id FROM devices WHERE status = 'active'")
+        .fetch_all(db)
+        .await?;
 
     for (device_id,) in device_ids {
         tracing::debug!(device_id, "computing trends");
@@ -278,10 +277,7 @@ pub fn compute_streak_from_daily(daily_counts: &[(DateTime<Utc>, i64)]) -> serde
 
 /// Compare this week's blocks vs last week's blocks.
 #[allow(unused)]
-pub async fn compute_weekly_trend(
-    db: &PgPool,
-    device_id: i64,
-) -> Result<serde_json::Value> {
+pub async fn compute_weekly_trend(db: &PgPool, device_id: i64) -> Result<serde_json::Value> {
     let now = Utc::now();
     let this_week_start = now - Duration::days(7);
     let last_week_start = now - Duration::days(14);

@@ -49,7 +49,10 @@ impl DiscoveryPipeline {
             .run_all(&ctx.db, &ctx.http)
             .await?;
 
-        tracing::info!(inserted, "discovery pipeline: crawl complete, classifying candidates");
+        tracing::info!(
+            inserted,
+            "discovery pipeline: crawl complete, classifying candidates"
+        );
 
         // Fetch newly inserted candidates that have not yet been scored.
         let candidates: Vec<(String,)> = sqlx::query_as(

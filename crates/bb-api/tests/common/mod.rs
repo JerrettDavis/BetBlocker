@@ -25,8 +25,8 @@ impl TestApp {
             .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/postgres".into());
 
         // Flush Redis to clear stale lockout keys from previous test runs
-        let redis_url = std::env::var("TEST_REDIS_URL")
-            .unwrap_or_else(|_| "redis://localhost:6379".into());
+        let redis_url =
+            std::env::var("TEST_REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".into());
         if let Ok(redis_client) = redis::Client::open(redis_url.as_str()) {
             if let Ok(mut conn) = redis_client.get_multiplexed_async_connection().await {
                 let _: Result<(), _> = redis::cmd("FLUSHDB").query_async(&mut conn).await;
@@ -53,11 +53,7 @@ impl TestApp {
             .or_else(|_| std::fs::read_dir("migrations"))
             .unwrap()
             .filter_map(|e| e.ok())
-            .filter(|e| {
-                e.path()
-                    .extension()
-                    .is_some_and(|ext| ext == "sql")
-            })
+            .filter(|e| e.path().extension().is_some_and(|ext| ext == "sql"))
             .collect();
         migration_files.sort_by_key(|e| e.file_name());
 
@@ -97,8 +93,7 @@ impl TestApp {
             .unwrap();
 
         // Extract public key from the keypair
-        let key_pair =
-            ring::signature::Ed25519KeyPair::from_pkcs8(pkcs8_doc.as_ref()).unwrap();
+        let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(pkcs8_doc.as_ref()).unwrap();
         let public_key_bytes = key_pair.public_key().as_ref();
 
         // Create SubjectPublicKeyInfo DER for Ed25519
@@ -164,11 +159,7 @@ impl TestApp {
     }
 
     /// Register a test user. Returns (account_id, access_token, refresh_token).
-    pub async fn register_user(
-        &self,
-        email: &str,
-        password: &str,
-    ) -> (String, String, String) {
+    pub async fn register_user(&self, email: &str, password: &str) -> (String, String, String) {
         let resp = self
             .client
             .post(format!("{}/v1/auth/register", self.address))
@@ -186,18 +177,9 @@ impl TestApp {
 
         assert_eq!(status.as_u16(), 201, "register failed: {body}");
 
-        let account_id = body["data"]["account"]["id"]
-            .as_str()
-            .unwrap()
-            .to_string();
-        let access_token = body["data"]["access_token"]
-            .as_str()
-            .unwrap()
-            .to_string();
-        let refresh_token = body["data"]["refresh_token"]
-            .as_str()
-            .unwrap()
-            .to_string();
+        let account_id = body["data"]["account"]["id"].as_str().unwrap().to_string();
+        let access_token = body["data"]["access_token"].as_str().unwrap().to_string();
+        let refresh_token = body["data"]["refresh_token"].as_str().unwrap().to_string();
 
         (account_id, access_token, refresh_token)
     }
@@ -216,14 +198,8 @@ impl TestApp {
             .unwrap();
 
         let body: Value = resp.json().await.unwrap();
-        let access_token = body["data"]["access_token"]
-            .as_str()
-            .unwrap()
-            .to_string();
-        let refresh_token = body["data"]["refresh_token"]
-            .as_str()
-            .unwrap()
-            .to_string();
+        let access_token = body["data"]["access_token"].as_str().unwrap().to_string();
+        let refresh_token = body["data"]["refresh_token"].as_str().unwrap().to_string();
 
         (access_token, refresh_token)
     }
@@ -239,12 +215,7 @@ impl TestApp {
     }
 
     /// POST with auth header and JSON body.
-    pub async fn authed_post(
-        &self,
-        path: &str,
-        token: &str,
-        body: &Value,
-    ) -> reqwest::Response {
+    pub async fn authed_post(&self, path: &str, token: &str, body: &Value) -> reqwest::Response {
         self.client
             .post(format!("{}{}", self.address, path))
             .header("Authorization", format!("Bearer {token}"))
@@ -255,12 +226,7 @@ impl TestApp {
     }
 
     /// PATCH with auth header and JSON body.
-    pub async fn authed_patch(
-        &self,
-        path: &str,
-        token: &str,
-        body: &Value,
-    ) -> reqwest::Response {
+    pub async fn authed_patch(&self, path: &str, token: &str, body: &Value) -> reqwest::Response {
         self.client
             .patch(format!("{}{}", self.address, path))
             .header("Authorization", format!("Bearer {token}"))

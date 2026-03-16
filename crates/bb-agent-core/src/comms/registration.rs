@@ -249,18 +249,16 @@ mod tests {
 
     #[test]
     fn test_generate_keypair() {
-        let (keypair, pkcs8) = RegistrationService::generate_keypair()
-            .expect("keypair generation should succeed");
+        let (keypair, pkcs8) =
+            RegistrationService::generate_keypair().expect("keypair generation should succeed");
         assert_eq!(keypair.public_key().as_ref().len(), 32);
         assert!(!pkcs8.is_empty());
     }
 
     #[test]
     fn test_generate_keypair_unique() {
-        let (kp1, _) =
-            RegistrationService::generate_keypair().expect("keypair");
-        let (kp2, _) =
-            RegistrationService::generate_keypair().expect("keypair");
+        let (kp1, _) = RegistrationService::generate_keypair().expect("keypair");
+        let (kp2, _) = RegistrationService::generate_keypair().expect("keypair");
         assert_ne!(kp1.public_key().as_ref(), kp2.public_key().as_ref());
     }
 

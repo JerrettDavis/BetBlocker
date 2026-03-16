@@ -54,10 +54,7 @@ pub async fn create_partner_invite(
 }
 
 /// Accept a partner invitation. Returns the updated row.
-pub async fn accept_partner_invite(
-    db: &PgPool,
-    relationship_id: i64,
-) -> Result<(), ApiError> {
+pub async fn accept_partner_invite(db: &PgPool, relationship_id: i64) -> Result<(), ApiError> {
     sqlx::query(
         r#"UPDATE partner_relationships
            SET status = 'active'::partner_relationship_status,

@@ -126,8 +126,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         .config
         .unwrap_or_else(|| cli.config_dir.join("agent.toml"));
     let config = if config_path.exists() {
-        AgentConfig::load(&config_path)
-            .map_err(|e| format!("Failed to load config: {e}"))?
+        AgentConfig::load(&config_path).map_err(|e| format!("Failed to load config: {e}"))?
     } else {
         tracing::info!(
             path = %config_path.display(),
@@ -138,8 +137,8 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize event store
     let events_db_path = config.data_dir.join("events.db");
-    let event_store = EventStore::new(&events_db_path)
-        .map_err(|e| format!("Failed to open event store: {e}"))?;
+    let event_store =
+        EventStore::new(&events_db_path).map_err(|e| format!("Failed to open event store: {e}"))?;
     let event_emitter = EventEmitter::new(event_store);
 
     // Initialize certificate store
@@ -248,7 +247,9 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     match pf_manager.install_rules() {
         Ok(()) => tracing::info!("pf DNS redirect rules installed"),
-        Err(e) => tracing::warn!(error = %e, "Failed to install pf rules (DNS blocking may be limited)"),
+        Err(e) => {
+            tracing::warn!(error = %e, "Failed to install pf rules (DNS blocking may be limited)")
+        }
     }
 
     // Start watchdog

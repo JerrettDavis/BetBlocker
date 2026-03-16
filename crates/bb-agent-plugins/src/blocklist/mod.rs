@@ -247,9 +247,9 @@ mod tests {
 
     #[test]
     fn test_blocklist_blocks_matching_app() {
-        use bb_common::enums::Platform;
         use crate::blocklist::app_signatures::AppSignatureSummary;
         use crate::types::{AppIdentifier, AppMatchType};
+        use bb_common::enums::Platform;
 
         let mut bl = Blocklist::new(1);
         bl.update_app_signatures(vec![AppSignatureSummary {
@@ -273,9 +273,9 @@ mod tests {
 
     #[test]
     fn test_update_replaces_old_signatures() {
-        use bb_common::enums::Platform;
         use crate::blocklist::app_signatures::AppSignatureSummary;
         use crate::types::AppIdentifier;
+        use bb_common::enums::Platform;
 
         let mut bl = Blocklist::new(1);
 

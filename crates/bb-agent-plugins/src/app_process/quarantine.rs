@@ -59,10 +59,7 @@ pub fn quarantine_file(source: &Path) -> Result<PathBuf, PluginError> {
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("file");
-        let ext = source
-            .extension()
-            .and_then(|e| e.to_str())
-            .unwrap_or("");
+        let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("");
         let name = if ext.is_empty() {
             format!("{stem}_{counter}")
         } else {

@@ -85,7 +85,9 @@ impl TorDetector {
             .get("data")
             .and_then(|d| d.get("nodes"))
             .and_then(|n| n.as_array())
-            .ok_or_else(|| BypassDetectionError::Other("missing 'data.nodes' in response".into()))?;
+            .ok_or_else(|| {
+                BypassDetectionError::Other("missing 'data.nodes' in response".into())
+            })?;
 
         let nodes: std::collections::HashSet<IpAddr> = nodes_json
             .iter()

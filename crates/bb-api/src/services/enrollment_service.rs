@@ -227,10 +227,7 @@ pub async fn resolve_unenroll_request(
 }
 
 /// Check if a device already has an active enrollment.
-pub async fn device_has_active_enrollment(
-    db: &PgPool,
-    device_id: i64,
-) -> Result<bool, ApiError> {
+pub async fn device_has_active_enrollment(db: &PgPool, device_id: i64) -> Result<bool, ApiError> {
     let count = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM enrollments WHERE device_id = $1 AND status = 'active'",
     )

@@ -136,8 +136,7 @@ impl RegistryCrawler {
 
         // If no links found, scan table cells for bare domain-like text.
         if results.is_empty() {
-            let td_sel =
-                Selector::parse("table td").expect("infallible selector");
+            let td_sel = Selector::parse("table td").expect("infallible selector");
             for el in document.select(&td_sel) {
                 let text = el.text().collect::<String>();
                 let text = text.trim();
@@ -443,8 +442,14 @@ mod tests {
         );
         let domains: Vec<&str> = results.iter().map(|r| r.domain.as_str()).collect();
 
-        assert!(domains.contains(&"luckycasino.example.com"), "should find luckycasino");
-        assert!(domains.contains(&"spinwin.example.org"), "should find spinwin");
+        assert!(
+            domains.contains(&"luckycasino.example.com"),
+            "should find luckycasino"
+        );
+        assert!(
+            domains.contains(&"spinwin.example.org"),
+            "should find spinwin"
+        );
     }
 
     #[test]
@@ -454,10 +459,19 @@ mod tests {
             "https://registry.example.gov/list",
         );
         let domains: Vec<&str> = results.iter().map(|r| r.domain.as_str()).collect();
-        assert!(domains.contains(&"betco.example.com"), "should find betco.example.com");
-        assert!(domains.contains(&"wagerworld.example.net"), "should find wagerworld");
+        assert!(
+            domains.contains(&"betco.example.com"),
+            "should find betco.example.com"
+        );
+        assert!(
+            domains.contains(&"wagerworld.example.net"),
+            "should find wagerworld"
+        );
         // Non-domain text cells should be ignored.
-        assert!(!domains.contains(&"just plain text"), "should ignore non-domain text");
+        assert!(
+            !domains.contains(&"just plain text"),
+            "should ignore non-domain text"
+        );
     }
 
     #[test]
@@ -537,8 +551,14 @@ mod tests {
     fn csv_extracts_domains_and_urls() {
         let results = RegistryCrawler::parse_csv(CSV_FIXTURE, "https://registry.example.gov/csv");
         let domains: Vec<&str> = results.iter().map(|r| r.domain.as_str()).collect();
-        assert!(domains.contains(&"acebets.example.com"), "should find acebets");
-        assert!(domains.contains(&"bingo-palace.example.net"), "should find bingo-palace");
+        assert!(
+            domains.contains(&"acebets.example.com"),
+            "should find acebets"
+        );
+        assert!(
+            domains.contains(&"bingo-palace.example.net"),
+            "should find bingo-palace"
+        );
     }
 
     #[test]

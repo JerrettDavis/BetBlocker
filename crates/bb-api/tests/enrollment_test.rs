@@ -1,6 +1,6 @@
 mod common;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Helper to register a user and a device, returning (token, device_id).
 async fn setup_user_with_device(app: &common::TestApp, email: &str) -> (String, String, String) {
@@ -93,8 +93,9 @@ async fn test_partner_enrollment_approval_unenroll() {
     // Register user and partner
     let (user_token, device_id, user_account_id) =
         setup_user_with_device(&app, "user_pe@example.com").await;
-    let (partner_account_id, partner_token, _partner_rt) =
-        app.register_user("partner_pe@example.com", "SecurePass123!").await;
+    let (partner_account_id, partner_token, _partner_rt) = app
+        .register_user("partner_pe@example.com", "SecurePass123!")
+        .await;
 
     // Mark user as email_verified (needed for partner invite)
     // Directly update via a second login to get fresh state
@@ -144,10 +145,12 @@ async fn test_partner_enrollment_approval_unenroll() {
 
     assert_eq!(resp.status().as_u16(), 400);
     let body: Value = resp.json().await.unwrap();
-    assert!(body["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("cooldown_hours"));
+    assert!(
+        body["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("cooldown_hours")
+    );
 
     // Ignore unused variables
     let _ = (partner_account_id, partner_token, user_account_id);

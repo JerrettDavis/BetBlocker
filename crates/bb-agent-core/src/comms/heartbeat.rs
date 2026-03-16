@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::watch;
-use tokio::time::{interval, MissedTickBehavior};
+use tokio::time::{MissedTickBehavior, interval};
 
 use crate::comms::client::{ApiClient, ApiClientError};
 
@@ -170,7 +170,7 @@ impl HeartbeatSender {
             blocklist_version: self.blocklist_version,
             protection_status: Some(self.collect_protection_status()),
             integrity_hash: Vec::new(), // Filled by integrity checker
-            uptime_seconds: 0,         // TODO: track uptime
+            uptime_seconds: 0,          // TODO: track uptime
             resource_usage: Some(self.collect_resource_usage()),
             queued_events: 0,
             queued_reports: 0,
@@ -185,11 +185,11 @@ impl HeartbeatSender {
     fn collect_protection_status(&self) -> bb_proto::heartbeat::ProtectionStatus {
         // Default: report what we know. Actual status comes from plugin registry.
         bb_proto::heartbeat::ProtectionStatus {
-            dns_blocking: 0,   // ACTIVE
-            hosts_file: 2,     // INACTIVE (may not be enabled)
-            app_blocking: 2,   // INACTIVE (Phase 2)
+            dns_blocking: 0,      // ACTIVE
+            hosts_file: 2,        // INACTIVE (may not be enabled)
+            app_blocking: 2,      // INACTIVE (Phase 2)
             browser_extension: 2, // INACTIVE (Phase 3)
-            network_hook: 2,   // INACTIVE
+            network_hook: 2,      // INACTIVE
             watchdog_alive: true,
             config_integrity_ok: true,
         }
@@ -281,7 +281,10 @@ impl HeartbeatSender {
             tracing::debug!("Offline queue full, dropped oldest heartbeat");
         }
         self.offline_queue.push_back(hb);
-        tracing::debug!(queued = self.offline_queue.len(), "Heartbeat queued for offline delivery");
+        tracing::debug!(
+            queued = self.offline_queue.len(),
+            "Heartbeat queued for offline delivery"
+        );
     }
 
     /// Try to drain the offline queue by sending a batch.
@@ -291,7 +294,11 @@ impl HeartbeatSender {
         let mut drained = 0;
         while let Some(hb) = self.offline_queue.front() {
             let path = format!("/api/v1/devices/{}/heartbeat", self.device_id);
-            match self.api_client.post_proto::<_, bb_proto::heartbeat::HeartbeatResponse>(&path, hb).await {
+            match self
+                .api_client
+                .post_proto::<_, bb_proto::heartbeat::HeartbeatResponse>(&path, hb)
+                .await
+            {
                 Ok(_) => {
                     self.offline_queue.pop_front();
                     drained += 1;
@@ -300,7 +307,11 @@ impl HeartbeatSender {
             }
         }
         if drained > 0 {
-            tracing::info!(drained, remaining = self.offline_queue.len(), "Drained offline heartbeat queue");
+            tracing::info!(
+                drained,
+                remaining = self.offline_queue.len(),
+                "Drained offline heartbeat queue"
+            );
         }
     }
 
@@ -414,8 +425,14 @@ mod tests {
     #[test]
     fn bypass_detection_fields_default_false() {
         let sender = make_sender(300);
-        assert!(!sender.vpn_detected(), "vpn_detected should default to false");
-        assert!(!sender.proxy_detected(), "proxy_detected should default to false");
+        assert!(
+            !sender.vpn_detected(),
+            "vpn_detected should default to false"
+        );
+        assert!(
+            !sender.proxy_detected(),
+            "proxy_detected should default to false"
+        );
     }
 
     #[test]
