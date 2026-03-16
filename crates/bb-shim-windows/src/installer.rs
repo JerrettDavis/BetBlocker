@@ -53,9 +53,11 @@ pub const DATA_DIR: &str = r"C:\ProgramData\BetBlocker";
 /// Registry key that holds the installed version.
 ///
 /// `HKLM\SOFTWARE\BetBlocker`
+#[cfg(target_os = "windows")]
 const REGISTRY_KEY: &str = r"SOFTWARE\BetBlocker";
 
 /// Registry value name for the installed version string.
+#[cfg(target_os = "windows")]
 const VERSION_VALUE: &str = "Version";
 
 // ---------------------------------------------------------------------------

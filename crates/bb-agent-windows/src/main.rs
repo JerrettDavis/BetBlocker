@@ -12,7 +12,8 @@
     clippy::needless_raw_string_hashes,
     clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps,
-    clippy::empty_line_after_doc_comments
+    clippy::empty_line_after_doc_comments,
+    dead_code
 )]
 
 //! `BetBlocker` Agent for Windows.

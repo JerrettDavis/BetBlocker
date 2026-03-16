@@ -13,7 +13,9 @@
     clippy::unused_self,
     clippy::collapsible_if,
     clippy::redundant_closure,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    clippy::unnecessary_wraps,
+    dead_code
 )]
 
 //! Windows platform shim for `BetBlocker`.

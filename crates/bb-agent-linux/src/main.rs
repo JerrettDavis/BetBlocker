@@ -15,7 +15,9 @@
     clippy::map_unwrap_or,
     clippy::manual_map,
     clippy::empty_line_after_doc_comments,
-    clippy::doc_lazy_continuation
+    clippy::doc_lazy_continuation,
+    dead_code,
+    unused_variables
 )]
 
 mod nftables;
@@ -447,7 +449,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     // Start periodic MAC verification loop (every 5 minutes)
     let mac_shutdown_rx = shutdown_rx.clone();
-    let _mac_emitter = event_emitter.handle();
+    let mac_emitter = event_emitter.handle();
     let mut mac_shutdown = mac_shutdown_rx;
     // Clone before moving into async block — we still need the original for the startup event
     let initial_mac_status_for_task = initial_mac_status.clone();
@@ -457,7 +459,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             return;
         }
 
-        let _was_active = initial_mac_status_for_task
+        let was_active = initial_mac_status_for_task
             .as_ref()
             .map(|s| s.profile_loaded && s.enforcing)
             .unwrap_or(false);

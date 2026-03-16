@@ -13,7 +13,8 @@
     clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps,
     clippy::doc_lazy_continuation,
-    clippy::manual_map
+    clippy::manual_map,
+    dead_code
 )]
 
 //! `BetBlocker` Agent for macOS.
