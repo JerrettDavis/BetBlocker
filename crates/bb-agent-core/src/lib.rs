@@ -16,7 +16,9 @@
     clippy::format_collect,
     clippy::return_self_not_must_use,
     clippy::needless_pass_by_value,
-    clippy::expect_used
+    clippy::expect_used,
+    clippy::manual_let_else,
+    clippy::manual_contains
 )]
 
 //! `BetBlocker` Agent Core -- cross-platform blocking engine.

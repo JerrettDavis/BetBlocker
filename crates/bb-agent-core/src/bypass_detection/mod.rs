@@ -237,7 +237,8 @@ mod tests {
         let (result, action) = detector.run_detection_cycle().await.unwrap();
         assert!(result.vpn.is_none());
         assert!(result.proxy.is_some());
-        assert_eq!(action, BypassAction::BlockNetwork);
+        // No kernel controller configured, so Block mode falls back to EmitAlert
+        assert_eq!(action, BypassAction::EmitAlert);
     }
 
     #[tokio::test]
@@ -253,7 +254,8 @@ mod tests {
         let (result, action) = detector.run_detection_cycle().await.unwrap();
         assert!(result.tor.is_some());
         assert!(result.tor.as_ref().unwrap().process_detected);
-        assert_eq!(action, BypassAction::EnterLockdown);
+        // No kernel controller configured, so Lockdown mode falls back to EmitAlert
+        assert_eq!(action, BypassAction::EmitAlert);
     }
 
     #[tokio::test]
