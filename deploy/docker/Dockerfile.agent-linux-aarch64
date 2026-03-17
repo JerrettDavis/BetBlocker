@@ -1,9 +1,10 @@
 # deploy/docker/Dockerfile.agent-linux-aarch64
 # Purpose: Build the Linux aarch64 agent binary in a reproducible environment.
+# Uses buildx --platform linux/arm64 to build natively via QEMU emulation.
 # ---------------------------------------------------------
 # Stage 1: Build static agent binary for aarch64
 # ---------------------------------------------------------
-FROM rust:1.85-alpine AS builder
+FROM --platform=linux/arm64 rust:1.85-alpine AS builder
 
 RUN apk add --no-cache musl-dev protobuf-dev
 

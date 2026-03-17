@@ -178,6 +178,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
       - name: Build agent binary via Docker
@@ -186,16 +187,14 @@ jobs:
           context: .
           file: deploy/docker/Dockerfile.agent-linux-aarch64
           push: false
-          load: true
-          tags: bb-agent-linux-aarch64:build
+          platforms: linux/arm64
+          outputs: type=local,dest=./output
           cache-from: type=gha,scope=agent-linux-aarch64
           cache-to: type=gha,mode=max,scope=agent-linux-aarch64
 
       - name: Extract binary
         run: |
-          docker create --name extract bb-agent-linux-aarch64:build /bb-agent-linux
-          docker cp extract:/bb-agent-linux ./betblocker-agent-linux-aarch64
-          docker rm extract
+          cp output/bb-agent-linux ./betblocker-agent-linux-aarch64
           chmod +x betblocker-agent-linux-aarch64
 
       - uses: actions/upload-artifact@v4
