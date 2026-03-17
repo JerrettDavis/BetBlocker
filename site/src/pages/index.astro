@@ -28,15 +28,15 @@ const base = raw.endsWith('/') ? raw : raw + '/';
     <link rel="sitemap" href={`${base}sitemap-index.xml`} />
   </head>
   <body class="landing-page">
-    <nav style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;max-width:72rem;margin:0 auto;">
-      <a href={base} style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;font-weight:700;font-size:1.25rem;color:#0f172a;">
+    <nav class="landing-nav">
+      <a href={base} class="landing-nav-brand">
         <img src={`${base}favicon.svg`} alt="" width="28" height="28" />
         BetBlocker
       </a>
-      <div style="display:flex;gap:1.5rem;align-items:center;font-size:0.95rem;">
-        <a href={`${base}getting-started/`} style="color:#475569;text-decoration:none;">Docs</a>
-        <a href={`${base}self-hosting/`} style="color:#475569;text-decoration:none;">Self-Host</a>
-        <a href="https://github.com/JerrettDavis/BetBlocker" style="color:#475569;text-decoration:none;">GitHub</a>
+      <div class="landing-nav-links">
+        <a href={`${base}getting-started/`}>Docs</a>
+        <a href={`${base}self-hosting/`}>Self-Host</a>
+        <a href="https://github.com/JerrettDavis/BetBlocker">GitHub</a>
       </div>
     </nav>
 

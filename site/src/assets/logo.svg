@@ -22,7 +22,7 @@
   <!-- === Wordmark === -->
   <g id="wordmark">
     <text x="90" y="64" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="40" font-weight="700" fill="#0F172A">
-      <tspan fill="#4F46E5">Bet</tspan><tspan fill="#0F172A">Blocker</tspan>
+      <tspan fill="#4F46E5">Bet</tspan><tspan fill="currentColor">Blocker</tspan>
     </text>
   </g>
 
