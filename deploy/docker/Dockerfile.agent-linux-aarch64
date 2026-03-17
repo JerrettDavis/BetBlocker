@@ -8,8 +8,6 @@ FROM --platform=linux/arm64 rust:1.85-alpine AS builder
 
 RUN apk add --no-cache musl-dev protobuf-dev
 
-RUN rustup target add aarch64-unknown-linux-musl
-
 WORKDIR /build
 
 # Copy workspace manifests for dependency caching
@@ -52,17 +50,17 @@ RUN mkdir -p crates/bb-common/src && echo "" > crates/bb-common/src/lib.rs && \
     mkdir -p crates/bb-shim-ios/src && echo "" > crates/bb-shim-ios/src/lib.rs && \
     mkdir -p crates/bb-cli/src && echo "fn main() {}" > crates/bb-cli/src/main.rs
 
-RUN cargo build --release --target aarch64-unknown-linux-musl -p bb-agent-linux 2>/dev/null || true
+RUN cargo build --release -p bb-agent-linux 2>/dev/null || true
 
 COPY crates crates
 
 RUN find crates -name "*.rs" -exec touch {} +
 
-RUN cargo build --release --target aarch64-unknown-linux-musl -p bb-agent-linux
+RUN cargo build --release -p bb-agent-linux
 
 # ---------------------------------------------------------
 # Stage 2: Extract binary
 # ---------------------------------------------------------
 FROM scratch
 
-COPY --from=builder /build/target/aarch64-unknown-linux-musl/release/bb-agent-linux /bb-agent-linux
+COPY --from=builder /build/target/release/bb-agent-linux /bb-agent-linux

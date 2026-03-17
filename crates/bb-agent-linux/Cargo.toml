@@ -2,6 +2,7 @@
 name = "bb-agent-linux"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 bb-common = { path = "../bb-common" }

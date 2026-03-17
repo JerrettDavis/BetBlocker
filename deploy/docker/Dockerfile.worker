@@ -1,21 +1,22 @@
 # deploy/docker/Dockerfile.worker
 # ---------------------------------------------------------
 # Stage 1: Build static Rust binary
+# On Alpine, the default host target is already musl-based, so we
+# omit --target to let cargo build for the native platform. This
+# allows multi-arch buildx (linux/amd64 + linux/arm64) to work.
 # ---------------------------------------------------------
 FROM rust:1.85-alpine AS builder
 
 RUN apk add --no-cache musl-dev protobuf-dev
 
-RUN rustup target add x86_64-unknown-linux-musl
-
 WORKDIR /build
 
 # Copy workspace manifests first for dependency caching
 COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
-COPY .cargo .cargo
 
-# On Alpine, the native gcc is already musl-based; remove all custom linker overrides
+COPY .cargo .cargo
 RUN sed -i '/^linker/d' .cargo/config.toml
+
 COPY crates/bb-common/Cargo.toml crates/bb-common/Cargo.toml
 COPY crates/bb-proto/Cargo.toml crates/bb-proto/Cargo.toml
 COPY crates/bb-api/Cargo.toml crates/bb-api/Cargo.toml
@@ -50,16 +51,16 @@ RUN mkdir -p crates/bb-common/src && echo "" > crates/bb-common/src/lib.rs && \
     mkdir -p crates/bb-shim-ios/src && echo "" > crates/bb-shim-ios/src/lib.rs && \
     mkdir -p crates/bb-cli/src && echo "fn main() {}" > crates/bb-cli/src/main.rs
 
-RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-worker 2>/dev/null || true
+RUN cargo build --release -p bb-worker 2>/dev/null || true
 
 COPY crates crates
 COPY migrations migrations
 
 RUN find crates -name "*.rs" -exec touch {} +
 
-RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-worker
+RUN cargo build --release -p bb-worker
 
-RUN strip /build/target/x86_64-unknown-linux-musl/release/bb-worker
+RUN strip target/release/bb-worker
 
 # ---------------------------------------------------------
 # Stage 2: Minimal runtime image
@@ -67,7 +68,7 @@ RUN strip /build/target/x86_64-unknown-linux-musl/release/bb-worker
 FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/bb-worker /bb-worker
+COPY --from=builder /build/target/release/bb-worker /bb-worker
 COPY --from=builder /build/migrations /migrations
 
 USER 65534:65534

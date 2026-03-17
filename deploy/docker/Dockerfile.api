@@ -1,22 +1,23 @@
 # deploy/docker/Dockerfile.api
 # ---------------------------------------------------------
 # Stage 1: Build static Rust binary
+# On Alpine, the default host target is already musl-based, so we
+# omit --target to let cargo build for the native platform. This
+# allows multi-arch buildx (linux/amd64 + linux/arm64) to work.
 # ---------------------------------------------------------
 FROM rust:1.85-alpine AS builder
 
 RUN apk add --no-cache musl-dev protobuf-dev
 
-# Install the musl target
-RUN rustup target add x86_64-unknown-linux-musl
-
 WORKDIR /build
 
 # Copy workspace manifests first for dependency caching
 COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
-COPY .cargo .cargo
 
-# On Alpine, the native gcc is already musl-based; remove all custom linker overrides
+# Copy only target-related config, stripping custom linker overrides
+COPY .cargo .cargo
 RUN sed -i '/^linker/d' .cargo/config.toml
+
 COPY crates/bb-common/Cargo.toml crates/bb-common/Cargo.toml
 COPY crates/bb-proto/Cargo.toml crates/bb-proto/Cargo.toml
 COPY crates/bb-api/Cargo.toml crates/bb-api/Cargo.toml
@@ -52,7 +53,7 @@ RUN mkdir -p crates/bb-common/src && echo "" > crates/bb-common/src/lib.rs && \
     mkdir -p crates/bb-cli/src && echo "fn main() {}" > crates/bb-cli/src/main.rs
 
 # Build dependencies only (this layer is cached unless Cargo.toml/Cargo.lock change)
-RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-api 2>/dev/null || true
+RUN cargo build --release -p bb-api 2>/dev/null || true
 
 # Copy real source code
 COPY crates crates
@@ -62,10 +63,10 @@ COPY migrations migrations
 RUN find crates -name "*.rs" -exec touch {} +
 
 # Build the actual binary
-RUN cargo build --release --target x86_64-unknown-linux-musl -p bb-api
+RUN cargo build --release -p bb-api
 
 # Strip the binary for minimal size
-RUN strip /build/target/x86_64-unknown-linux-musl/release/bb-api
+RUN strip target/release/bb-api
 
 # ---------------------------------------------------------
 # Stage 2: Minimal runtime image
@@ -76,7 +77,7 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 # Import the static binary
-COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/bb-api /bb-api
+COPY --from=builder /build/target/release/bb-api /bb-api
 
 # Copy migrations for the binary to run at startup if needed
 COPY --from=builder /build/migrations /migrations
