@@ -22,3 +22,25 @@ workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
+
+[package.metadata.deb]
+maintainer = "BetBlocker Contributors <betblocker@users.noreply.github.com>"
+section = "net"
+priority = "optional"
+depends = "systemd"
+assets = [
+    ["target/release/bb-agent-linux", "usr/bin/betblocker-agent", "755"],
+    ["../../deploy/packaging/linux/betblocker-agent.conf", "etc/betblocker/agent.toml", "644"],
+    ["../../deploy/packaging/linux/betblocker-agent.service", "lib/systemd/system/betblocker-agent.service", "644"],
+]
+maintainer-scripts = "../../deploy/packaging/linux/"
+extended-description = "System-level agent that enforces gambling blocking policies via DNS interception, app blocking, and tamper-resistant protection."
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/bb-agent-linux", dest = "/usr/bin/betblocker-agent", mode = "755" },
+    { source = "../../deploy/packaging/linux/betblocker-agent.conf", dest = "/etc/betblocker/agent.toml", mode = "644", config = true },
+    { source = "../../deploy/packaging/linux/betblocker-agent.service", dest = "/lib/systemd/system/betblocker-agent.service", mode = "644" },
+]
+post_install_script = "../../deploy/packaging/linux/postinst.sh"
+pre_uninstall_script = "../../deploy/packaging/linux/prerm.sh"

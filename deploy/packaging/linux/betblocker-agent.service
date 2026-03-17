@@ -1,0 +1,25 @@
+[Unit]
+Description=BetBlocker Agent
+Documentation=https://jerrettdavis.github.io/BetBlocker/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/betblocker-agent --config /etc/betblocker/agent.toml
+Restart=on-failure
+RestartSec=5
+WatchdogSec=60
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/betblocker /var/log/betblocker
+PrivateTmp=yes
+
+User=betblocker
+Group=betblocker
+
+[Install]
+WantedBy=multi-user.target

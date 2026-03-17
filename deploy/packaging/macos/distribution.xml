@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>BetBlocker Agent</title>
+    <organization>com.betblocker</organization>
+    <domains enable_localSystem="true" />
+    <options customize="never" require-scripts="true" rootVolumeOnly="true" />
+    <allowed-os-versions>
+        <os-version min="11.0" />
+    </allowed-os-versions>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.betblocker.agent.pkg" />
+        </line>
+    </choices-outline>
+    <choice id="default" />
+    <choice id="com.betblocker.agent.pkg" visible="false">
+        <pkg-ref id="com.betblocker.agent.pkg" />
+    </choice>
+    <pkg-ref id="com.betblocker.agent.pkg"
+             version="0.0.0"
+             onConclusion="none">agent.pkg</pkg-ref>
+</installer-gui-script>

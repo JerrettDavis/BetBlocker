@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="BetBlocker Agent"
+    Manufacturer="BetBlocker Contributors"
+    Version="$(var.Version)"
+    UpgradeCode="8B2F4E3A-1C5D-4A8E-B9F7-6D3E2A1C5B4D">
+
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of BetBlocker Agent is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MainFeature" Title="BetBlocker Agent" Level="1">
+      <ComponentGroupRef Id="AgentBinary" />
+      <ComponentGroupRef Id="AgentConfig" />
+      <ComponentRef Id="ServiceInstaller" />
+    </Feature>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="BetBlocker">
+        <Component Id="ServiceInstaller" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+          <ServiceInstall
+            Id="BetBlockerAgentService"
+            Name="BetBlockerAgent"
+            DisplayName="BetBlocker Agent"
+            Description="System-level gambling blocking agent"
+            Type="ownProcess"
+            Start="auto"
+            ErrorControl="normal"
+            Account="LocalSystem" />
+          <ServiceControl
+            Id="StartBetBlockerAgent"
+            Name="BetBlockerAgent"
+            Start="install"
+            Stop="both"
+            Remove="uninstall"
+            Wait="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="AgentBinary" Directory="INSTALLFOLDER">
+      <Component>
+        <File Source="$(var.BinaryPath)" Name="betblocker-agent.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="AgentConfig" Directory="INSTALLFOLDER">
+      <Component>
+        <File Source="$(var.ConfigPath)" Name="agent.toml" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Package>
+</Wix>
