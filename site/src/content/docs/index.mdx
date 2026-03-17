@@ -1,0 +1,38 @@
+---
+title: BetBlocker Documentation
+description: Guides, references, and architecture documentation for BetBlocker.
+template: splash
+hero:
+  tagline: Open-source gambling blocking for recovery. Guides, API reference, and architecture docs.
+  actions:
+    - text: Getting Started
+      link: /BetBlocker/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Self-Hosting Guide
+      link: /BetBlocker/self-hosting/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="Getting Started" icon="rocket">
+    Install BetBlocker and enroll your first device in under 15 minutes.
+  </Card>
+  <Card title="Self-Hosting" icon="setting">
+    Deploy BetBlocker on your own infrastructure with Docker Compose.
+  </Card>
+  <Card title="Platform Guides" icon="laptop">
+    Platform-specific installation and configuration for Windows, macOS, and Linux.
+  </Card>
+  <Card title="API Reference" icon="document">
+    Complete REST API documentation for integrations and automation.
+  </Card>
+  <Card title="Architecture" icon="puzzle">
+    System design, crate map, data flows, and security model.
+  </Card>
+  <Card title="Contributing" icon="github">
+    How to contribute code, documentation, and domain reports.
+  </Card>
+</CardGrid>

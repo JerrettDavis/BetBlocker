@@ -1,0 +1,45 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+
+<section class="landing-section bg-alt">
+  <h2 class="text-center">Real protection should not have a price barrier.</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <p class="tier">Free (Self-Hosted)</p>
+      <p class="price">$0 <span>forever</span></p>
+      <ul>
+        <li>Full platform — every feature, every blocking layer</li>
+        <li>Community blocklist with continuous updates</li>
+        <li>Docker Compose deployment</li>
+        <li>Community support via GitHub</li>
+        <li>No telemetry, completely independent</li>
+      </ul>
+      <a href={`${base}self-hosting/`} class="btn-secondary" style="text-align:center;">Get Started Self-Hosting</a>
+    </div>
+    <div class="pricing-card featured">
+      <p class="tier">Hosted Standard</p>
+      <p class="price">$10 <span>/month</span></p>
+      <ul>
+        <li>Fully managed — nothing to deploy or maintain</li>
+        <li>Priority blocklist updates</li>
+        <li>Automatic agent updates</li>
+        <li>Email support</li>
+        <li>All blocking layers, all platforms</li>
+      </ul>
+      <a href={`${base}getting-started/`} class="btn-primary" style="text-align:center;">Start Free Trial</a>
+    </div>
+    <div class="pricing-card">
+      <p class="tier">Institutional</p>
+      <p class="price">Custom</p>
+      <ul>
+        <li>Bulk device licensing</li>
+        <li>Compliance reporting with audit trails</li>
+        <li>SSO integration</li>
+        <li>Dedicated support and SLA</li>
+        <li>Centralized management dashboard</li>
+      </ul>
+      <a href="mailto:contact@betblocker.org" class="btn-secondary" style="text-align:center;">Contact Us</a>
+    </div>
+  </div>
+</section>

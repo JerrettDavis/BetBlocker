@@ -1,0 +1,42 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+
+<footer class="landing-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <strong style="color:#f8fafc;font-size:1.25rem;">BetBlocker</strong>
+      <p class="tagline">Block the bet, not the bettor.</p>
+    </div>
+    <div class="footer-section">
+      <h4>Product</h4>
+      <ul>
+        <li><a href={`${base}getting-started/`}>Getting Started</a></li>
+        <li><a href={`${base}self-hosting/`}>Self-Hosting</a></li>
+        <li><a href="https://github.com/JerrettDavis/BetBlocker/releases">Downloads</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href={`${base}api-reference/`}>API Reference</a></li>
+        <li><a href={`${base}architecture/`}>Architecture</a></li>
+        <li><a href={`${base}platform-guides/windows/`}>Platform Guides</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Community</h4>
+      <ul>
+        <li><a href={`${base}contributing/`}>Contributing</a></li>
+        <li><a href="https://github.com/JerrettDavis/BetBlocker">GitHub</a></li>
+        <li><a href="https://github.com/JerrettDavis/BetBlocker/issues">Issues</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="disclaimer">
+    BetBlocker is open-source software. It is not a substitute for professional treatment. If you or someone you know is struggling with gambling addiction, please reach out to the National Problem Gambling Helpline at 1-800-522-4700 or visit <a href="https://www.ncpgambling.org" style="color:#818cf8;">ncpgambling.org</a>.
+  </div>
+  <div class="footer-bottom">
+    &copy; {new Date().getFullYear()} BetBlocker Contributors. Licensed under AGPL-3.0.
+  </div>
+</footer>

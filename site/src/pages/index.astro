@@ -1,0 +1,51 @@
+---
+import Hero from '../components/Hero.astro';
+import Features from '../components/Features.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import Platforms from '../components/Platforms.astro';
+import Pricing from '../components/Pricing.astro';
+import FAQ from '../components/FAQ.astro';
+import CallToAction from '../components/CallToAction.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/landing.css';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BetBlocker — Open-Source Gambling Blocking for Recovery</title>
+    <meta name="description" content="Free, open-source platform that blocks gambling across every device you own. Multi-layer DNS, app, and browser blocking with tamper resistance and accountability partners." />
+    <meta property="og:title" content="BetBlocker — Take Back Control from Gambling" />
+    <meta property="og:description" content="Free, open-source gambling blocking for recovery. Multi-layer protection designed to hold firm when willpower alone cannot." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="sitemap" href={`${base}sitemap-index.xml`} />
+  </head>
+  <body class="landing-page">
+    <nav style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;max-width:72rem;margin:0 auto;">
+      <a href={base} style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;font-weight:700;font-size:1.25rem;color:#0f172a;">
+        <img src={`${base}favicon.svg`} alt="" width="28" height="28" />
+        BetBlocker
+      </a>
+      <div style="display:flex;gap:1.5rem;align-items:center;font-size:0.95rem;">
+        <a href={`${base}getting-started/`} style="color:#475569;text-decoration:none;">Docs</a>
+        <a href={`${base}self-hosting/`} style="color:#475569;text-decoration:none;">Self-Host</a>
+        <a href="https://github.com/JerrettDavis/BetBlocker" style="color:#475569;text-decoration:none;">GitHub</a>
+      </div>
+    </nav>
+
+    <Hero />
+    <Features />
+    <HowItWorks />
+    <Platforms />
+    <Pricing />
+    <FAQ />
+    <CallToAction />
+    <Footer />
+  </body>
+</html>

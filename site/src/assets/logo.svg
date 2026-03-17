@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" fill="none">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#3730A3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- === Icon Only (Shield with block motif) === -->
+  <g id="icon">
+    <!-- Shield shape -->
+    <path d="M40 8 L72 20 C72 20 74 50 68 65 C62 80 40 92 40 92 C40 92 18 80 12 65 C6 50 8 20 8 20 Z"
+          fill="url(#shieldGrad)"/>
+    <!-- Block/stop bar across shield -->
+    <rect x="22" y="40" width="36" height="8" rx="2" fill="#FFFFFF" opacity="0.95"/>
+    <!-- Upper block -->
+    <rect x="28" y="28" width="24" height="8" rx="2" fill="#FFFFFF" opacity="0.7"/>
+    <!-- Lower block -->
+    <rect x="28" y="52" width="24" height="8" rx="2" fill="#FFFFFF" opacity="0.7"/>
+  </g>
+
+  <!-- === Wordmark === -->
+  <g id="wordmark">
+    <text x="90" y="64" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="40" font-weight="700" fill="#0F172A">
+      <tspan fill="#4F46E5">Bet</tspan><tspan fill="#0F172A">Blocker</tspan>
+    </text>
+  </g>
+
+  <!-- === Full Logo (icon + wordmark combined) === -->
+  <!-- Both groups above compose the full logo at their current positions -->
+
+  <!-- === Standalone Icon (for use at square sizes) === -->
+  <g id="icon-standalone" transform="translate(320, 10)">
+    <svg viewBox="0 0 80 100" width="60" height="75">
+      <path d="M40 4 L72 18 C72 18 74 50 68 66 C62 82 40 94 40 94 C40 94 18 82 12 66 C6 50 8 18 8 18 Z"
+            fill="url(#shieldGrad)"/>
+      <rect x="22" y="40" width="36" height="8" rx="2" fill="#FFFFFF" opacity="0.95"/>
+      <rect x="28" y="28" width="24" height="8" rx="2" fill="#FFFFFF" opacity="0.7"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="#FFFFFF" opacity="0.7"/>
+    </svg>
+  </g>
+</svg>

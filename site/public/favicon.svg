@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Shield shape, simplified for small sizes -->
+  <path d="M16 2 L28 7.5 C28 7.5 29 18 26 24 C23 30 16 31 16 31 C16 31 9 30 6 24 C3 18 4 7.5 4 7.5 Z"
+        fill="#4F46E5"/>
+  <!-- Central block bar - bold and clear at small sizes -->
+  <rect x="9" y="13" width="14" height="3.5" rx="1" fill="#FFFFFF"/>
+  <!-- Upper bar -->
+  <rect x="11" y="8.5" width="10" height="2.5" rx="0.75" fill="#FFFFFF" opacity="0.7"/>
+  <!-- Lower bar -->
+  <rect x="11" y="18.5" width="10" height="2.5" rx="0.75" fill="#FFFFFF" opacity="0.7"/>
+</svg>
