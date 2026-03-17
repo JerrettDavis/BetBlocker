@@ -5,7 +5,7 @@
 # ---------------------------------------------------------
 FROM rust:1.85-alpine AS builder
 
-RUN apk add --no-cache musl-dev protobuf-dev gcc-aarch64-none-elf
+RUN apk add --no-cache musl-dev protobuf-dev
 
 RUN rustup target add aarch64-unknown-linux-musl
 
@@ -15,8 +15,8 @@ WORKDIR /build
 COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
 COPY .cargo .cargo
 
-# Override cross-compilation linker for Alpine
-RUN sed -i '/^\[target\.aarch64-unknown-linux-musl\]/,/^$/s/^linker.*/# linker auto-detected on Alpine/' .cargo/config.toml
+# On Alpine, the native gcc is already musl-based; remove all custom linker overrides
+RUN sed -i '/^linker/d' .cargo/config.toml
 COPY crates/bb-common/Cargo.toml crates/bb-common/Cargo.toml
 COPY crates/bb-proto/Cargo.toml crates/bb-proto/Cargo.toml
 COPY crates/bb-api/Cargo.toml crates/bb-api/Cargo.toml

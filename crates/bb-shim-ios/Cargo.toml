@@ -3,6 +3,9 @@ name = "bb-shim-ios"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+crate-type = ["staticlib", "lib"]
+
 [dependencies]
 thiserror = { workspace = true }
 serde = { workspace = true }

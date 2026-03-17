@@ -228,7 +228,7 @@ mod sys {
     pub type xpc_type_t = *const c_void;
 
     // XPC type constants (extern symbols provided by libxpc).
-    extern "C" {
+    unsafe extern "C" {
         pub static _xpc_error_connection_interrupted: xpc_object_t;
         pub static _xpc_type_error: c_void;
     }
@@ -249,7 +249,7 @@ mod sys {
         std::ptr::null()
     };
 
-    extern "C" {
+    unsafe extern "C" {
         // Connection lifecycle
         pub fn xpc_connection_create(
             name: *const c_char,
