@@ -1,5 +1,6 @@
 ---
-const base = import.meta.env.BASE_URL;
+const raw = import.meta.env.BASE_URL;
+const base = raw.endsWith('/') ? raw : raw + '/';
 ---
 
 <section class="landing-section text-center">
