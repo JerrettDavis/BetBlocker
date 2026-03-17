@@ -3,6 +3,7 @@ name = "bb-agent-linux"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "BetBlocker system agent for Linux — enforces gambling blocking via DNS, app, and browser protection"
 
 [dependencies]
 bb-common = { path = "../bb-common" }
