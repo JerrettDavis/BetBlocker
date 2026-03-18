@@ -125,13 +125,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push web image (multi-arch)
+      - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
           context: ./web
           file: deploy/docker/Dockerfile.web
           push: true
-          platforms: linux/amd64,linux/arm64
+          # Node.js builds under QEMU arm64 emulation are extremely slow (~6h+).
+          # Web frontend is amd64-only; arm64 can be added later with native runners.
+          platforms: linux/amd64
           tags: |
             ${{ env.IMAGE_PREFIX }}-web:${{ needs.prepare.outputs.version }}
             ${{ env.IMAGE_PREFIX }}-web:latest
