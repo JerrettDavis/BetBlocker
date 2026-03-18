@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.1](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.0...v0.2.1) (2026-03-18)
+
+
+### Bug Fixes
+
+* **ci:** add description to bb-agent-linux for cargo-generate-rpm ([d1ff923](https://github.com/JerrettDavis/BetBlocker/commit/d1ff923df4c0503fc37ce6f9fa2e1c005e89e041))
+* **ci:** build aarch64 Linux agent natively via QEMU emulation ([bc980d9](https://github.com/JerrettDavis/BetBlocker/commit/bc980d93090537033ac101e06b776edb40133b94))
+* **ci:** build web Docker image as amd64-only to avoid QEMU timeout ([47b4e62](https://github.com/JerrettDavis/BetBlocker/commit/47b4e6225f2ad25c9e7e6559db8830d05ee4c7a6))
+* **ci:** filter artifact downloads to exclude Docker buildx caches ([252b615](https://github.com/JerrettDavis/BetBlocker/commit/252b615b5767575dda6fce1b60db84b6809ea763))
+* **ci:** resolve 5 release build failures across platforms ([20b5132](https://github.com/JerrettDavis/BetBlocker/commit/20b51328964a98036e6206132bb605c9c26704c4))
+* **ci:** trigger release workflow on release event instead of tag push ([26f6c25](https://github.com/JerrettDavis/BetBlocker/commit/26f6c255d1fdf8b3717d5dd6f1a9478830d0e223))
+* **ci:** use default host target in Alpine Dockerfiles and add RPM license ([bb76846](https://github.com/JerrettDavis/BetBlocker/commit/bb76846dd173bafab08eb33161c5a750ac44211a))
+* **site:** overhaul landing page styling for visual distinction and polish ([4345566](https://github.com/JerrettDavis/BetBlocker/commit/43455666397603486827df8b43448333528a7dba))
+
 ## [0.2.0](https://github.com/JerrettDavis/BetBlocker/compare/v0.1.0...v0.2.0) (2026-03-17)
 
 
