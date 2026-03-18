@@ -575,10 +575,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download all artifacts
+      - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: '*-packages'
+          merge-multiple: false
+
+      - name: Download binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: 'betblocker-*'
+          merge-multiple: false
 
       - name: Flatten artifacts
         run: |
