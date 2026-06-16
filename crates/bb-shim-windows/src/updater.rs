@@ -624,11 +624,11 @@ mod tests {
         let scheduler = UpdateScheduler::new(
             "1.0.0",
             "https://api.betblocker.app",
-            Duration::from_secs(3600),
+            Duration::from_hours(1),
             "/tmp",
         );
         assert_eq!(scheduler.current_version, "1.0.0");
-        assert_eq!(scheduler.check_interval, Duration::from_secs(3600));
+        assert_eq!(scheduler.check_interval, Duration::from_hours(1));
     }
 
     // --- Hash verification integration ---
