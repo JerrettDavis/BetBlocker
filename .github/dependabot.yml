@@ -1,0 +1,78 @@
+# Keep dependency PRs grouped and delayed for at least 48 hours so newly published packages age before adoption.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 2
+    groups:
+      github-actions-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directories:
+      - "/site"
+      - "/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 2
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "cargo"
+    directories:
+      - "/"
+      - "/crates/bb-agent-core"
+      - "/crates/bb-agent-linux"
+      - "/crates/bb-agent-macos"
+      - "/crates/bb-agent-plugins"
+      - "/crates/bb-agent-windows"
+      - "/crates/bb-api"
+      - "/crates/bb-cli"
+      - "/crates/bb-common"
+      - "/crates/bb-proto"
+      - "/crates/bb-shim-android"
+      - "/crates/bb-shim-ios"
+      - "/crates/bb-shim-linux"
+      - "/crates/bb-shim-macos"
+      - "/crates/bb-shim-windows"
+      - "/crates/bb-worker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+    cooldown:
+      default-days: 2
+    groups:
+      cargo-dependencies:
+        patterns:
+          - "*"
