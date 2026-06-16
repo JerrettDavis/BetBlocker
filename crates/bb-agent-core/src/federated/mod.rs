@@ -116,7 +116,7 @@ pub struct ReporterConfig {
 impl Default for ReporterConfig {
     fn default() -> Self {
         Self {
-            batch_interval: Duration::from_secs(6 * 3600), // 6 hours
+            batch_interval: Duration::from_hours(6), // 6 hours
             min_batch_size: 1,
             enabled: true,
         }
