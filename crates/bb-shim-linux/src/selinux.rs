@@ -142,8 +142,7 @@ impl MacProtection for SELinuxProtection {
     fn is_enforcing(&self) -> bool {
         self.command_runner
             .run("getenforce", &[])
-            .map(|output| Self::parse_getenforce(&output))
-            .unwrap_or(false)
+            .is_ok_and(|output| Self::parse_getenforce(&output))
     }
 
     /// Remove the BetBlocker SELinux policy module.
