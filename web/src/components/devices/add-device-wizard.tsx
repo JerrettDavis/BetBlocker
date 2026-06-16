@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useCreateEnrollment } from '@/hooks/use-enrollments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -206,7 +207,7 @@ export function AddDeviceWizard() {
             </div>
 
             <Button variant="outline" asChild className="w-full">
-              <a href="/devices">Go to Devices</a>
+              <Link href="/devices">Go to Devices</Link>
             </Button>
           </CardContent>
         </Card>

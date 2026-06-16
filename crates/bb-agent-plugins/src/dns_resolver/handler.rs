@@ -2,13 +2,14 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use hickory_resolver::TokioResolver;
-use hickory_resolver::config::{NameServerConfig, ResolverConfig};
-use hickory_resolver::name_server::TokioConnectionProvider;
-use hickory_resolver::proto::xfer::Protocol;
-use hickory_server::authority::MessageResponseBuilder;
-use hickory_server::proto::op::{Header, ResponseCode};
+use hickory_resolver::config::{ConnectionConfig, NameServerConfig, ResolverConfig};
+use hickory_server::net::runtime::{Time, TokioRuntimeProvider};
+use hickory_server::proto::op::{
+    Header, HeaderCounts, MessageType, Metadata, OpCode, ResponseCode,
+};
 use hickory_server::proto::rr::{Name, RData, Record, rdata::A};
 use hickory_server::server::{Request, RequestHandler, ResponseHandler, ResponseInfo};
+use hickory_server::zone_handler::MessageResponseBuilder;
 use tracing::{debug, warn};
 
 use crate::blocklist::Blocklist;
@@ -36,13 +37,25 @@ impl BlockingDnsHandler {
         block_response: BlockResponse,
     ) -> Self {
         // Build resolver config pointing to upstream DNS servers
-        let mut resolver_config = ResolverConfig::new();
-        for addr in upstream_servers {
-            resolver_config.add_name_server(NameServerConfig::new(*addr, Protocol::Udp));
-        }
-        let upstream =
-            TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default())
-                .build();
+        let name_servers = upstream_servers
+            .iter()
+            .map(|addr| {
+                let mut connection = ConnectionConfig::udp();
+                connection.port = addr.port();
+                NameServerConfig::new(
+                    addr.ip(),
+                    true,
+                    vec![connection],
+                )
+            })
+            .collect();
+        let resolver_config = ResolverConfig::from_parts(None, Vec::new(), name_servers);
+        let upstream = TokioResolver::builder_with_config(
+            resolver_config,
+            TokioRuntimeProvider::default(),
+        )
+        .build()
+        .expect("upstream DNS resolver config should be valid");
 
         Self {
             blocklist,
@@ -57,15 +70,19 @@ impl BlockingDnsHandler {
     }
 
     fn servfail_header() -> ResponseInfo {
-        let mut header = Header::new();
-        header.set_response_code(ResponseCode::ServFail);
-        header.into()
+        let mut metadata = Metadata::new(0, MessageType::Response, OpCode::Query);
+        metadata.response_code = ResponseCode::ServFail;
+        Header {
+            metadata,
+            counts: HeaderCounts::default(),
+        }
+        .into()
     }
 }
 
 #[async_trait::async_trait]
 impl RequestHandler for BlockingDnsHandler {
-    async fn handle_request<R: ResponseHandler>(
+    async fn handle_request<R: ResponseHandler, T: Time>(
         &self,
         request: &Request,
         mut response_handle: R,
@@ -89,7 +106,7 @@ impl RequestHandler for BlockingDnsHandler {
 
             match self.block_response {
                 BlockResponse::NxDomain => {
-                    let response = builder.error_msg(request.header(), ResponseCode::NXDomain);
+                    let response = builder.error_msg(&request.metadata, ResponseCode::NXDomain);
                     return response_handle
                         .send_response(response)
                         .await
@@ -104,7 +121,7 @@ impl RequestHandler for BlockingDnsHandler {
                     let record = Record::from_rdata(name_parsed, 60, RData::A(A::new(0, 0, 0, 0)));
 
                     let response = builder.build(
-                        *request.header(),
+                        request.metadata,
                         std::iter::once(&record),
                         std::iter::empty::<&Record>(),
                         std::iter::empty::<&Record>(),
@@ -126,9 +143,9 @@ impl RequestHandler for BlockingDnsHandler {
         match self.upstream.lookup(name, query_type).await {
             Ok(lookup) => {
                 let builder = MessageResponseBuilder::from_message_request(request);
-                let records: Vec<Record> = lookup.records().to_vec();
+                let records: Vec<Record> = lookup.answers().to_vec();
                 let response = builder.build(
-                    *request.header(),
+                    request.metadata,
                     records.iter(),
                     std::iter::empty::<&Record>(),
                     std::iter::empty::<&Record>(),
@@ -145,7 +162,7 @@ impl RequestHandler for BlockingDnsHandler {
             Err(e) => {
                 warn!(domain = %domain, error = %e, "Upstream DNS lookup failed");
                 let builder = MessageResponseBuilder::from_message_request(request);
-                let response = builder.error_msg(request.header(), ResponseCode::ServFail);
+                let response = builder.error_msg(&request.metadata, ResponseCode::ServFail);
                 response_handle
                     .send_response(response)
                     .await

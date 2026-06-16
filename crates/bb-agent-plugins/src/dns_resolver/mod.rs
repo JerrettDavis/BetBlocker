@@ -4,7 +4,7 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use hickory_server::ServerFuture;
+use hickory_server::Server;
 use tokio::net::UdpSocket;
 use tracing::{error, info};
 
@@ -165,7 +165,7 @@ impl BlockingPlugin for DnsResolverPlugin {
 
             info!(addr = %listen_addr, "DNS server listening");
 
-            let mut server = ServerFuture::new(handler);
+            let mut server = Server::new(handler);
             server.register_socket(socket);
 
             if let Err(e) = server.block_until_done().await {
