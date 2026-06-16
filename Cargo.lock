@@ -477,7 +477,7 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
 name = "bb-agent-core"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "aes-gcm",
  "async-trait",
@@ -513,7 +513,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-linux"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "bb-agent-core",
  "bb-agent-plugins",
@@ -532,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-macos"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "bb-agent-core",
  "bb-agent-plugins",
@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-plugins"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "async-trait",
  "bb-common",
@@ -570,7 +570,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-windows"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "bb-agent-core",
  "bb-agent-plugins",
@@ -588,7 +588,7 @@ dependencies = [
 
 [[package]]
 name = "bb-api"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "async-stripe",
@@ -625,7 +625,7 @@ dependencies = [
 
 [[package]]
 name = "bb-cli"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "bb-common",
  "tokio",
@@ -634,7 +634,7 @@ dependencies = [
 
 [[package]]
 name = "bb-common"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "chrono",
@@ -646,7 +646,7 @@ dependencies = [
 
 [[package]]
 name = "bb-proto"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "prost",
  "prost-build",
@@ -654,7 +654,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-android"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -663,7 +663,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-ios"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -672,7 +672,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-linux"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -683,7 +683,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-macos"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "libc",
  "serde",
@@ -695,7 +695,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-windows"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "serde",
@@ -709,7 +709,7 @@ dependencies = [
 
 [[package]]
 name = "bb-worker"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3123,15 +3123,14 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "openssl"
-version = "0.10.76"
+version = "0.10.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "951c002c75e16ea2c65b8c7e4d3d51d5530d8dfa7d060b4776828c88cfb18ecf"
+checksum = "77823a27f0babb03091cb9ed9ef80af3b39dbc82f97e8fa530374b7dafd87a45"
 dependencies = [
  "bitflags",
  "cfg-if",
  "foreign-types",
  "libc",
- "once_cell",
  "openssl-macros",
  "openssl-sys",
 ]
@@ -3155,9 +3154,9 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.112"
+version = "0.9.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57d55af3b3e226502be1526dfdba67ab0e9c96fc293004e79576b2b9edb0dbdb"
+checksum = "b47e7e6bb2c38cd930d25a23b40fa52e068c10e85f3e03a7f5ba5aaca5713695"
 dependencies = [
  "cc",
  "libc",
