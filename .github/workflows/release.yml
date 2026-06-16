@@ -49,22 +49,22 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compute lowercase image prefix
         run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/betblocker" >> "$GITHUB_ENV"
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push API image (multi-arch)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: deploy/docker/Dockerfile.api
@@ -80,22 +80,22 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compute lowercase image prefix
         run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/betblocker" >> "$GITHUB_ENV"
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push worker image (multi-arch)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: deploy/docker/Dockerfile.worker
@@ -111,22 +111,22 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compute lowercase image prefix
         run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/betblocker" >> "$GITHUB_ENV"
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push web image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./web
           file: deploy/docker/Dockerfile.web
@@ -147,12 +147,12 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Build agent binary via Docker
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: deploy/docker/Dockerfile.agent-linux
@@ -169,7 +169,7 @@ jobs:
           docker rm extract
           chmod +x betblocker-agent-linux-x86_64
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-agent-linux-x86_64
           path: betblocker-agent-linux-x86_64
@@ -178,13 +178,13 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
 
       - name: Build agent binary via Docker
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: deploy/docker/Dockerfile.agent-linux-aarch64
@@ -199,7 +199,7 @@ jobs:
           cp output/bb-agent-linux ./betblocker-agent-linux-aarch64
           chmod +x betblocker-agent-linux-aarch64
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-agent-linux-aarch64
           path: betblocker-agent-linux-aarch64
@@ -211,7 +211,7 @@ jobs:
     needs: prepare
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -231,7 +231,7 @@ jobs:
         run: |
           Copy-Item "target\x86_64-pc-windows-msvc\release\bb-agent-windows.exe" "betblocker-agent-windows-x86_64.exe"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-agent-windows-x86_64
           path: betblocker-agent-windows-x86_64.exe
@@ -243,7 +243,7 @@ jobs:
     needs: prepare
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -260,7 +260,7 @@ jobs:
       - name: Copy binary
         run: cp target/x86_64-apple-darwin/release/bb-agent-macos betblocker-agent-macos-x86_64
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-agent-macos-x86_64
           path: betblocker-agent-macos-x86_64
@@ -269,7 +269,7 @@ jobs:
     needs: prepare
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -286,7 +286,7 @@ jobs:
       - name: Copy binary
         run: cp target/aarch64-apple-darwin/release/bb-agent-macos betblocker-agent-macos-aarch64
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-agent-macos-aarch64
           path: betblocker-agent-macos-aarch64
@@ -298,7 +298,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -313,7 +313,7 @@ jobs:
         run: cargo install cargo-ndk
 
       - name: Set up Android NDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Build Android shim libraries
         run: |
@@ -327,7 +327,7 @@ jobs:
       - name: Package Android libraries
         run: tar czf betblocker-android-libs.tar.gz -C android-libs .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-android-libs
           path: betblocker-android-libs.tar.gz
@@ -339,7 +339,7 @@ jobs:
     needs: prepare
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -367,7 +367,7 @@ jobs:
             -output ios-libs/simulator/libbb_shim_ios.a
           tar czf betblocker-ios-libs.tar.gz -C ios-libs .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: betblocker-ios-libs
           path: betblocker-ios-libs.tar.gz
@@ -379,7 +379,7 @@ jobs:
     needs: [prepare, build-linux-x86_64, build-linux-aarch64]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -392,7 +392,7 @@ jobs:
           cargo install cargo-deb cargo-generate-rpm
 
       - name: Download Linux binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: betblocker-agent-linux-*
           merge-multiple: false
@@ -428,7 +428,7 @@ jobs:
           tar czf betblocker-agent-${{ needs.prepare.outputs.version }}-linux-aarch64.tar.gz \
             betblocker-agent-${{ needs.prepare.outputs.version }}-linux-aarch64/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: linux-packages
           path: |
@@ -443,10 +443,10 @@ jobs:
     needs: [prepare, build-windows]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download Windows binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: betblocker-agent-windows-x86_64
 
@@ -470,7 +470,7 @@ jobs:
           Copy-Item deploy\packaging\windows\betblocker-agent.conf "$dir\agent.toml"
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-packages
           path: |
@@ -484,10 +484,10 @@ jobs:
     needs: [prepare, build-macos-x86_64, build-macos-aarch64]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download macOS binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: betblocker-agent-macos-*
           merge-multiple: false
@@ -547,7 +547,7 @@ jobs:
             -format UDZO \
             "${DMG_NAME}.dmg"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos-packages
           path: |
@@ -571,19 +571,19 @@ jobs:
       - build-ios
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: '*-packages'
           merge-multiple: false
 
       - name: Download binary artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: 'betblocker-*'
@@ -631,7 +631,7 @@ jobs:
         run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/betblocker" >> "$GITHUB_ENV"
 
       - name: Upload artifacts to GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: BetBlocker ${{ needs.prepare.outputs.tag }}
