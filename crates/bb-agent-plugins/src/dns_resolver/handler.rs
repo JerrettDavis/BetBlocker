@@ -42,20 +42,14 @@ impl BlockingDnsHandler {
             .map(|addr| {
                 let mut connection = ConnectionConfig::udp();
                 connection.port = addr.port();
-                NameServerConfig::new(
-                    addr.ip(),
-                    true,
-                    vec![connection],
-                )
+                NameServerConfig::new(addr.ip(), true, vec![connection])
             })
             .collect();
         let resolver_config = ResolverConfig::from_parts(None, Vec::new(), name_servers);
-        let upstream = TokioResolver::builder_with_config(
-            resolver_config,
-            TokioRuntimeProvider::default(),
-        )
-        .build()
-        .expect("upstream DNS resolver config should be valid");
+        let upstream =
+            TokioResolver::builder_with_config(resolver_config, TokioRuntimeProvider::default())
+                .build()
+                .expect("upstream DNS resolver config should be valid");
 
         Self {
             blocklist,
