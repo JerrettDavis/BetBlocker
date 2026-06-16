@@ -151,7 +151,8 @@ impl BlockingPlugin for DnsResolverPlugin {
         let bl = Arc::new(blocklist.clone());
         self.blocklist = Some(Arc::clone(&bl));
 
-        let handler = BlockingDnsHandler::new(bl, &self.upstream_servers, self.block_response);
+        let handler = BlockingDnsHandler::new(bl, &self.upstream_servers, self.block_response)
+            .map_err(PluginError::ConfigError)?;
         let listen_addr = self.listen_addr;
 
         let handle = tokio::spawn(async move {

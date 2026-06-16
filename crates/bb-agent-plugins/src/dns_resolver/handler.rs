@@ -35,7 +35,7 @@ impl BlockingDnsHandler {
         blocklist: Arc<Blocklist>,
         upstream_servers: &[SocketAddr],
         block_response: BlockResponse,
-    ) -> Self {
+    ) -> Result<Self, String> {
         // Build resolver config pointing to upstream DNS servers
         let name_servers = upstream_servers
             .iter()
@@ -49,13 +49,13 @@ impl BlockingDnsHandler {
         let upstream =
             TokioResolver::builder_with_config(resolver_config, TokioRuntimeProvider::default())
                 .build()
-                .expect("upstream DNS resolver config should be valid");
+                .map_err(|e| format!("Invalid upstream DNS resolver config: {e}"))?;
 
-        Self {
+        Ok(Self {
             blocklist,
             upstream,
             block_response,
-        }
+        })
     }
 
     /// Update the blocklist atomically (Arc swap).
