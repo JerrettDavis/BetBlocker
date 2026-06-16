@@ -100,7 +100,7 @@ impl DnsZoneCrawler {
         let resp = ctx
             .http
             .get(&url)
-            .timeout(Duration::from_secs(60))
+            .timeout(Duration::from_mins(1))
             .send()
             .await?;
 

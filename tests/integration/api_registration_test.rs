@@ -116,15 +116,15 @@ mod tests {
     fn test_heartbeat_tier_configurations() {
         let self_config = HeartbeatConfig::self_tier("d".into(), "v".into());
         assert_eq!(self_config.default_interval, Duration::from_secs(900)); // 15 min
-        assert_eq!(self_config.min_interval, Duration::from_secs(300)); // 5 min
+        assert_eq!(self_config.min_interval, Duration::from_mins(5)); // 5 min
 
         let partner_config = HeartbeatConfig::partner_tier("d".into(), "v".into());
-        assert_eq!(partner_config.default_interval, Duration::from_secs(300)); // 5 min
-        assert_eq!(partner_config.min_interval, Duration::from_secs(60)); // 1 min
+        assert_eq!(partner_config.default_interval, Duration::from_mins(5)); // 5 min
+        assert_eq!(partner_config.min_interval, Duration::from_mins(1)); // 1 min
 
         let authority_config = HeartbeatConfig::authority_tier("d".into(), "v".into());
-        assert_eq!(authority_config.default_interval, Duration::from_secs(300));
-        assert_eq!(authority_config.min_interval, Duration::from_secs(60));
+        assert_eq!(authority_config.default_interval, Duration::from_mins(5));
+        assert_eq!(authority_config.min_interval, Duration::from_mins(1));
     }
 
     /// Test heartbeat sender offline queue behavior.
