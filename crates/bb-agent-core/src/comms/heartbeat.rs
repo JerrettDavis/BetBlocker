@@ -50,8 +50,8 @@ impl HeartbeatConfig {
         Self {
             device_id,
             agent_version,
-            default_interval: Duration::from_secs(900),
-            min_interval: Duration::from_secs(300),
+            default_interval: Duration::from_mins(15),
+            min_interval: Duration::from_mins(5),
             max_interval: Duration::from_secs(3600),
         }
     }
@@ -61,9 +61,9 @@ impl HeartbeatConfig {
         Self {
             device_id,
             agent_version,
-            default_interval: Duration::from_secs(300),
-            min_interval: Duration::from_secs(60),
-            max_interval: Duration::from_secs(900),
+            default_interval: Duration::from_mins(5),
+            min_interval: Duration::from_mins(1),
+            max_interval: Duration::from_mins(15),
         }
     }
 
@@ -72,9 +72,9 @@ impl HeartbeatConfig {
         Self {
             device_id,
             agent_version,
-            default_interval: Duration::from_secs(300),
-            min_interval: Duration::from_secs(60),
-            max_interval: Duration::from_secs(900),
+            default_interval: Duration::from_mins(5),
+            min_interval: Duration::from_mins(1),
+            max_interval: Duration::from_mins(15),
         }
     }
 }
@@ -343,7 +343,7 @@ mod tests {
                 device_id: "test-device".to_string(),
                 agent_version: "0.1.0".to_string(),
                 default_interval: Duration::from_secs(interval_secs),
-                min_interval: Duration::from_secs(60),
+                min_interval: Duration::from_mins(1),
                 max_interval: Duration::from_secs(3600),
             },
         )

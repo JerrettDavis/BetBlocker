@@ -52,7 +52,7 @@ impl EventReporter {
             device_id,
             privacy_filter: PrivacyFilter::new(tier, reporting_config),
             batch_size: 100,
-            report_interval: Duration::from_secs(300), // 5 minutes
+            report_interval: Duration::from_mins(5), // 5 minutes
             batch_sequence: 0,
         }
     }
