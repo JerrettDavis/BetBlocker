@@ -62,7 +62,7 @@ impl BinaryIntegrity {
             binary_path,
             startup_hash,
             expected_hash,
-            check_interval: Duration::from_secs(1800), // 30 minutes
+            check_interval: Duration::from_mins(30), // 30 minutes
         })
     }
 
