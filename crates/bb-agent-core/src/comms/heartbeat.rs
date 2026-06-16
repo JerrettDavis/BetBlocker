@@ -50,9 +50,9 @@ impl HeartbeatConfig {
         Self {
             device_id,
             agent_version,
-            default_interval: Duration::from_secs(900),
-            min_interval: Duration::from_secs(300),
-            max_interval: Duration::from_secs(3600),
+            default_interval: Duration::from_mins(15),
+            min_interval: Duration::from_mins(5),
+            max_interval: Duration::from_hours(1),
         }
     }
 
@@ -61,9 +61,9 @@ impl HeartbeatConfig {
         Self {
             device_id,
             agent_version,
-            default_interval: Duration::from_secs(300),
-            min_interval: Duration::from_secs(60),
-            max_interval: Duration::from_secs(900),
+            default_interval: Duration::from_mins(5),
+            min_interval: Duration::from_mins(1),
+            max_interval: Duration::from_mins(15),
         }
     }
 
@@ -72,9 +72,9 @@ impl HeartbeatConfig {
         Self {
             device_id,
             agent_version,
-            default_interval: Duration::from_secs(300),
-            min_interval: Duration::from_secs(60),
-            max_interval: Duration::from_secs(900),
+            default_interval: Duration::from_mins(5),
+            min_interval: Duration::from_mins(1),
+            max_interval: Duration::from_mins(15),
         }
     }
 }
@@ -343,8 +343,8 @@ mod tests {
                 device_id: "test-device".to_string(),
                 agent_version: "0.1.0".to_string(),
                 default_interval: Duration::from_secs(interval_secs),
-                min_interval: Duration::from_secs(60),
-                max_interval: Duration::from_secs(3600),
+                min_interval: Duration::from_mins(1),
+                max_interval: Duration::from_hours(1),
             },
         )
     }
@@ -353,14 +353,14 @@ mod tests {
     fn test_self_tier_config() {
         let config = HeartbeatConfig::self_tier("d".into(), "v".into());
         assert_eq!(config.default_interval, Duration::from_secs(900));
-        assert_eq!(config.min_interval, Duration::from_secs(300));
+        assert_eq!(config.min_interval, Duration::from_mins(5));
     }
 
     #[test]
     fn test_partner_tier_config() {
         let config = HeartbeatConfig::partner_tier("d".into(), "v".into());
-        assert_eq!(config.default_interval, Duration::from_secs(300));
-        assert_eq!(config.min_interval, Duration::from_secs(60));
+        assert_eq!(config.default_interval, Duration::from_mins(5));
+        assert_eq!(config.min_interval, Duration::from_mins(1));
     }
 
     #[test]
@@ -393,7 +393,7 @@ mod tests {
     #[test]
     fn test_handle_update_interval_clamped() {
         let mut sender = make_sender(300);
-        assert_eq!(sender.current_interval(), Duration::from_secs(300));
+        assert_eq!(sender.current_interval(), Duration::from_mins(5));
 
         // Try to set to 10 seconds (below minimum of 60)
         let cmd = bb_proto::heartbeat::ServerCommand {
@@ -401,7 +401,7 @@ mod tests {
             payload: b"10".to_vec(),
         };
         sender.handle_server_command(&cmd);
-        assert_eq!(sender.current_interval(), Duration::from_secs(60));
+        assert_eq!(sender.current_interval(), Duration::from_mins(1));
 
         // Try to set to 7200 (above maximum of 3600)
         let cmd = bb_proto::heartbeat::ServerCommand {
@@ -409,7 +409,7 @@ mod tests {
             payload: b"7200".to_vec(),
         };
         sender.handle_server_command(&cmd);
-        assert_eq!(sender.current_interval(), Duration::from_secs(3600));
+        assert_eq!(sender.current_interval(), Duration::from_hours(1));
 
         // Set to valid value
         let cmd = bb_proto::heartbeat::ServerCommand {

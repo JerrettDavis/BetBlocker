@@ -52,7 +52,7 @@ impl EventReporter {
             device_id,
             privacy_filter: PrivacyFilter::new(tier, reporting_config),
             batch_size: 100,
-            report_interval: Duration::from_secs(300), // 5 minutes
+            report_interval: Duration::from_mins(5), // 5 minutes
             batch_sequence: 0,
         }
     }
@@ -184,7 +184,7 @@ mod tests {
             ReportingConfig::default(),
         );
         assert_eq!(reporter.batch_size, 100);
-        assert_eq!(reporter.report_interval, Duration::from_secs(300));
+        assert_eq!(reporter.report_interval, Duration::from_mins(5));
     }
 
     #[test]
@@ -196,11 +196,11 @@ mod tests {
             EnrollmentTier::Partner,
             ReportingConfig::default(),
         )
-        .with_interval(Duration::from_secs(60))
+        .with_interval(Duration::from_mins(1))
         .with_batch_size(50);
 
         assert_eq!(reporter.batch_size, 50);
-        assert_eq!(reporter.report_interval, Duration::from_secs(60));
+        assert_eq!(reporter.report_interval, Duration::from_mins(1));
     }
 
     #[tokio::test]
