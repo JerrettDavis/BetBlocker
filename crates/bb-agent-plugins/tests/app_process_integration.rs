@@ -212,7 +212,7 @@ mod app_process_integration {
             Box::new(scanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         plugin.update_signatures(store_with_gambling());
 
@@ -251,7 +251,7 @@ mod app_process_integration {
             Box::new(scanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         plugin.update_signatures(store_with_gambling());
 
@@ -279,7 +279,7 @@ mod app_process_integration {
             Box::new(bb_agent_plugins::app_process::scanner::NoOpScanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         plugin.update_signatures(store_with_gambling());
 
@@ -323,7 +323,7 @@ mod app_process_integration {
             Box::new(bb_agent_plugins::app_process::scanner::NoOpScanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         plugin.update_signatures(store_with_gambling());
 
@@ -356,7 +356,7 @@ mod app_process_integration {
             Box::new(bb_agent_plugins::app_process::scanner::NoOpScanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
 
         let blocklist = Blocklist::new(1);
@@ -424,7 +424,7 @@ mod app_process_integration {
             Box::new(scanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         // Start with only gambling signature (no pokerstars)
         plugin.update_signatures(store_with_gambling());
@@ -473,7 +473,7 @@ mod app_process_integration {
             Box::new(scanner),
             Box::new(interceptor),
             Box::new(watcher),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         // Initially: bet365 signature present → blocked
         plugin.update_signatures(store_with_gambling());
