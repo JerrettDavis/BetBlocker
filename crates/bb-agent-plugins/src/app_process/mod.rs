@@ -673,7 +673,7 @@ mod tests {
             Box::new(NoOpScanner),
             mock_interceptor,
             create_install_watcher(),
-            Duration::from_secs(300), // long interval so scan doesn't run
+            Duration::from_mins(5), // long interval so scan doesn't run
         );
         let blocklist = Blocklist::new(1);
         plugin.activate(&blocklist).unwrap();
@@ -739,7 +739,7 @@ mod tests {
             Box::new(NoOpScanner),
             create_interceptor(),
             mock_watcher,
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         );
         let blocklist = Blocklist::new(1);
         plugin.activate(&blocklist).unwrap();

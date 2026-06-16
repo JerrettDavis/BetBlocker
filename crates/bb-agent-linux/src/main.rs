@@ -464,7 +464,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             .map(|s| s.profile_loaded && s.enforcing)
             .unwrap_or(false);
 
-        let mut ticker = tokio::time::interval(Duration::from_secs(300)); // 5 minutes
+        let mut ticker = tokio::time::interval(Duration::from_mins(5)); // 5 minutes
         ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
 
         loop {

@@ -36,7 +36,7 @@ impl Default for RetryConfig {
         Self {
             max_retries: 5,
             initial_backoff: Duration::from_secs(1),
-            max_backoff: Duration::from_secs(300),
+            max_backoff: Duration::from_mins(5),
             backoff_multiplier: 2.0,
         }
     }
@@ -195,7 +195,7 @@ impl ApiClient {
             client,
             device_id: RwLock::new(None),
             retry_config,
-            circuit: CircuitBreaker::new(3, Duration::from_secs(60)),
+            circuit: CircuitBreaker::new(3, Duration::from_mins(1)),
         })
     }
 
@@ -211,7 +211,7 @@ impl ApiClient {
             client,
             device_id: RwLock::new(None),
             retry_config: RetryConfig::default(),
-            circuit: CircuitBreaker::new(3, Duration::from_secs(60)),
+            circuit: CircuitBreaker::new(3, Duration::from_mins(1)),
         }
     }
 
@@ -395,13 +395,13 @@ mod tests {
         let config = RetryConfig::default();
         assert_eq!(config.max_retries, 5);
         assert_eq!(config.initial_backoff, Duration::from_secs(1));
-        assert_eq!(config.max_backoff, Duration::from_secs(300));
+        assert_eq!(config.max_backoff, Duration::from_mins(5));
         assert!((config.backoff_multiplier - 2.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_circuit_breaker_starts_closed() {
-        let cb = CircuitBreaker::new(3, Duration::from_secs(60));
+        let cb = CircuitBreaker::new(3, Duration::from_mins(1));
         assert!(!cb.is_open());
         assert!(!cb.is_open());
         assert!(cb.should_allow());
@@ -409,7 +409,7 @@ mod tests {
 
     #[test]
     fn test_circuit_breaker_opens_after_threshold() {
-        let cb = CircuitBreaker::new(3, Duration::from_secs(60));
+        let cb = CircuitBreaker::new(3, Duration::from_mins(1));
 
         cb.record_failure();
         assert!(!cb.is_open());
@@ -423,7 +423,7 @@ mod tests {
 
     #[test]
     fn test_circuit_breaker_resets_on_success() {
-        let cb = CircuitBreaker::new(3, Duration::from_secs(60));
+        let cb = CircuitBreaker::new(3, Duration::from_mins(1));
 
         cb.record_failure();
         cb.record_failure();
