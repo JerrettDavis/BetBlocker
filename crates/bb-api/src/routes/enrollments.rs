@@ -311,15 +311,13 @@ pub async fn update_enrollment(
                 });
             }
         }
-        "authority" => {
-            if enrollment.enrolled_by != caller.id && caller.role != "admin" {
-                return Err(ApiError::Forbidden {
-                    message:
-                        "Only the authority representative can modify authority-tier enrollments"
-                            .into(),
-                });
-            }
+        "authority" if enrollment.enrolled_by != caller.id && caller.role != "admin" => {
+            return Err(ApiError::Forbidden {
+                message: "Only the authority representative can modify authority-tier enrollments"
+                    .into(),
+            });
         }
+        "authority" => {}
         _ => {}
     }
 
