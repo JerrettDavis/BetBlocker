@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.2.2](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.1...v0.2.2) (2026-07-02)
+
+
+### Bug Fixes
+
+* handle DNS resolver config errors ([8c5320a](https://github.com/JerrettDavis/BetBlocker/commit/8c5320aceafaafea41c5cbc3c0296f34d994c4ee))
+* remove unused Stripe dependency ([9e067c8](https://github.com/JerrettDavis/BetBlocker/commit/9e067c84e953f9d7bc28104bc58f24c29d3f74b3))
+* resolve dependency security alerts ([893662f](https://github.com/JerrettDavis/BetBlocker/commit/893662fcf80937cb81b1bf24e903b1d045226d55))
+* **site:** load Starlight docs collection ([70d295c](https://github.com/JerrettDavis/BetBlocker/commit/70d295c65d369b659553b95dc28b448760c211e1))
+
+
+### Miscellaneous
+
+* **deps:** bump actions/checkout ([#14](https://github.com/JerrettDavis/BetBlocker/issues/14)) ([2848564](https://github.com/JerrettDavis/BetBlocker/commit/2848564096fdd2c9d19b079d89921001b38e93be))
+* **deps:** bump jsonwebtoken from 9.3.1 to 10.3.0 ([#13](https://github.com/JerrettDavis/BetBlocker/issues/13)) ([4c212d4](https://github.com/JerrettDavis/BetBlocker/commit/4c212d4496554070d4c18c733296fdce6d5f9aed))
+* **deps:** bump openssl from 0.10.76 to 0.10.81 ([#10](https://github.com/JerrettDavis/BetBlocker/issues/10)) ([c0d33b7](https://github.com/JerrettDavis/BetBlocker/commit/c0d33b74d3f3d0854c64b460bfdde2ec8fa2f5d6))
+* **deps:** bump rand from 0.9.2 to 0.9.3 ([#12](https://github.com/JerrettDavis/BetBlocker/issues/12)) ([d2ec7f0](https://github.com/JerrettDavis/BetBlocker/commit/d2ec7f08a2a1c77ebb13ad5ea3935a40df79b357))
+* **deps:** bump rustls-webpki from 0.103.9 to 0.103.13 ([#11](https://github.com/JerrettDavis/BetBlocker/issues/11)) ([d81d156](https://github.com/JerrettDavis/BetBlocker/commit/d81d156e67904de143851f0a7df08af120084076))
+* **deps:** bump the github-actions-dependencies group with 16 updates ([#5](https://github.com/JerrettDavis/BetBlocker/issues/5)) ([9a3d1b6](https://github.com/JerrettDavis/BetBlocker/commit/9a3d1b643cd782f9580a2cbdbde0a70b847ee138))
+* **deps:** bump the npm-dependencies group across 2 directories with 21 updates ([#4](https://github.com/JerrettDavis/BetBlocker/issues/4)) ([ae8c571](https://github.com/JerrettDavis/BetBlocker/commit/ae8c571ab9c6434cde4df1581182e64d580ce933))
+* **deps:** bump the npm-dependencies group across 2 directories with 7 updates ([#15](https://github.com/JerrettDavis/BetBlocker/issues/15)) ([f9913bc](https://github.com/JerrettDavis/BetBlocker/commit/f9913bcc3058dd39a91fea797d5fbdde0526966a))
+* **deps:** bump the npm-dependencies group across 2 directories with 8 updates ([#16](https://github.com/JerrettDavis/BetBlocker/issues/16)) ([9fa9237](https://github.com/JerrettDavis/BetBlocker/commit/9fa92374daa99a13a9860d18833fd781d8f1067d))
+* harden grouped dependency updates ([7c8862c](https://github.com/JerrettDavis/BetBlocker/commit/7c8862cf4324b8f17e45156afdf392f237791aed))
+
 ## [0.2.1](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.0...v0.2.1) (2026-03-18)
 
 
