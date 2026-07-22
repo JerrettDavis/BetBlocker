@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.3](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.2...v0.2.3) (2026-07-22)
+
+
+### Bug Fixes
+
+* **web:** re-pin typescript to ^6.0.0 to fix Next.js build crash ([#29](https://github.com/JerrettDavis/BetBlocker/issues/29)) ([fbbb7cb](https://github.com/JerrettDavis/BetBlocker/commit/fbbb7cbefd9f3c68e18b9624f409013e6afbe87f))
+
+
+### Miscellaneous
+
+* **deps:** bump actions/setup-node ([#20](https://github.com/JerrettDavis/BetBlocker/issues/20)) ([9fc24e0](https://github.com/JerrettDavis/BetBlocker/commit/9fc24e0828550ddf70f5077a22d8c2af76757a40))
+* **deps:** bump astro from 7.0.7 to 7.1.3 in /site ([#22](https://github.com/JerrettDavis/BetBlocker/issues/22)) ([d7cf97e](https://github.com/JerrettDavis/BetBlocker/commit/d7cf97e2acea97510ee23e7ac16d7d8923531391))
+* **deps:** bump body-parser from 2.2.2 to 2.3.0 in /web ([#24](https://github.com/JerrettDavis/BetBlocker/issues/24)) ([fde0703](https://github.com/JerrettDavis/BetBlocker/commit/fde070394888ed7b62294630365131d114936ccf))
+* **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /web ([#27](https://github.com/JerrettDavis/BetBlocker/issues/27)) ([fb603df](https://github.com/JerrettDavis/BetBlocker/commit/fb603dfc4fe1c4b93523d46c0a05b515078bf33b))
+* **deps:** bump hono from 4.12.25 to 4.12.31 in /web ([#26](https://github.com/JerrettDavis/BetBlocker/issues/26)) ([8e6da3e](https://github.com/JerrettDavis/BetBlocker/commit/8e6da3e15e5dc5e6d45e245eedbf1e393d52901d))
+* **deps:** bump svgo from 4.0.1 to 4.0.2 in /site ([#28](https://github.com/JerrettDavis/BetBlocker/issues/28)) ([9e1e96b](https://github.com/JerrettDavis/BetBlocker/commit/9e1e96b086cd48b856d2d6f16144e9711c81e8d0))
+* **deps:** bump the npm-dependencies group across 1 directory with 5 updates ([#25](https://github.com/JerrettDavis/BetBlocker/issues/25)) ([462ce61](https://github.com/JerrettDavis/BetBlocker/commit/462ce61c80475e84897d786e04f4f68449606241))
+
 ## [0.2.2](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.1...v0.2.2) (2026-07-14)
 
 
