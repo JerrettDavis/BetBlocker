@@ -36,7 +36,7 @@
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.5",
     "tailwindcss": "^4",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.0"
   },
   "overrides": {
     "next": {

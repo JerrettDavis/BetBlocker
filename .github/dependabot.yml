@@ -41,6 +41,13 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+    ignore:
+      # TypeScript 7.x crashes the Next.js 16.2.10 build worker
+      # ("The 'id' argument must be of type string. Received undefined")
+      # and typescript-eslint peer deps require typescript <6.1.0.
+      # Keep on the 6.x line until Next.js/typescript-eslint support TS 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "cargo"
     directories:
