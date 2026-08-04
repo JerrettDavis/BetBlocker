@@ -88,21 +88,21 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Lint Dockerfile.api
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: deploy/docker/Dockerfile.api
 
       - name: Lint Dockerfile.worker
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: deploy/docker/Dockerfile.worker
 
       - name: Lint Dockerfile.web
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: deploy/docker/Dockerfile.web
 
       - name: Lint Dockerfile.agent-linux
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: deploy/docker/Dockerfile.agent-linux
