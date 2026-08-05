@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.2.3](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.2...v0.2.3) (2026-08-05)
+
+
+### Bug Fixes
+
+* **docker:** resolve hadolint DL3066 and DL3025 in Dockerfile.web ([#39](https://github.com/JerrettDavis/BetBlocker/issues/39)) ([8df95ca](https://github.com/JerrettDavis/BetBlocker/commit/8df95cabe0f5285b6177f5aa43b6b1af5f6c7ab4))
+* **web:** re-pin typescript to ^6.0.0 to fix Next.js build crash ([#29](https://github.com/JerrettDavis/BetBlocker/issues/29)) ([fbbb7cb](https://github.com/JerrettDavis/BetBlocker/commit/fbbb7cbefd9f3c68e18b9624f409013e6afbe87f))
+
+
+### Miscellaneous
+
+* **deps:** bump @hono/node-server and @modelcontextprotocol/sdk ([#34](https://github.com/JerrettDavis/BetBlocker/issues/34)) ([5861c4a](https://github.com/JerrettDavis/BetBlocker/commit/5861c4afb06ea4c6edb10c2acfbce949c8496261))
+* **deps:** bump actions/setup-node ([#20](https://github.com/JerrettDavis/BetBlocker/issues/20)) ([9fc24e0](https://github.com/JerrettDavis/BetBlocker/commit/9fc24e0828550ddf70f5077a22d8c2af76757a40))
+* **deps:** bump astro from 7.0.7 to 7.1.3 in /site ([#22](https://github.com/JerrettDavis/BetBlocker/issues/22)) ([d7cf97e](https://github.com/JerrettDavis/BetBlocker/commit/d7cf97e2acea97510ee23e7ac16d7d8923531391))
+* **deps:** bump body-parser from 2.2.2 to 2.3.0 in /web ([#24](https://github.com/JerrettDavis/BetBlocker/issues/24)) ([fde0703](https://github.com/JerrettDavis/BetBlocker/commit/fde070394888ed7b62294630365131d114936ccf))
+* **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /web ([#27](https://github.com/JerrettDavis/BetBlocker/issues/27)) ([fb603df](https://github.com/JerrettDavis/BetBlocker/commit/fb603dfc4fe1c4b93523d46c0a05b515078bf33b))
+* **deps:** bump hadolint/hadolint-action ([#37](https://github.com/JerrettDavis/BetBlocker/issues/37)) ([03c6baf](https://github.com/JerrettDavis/BetBlocker/commit/03c6baf78fac7027aa5886488a31a32953978233))
+* **deps:** bump hono from 4.12.25 to 4.12.31 in /web ([#26](https://github.com/JerrettDavis/BetBlocker/issues/26)) ([8e6da3e](https://github.com/JerrettDavis/BetBlocker/commit/8e6da3e15e5dc5e6d45e245eedbf1e393d52901d))
+* **deps:** bump ip-address from 10.2.0 to 10.4.0 in /web ([#38](https://github.com/JerrettDavis/BetBlocker/issues/38)) ([b03b138](https://github.com/JerrettDavis/BetBlocker/commit/b03b138faa9f7b8729b40806fbbc338800c7f094))
+* **deps:** bump next from 16.2.10 to 16.2.11 in /web ([#31](https://github.com/JerrettDavis/BetBlocker/issues/31)) ([a98527c](https://github.com/JerrettDavis/BetBlocker/commit/a98527c5ee055468ed96273f1f86aa0e1649bc31))
+* **deps:** bump quinn-proto from 0.11.14 to 0.11.16 ([#33](https://github.com/JerrettDavis/BetBlocker/issues/33)) ([a06dec4](https://github.com/JerrettDavis/BetBlocker/commit/a06dec47dc9810ddf04984ec609d7f7b41581aed))
+* **deps:** bump svgo from 4.0.1 to 4.0.2 in /site ([#28](https://github.com/JerrettDavis/BetBlocker/issues/28)) ([9e1e96b](https://github.com/JerrettDavis/BetBlocker/commit/9e1e96b086cd48b856d2d6f16144e9711c81e8d0))
+* **deps:** bump the npm-dependencies group across 1 directory with 11 updates ([#32](https://github.com/JerrettDavis/BetBlocker/issues/32)) ([06629dc](https://github.com/JerrettDavis/BetBlocker/commit/06629dcdbc8574ddbd77e85ace8c49bf934b915e))
+* **deps:** bump the npm-dependencies group across 1 directory with 5 updates ([#25](https://github.com/JerrettDavis/BetBlocker/issues/25)) ([462ce61](https://github.com/JerrettDavis/BetBlocker/commit/462ce61c80475e84897d786e04f4f68449606241))
+* **deps:** bump the npm-dependencies group across 2 directories with 7 updates ([#36](https://github.com/JerrettDavis/BetBlocker/issues/36)) ([d8c1a52](https://github.com/JerrettDavis/BetBlocker/commit/d8c1a525f8a42b286aa2562e2f87d29a4ec74380))
+
 ## [0.2.2](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.1...v0.2.2) (2026-07-14)
 
 
