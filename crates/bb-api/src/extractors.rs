@@ -30,33 +30,41 @@ where
 {
     type Rejection = ApiError;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         let app_state = AppState::from_ref(state);
+        let result = (|| {
+            let auth_header = parts
+                .headers
+                .get("Authorization")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.strip_prefix("Bearer "))
+                .ok_or(ApiError::Unauthorized {
+                    code: "UNAUTHORIZED".into(),
+                    message: "Missing or malformed Authorization header".into(),
+                })?;
 
-        let auth_header = parts
-            .headers
-            .get("Authorization")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|v| v.strip_prefix("Bearer "))
-            .ok_or(ApiError::Unauthorized {
-                code: "UNAUTHORIZED".into(),
-                message: "Missing or malformed Authorization header".into(),
-            })?;
+            let mut validation = Validation::new(Algorithm::EdDSA);
+            validation.set_issuer(&["betblocker-api"]);
 
-        let mut validation = Validation::new(Algorithm::EdDSA);
-        validation.set_issuer(&["betblocker-api"]);
+            let token_data =
+                decode::<Claims>(auth_header, &app_state.jwt_decoding_key, &validation).map_err(
+                    |e| ApiError::Unauthorized {
+                        code: "INVALID_TOKEN".into(),
+                        message: format!("Invalid or expired token: {e}"),
+                    },
+                )?;
 
-        let token_data = decode::<Claims>(auth_header, &app_state.jwt_decoding_key, &validation)
-            .map_err(|e| ApiError::Unauthorized {
-                code: "INVALID_TOKEN".into(),
-                message: format!("Invalid or expired token: {e}"),
-            })?;
+            Ok(AuthenticatedAccount {
+                account_id: token_data.claims.sub,
+                email: token_data.claims.email,
+                role: token_data.claims.role,
+            })
+        })();
 
-        Ok(AuthenticatedAccount {
-            account_id: token_data.claims.sub,
-            email: token_data.claims.email,
-            role: token_data.claims.role,
-        })
+        std::future::ready(result)
     }
 }
 
