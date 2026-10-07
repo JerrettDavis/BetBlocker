@@ -43,6 +43,7 @@ jobs:
             ci
             docker
             deps
+            main
           requireScope: false
           subjectPattern: ^.+$
           subjectPatternError: "PR title must not be empty after the type/scope prefix."
