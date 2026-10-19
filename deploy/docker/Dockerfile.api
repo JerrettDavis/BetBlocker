@@ -5,7 +5,7 @@
 # omit --target to let cargo build for the native platform. This
 # allows multi-arch buildx (linux/amd64 + linux/arm64) to work.
 # ---------------------------------------------------------
-FROM rust:1.85-alpine AS builder
+FROM rust:1.88-alpine AS builder
 
 RUN apk add --no-cache musl-dev protobuf-dev
 
