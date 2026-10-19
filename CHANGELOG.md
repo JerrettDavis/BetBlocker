@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.3...v0.2.4) (2026-10-19)
+
+
+### Miscellaneous
+
+* **deps:** bump hickory-resolver, hickory-proto and hickory-net to 0.26.3 ([#90](https://github.com/JerrettDavis/BetBlocker/issues/90)) ([77741d5](https://github.com/JerrettDavis/BetBlocker/commit/77741d5d7d1f7ed9528c3e07e17b1c57c215ae90))
+
 ## [0.2.3](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.2...v0.2.3) (2026-10-09)
 
 
