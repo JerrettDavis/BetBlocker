@@ -447,7 +447,7 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
 name = "bb-agent-core"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "aes-gcm",
  "async-trait",
@@ -483,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-linux"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bb-agent-core",
  "bb-agent-plugins",
@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-macos"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bb-agent-core",
  "bb-agent-plugins",
@@ -519,7 +519,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-plugins"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "async-trait",
  "bb-common",
@@ -540,7 +540,7 @@ dependencies = [
 
 [[package]]
 name = "bb-agent-windows"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bb-agent-core",
  "bb-agent-plugins",
@@ -558,7 +558,7 @@ dependencies = [
 
 [[package]]
 name = "bb-api"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "axum",
@@ -594,7 +594,7 @@ dependencies = [
 
 [[package]]
 name = "bb-cli"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bb-common",
  "tokio",
@@ -603,7 +603,7 @@ dependencies = [
 
 [[package]]
 name = "bb-common"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "chrono",
@@ -615,7 +615,7 @@ dependencies = [
 
 [[package]]
 name = "bb-proto"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "prost",
  "prost-build",
@@ -623,7 +623,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-android"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "serde",
  "thiserror",
@@ -632,7 +632,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-ios"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "serde",
  "thiserror",
@@ -641,7 +641,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-linux"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "serde",
  "serde_json",
@@ -652,7 +652,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-macos"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "libc",
  "serde",
@@ -664,7 +664,7 @@ dependencies = [
 
 [[package]]
 name = "bb-shim-windows"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "chrono",
  "serde",
@@ -678,7 +678,7 @@ dependencies = [
 
 [[package]]
 name = "bb-worker"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2102,9 +2102,9 @@ dependencies = [
 
 [[package]]
 name = "hickory-resolver"
-version = "0.26.1"
+version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0d58d28879ceecde6607729660c2667a081ccdc082e082675042793960f178c"
+checksum = "0e4f9f4603319422d482738f3f6fe5aac03157fdbfed1cd85a3ff45adb09072f"
 dependencies = [
  "cfg-if",
  "futures-util",
