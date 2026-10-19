@@ -83,6 +83,7 @@ pub async fn generate_csv_report(
 /// - Summary statistics (total events, blocks, bypass attempts, tamper events)
 /// - Daily counts table
 /// - Trend highlights
+#[allow(clippy::items_after_statements)]
 pub async fn generate_pdf_report(
     db: &PgPool,
     device_id: i64,
@@ -95,26 +96,40 @@ pub async fn generate_pdf_report(
     let daily = analytics_service::get_daily_stats(db, device_id, from, to).await?;
     let trends = analytics_service::get_trends(db, device_id, &[]).await?;
 
-    let (doc, page1, layer1) = PdfDocument::new(
-        "BetBlocker Analytics Report",
-        Mm(210.0),
-        Mm(297.0),
-        "Layer 1",
-    );
+    // Minimal text-layer helper that accumulates printpdf page operations.
+    struct TextLayer {
+        ops: Vec<Op>,
+    }
 
-    let current_layer = doc.get_page(page1).get_layer(layer1);
+    impl TextLayer {
+        fn use_text(
+            &mut self,
+            text: impl AsRef<str>,
+            size: f32,
+            x: Mm,
+            y: Mm,
+            font: &PdfFontHandle,
+        ) {
+            self.ops.extend([
+                Op::StartTextSection,
+                Op::SetTextCursor {
+                    pos: Point::new(x, y),
+                },
+                Op::SetFont {
+                    font: font.clone(),
+                    size: Pt(size),
+                },
+                Op::ShowText {
+                    items: vec![TextItem::Text(text.as_ref().to_string())],
+                },
+                Op::EndTextSection,
+            ]);
+        }
+    }
 
-    // Load built-in font
-    let font = doc
-        .add_builtin_font(BuiltinFont::HelveticaBold)
-        .map_err(|e| ApiError::Internal {
-            message: format!("PDF font error: {e}"),
-        })?;
-    let font_regular =
-        doc.add_builtin_font(BuiltinFont::Helvetica)
-            .map_err(|e| ApiError::Internal {
-                message: format!("PDF font error: {e}"),
-            })?;
+    let mut current_layer = TextLayer { ops: Vec::new() };
+    let font = PdfFontHandle::Builtin(BuiltinFont::HelveticaBold);
+    let font_regular = PdfFontHandle::Builtin(BuiltinFont::Helvetica);
 
     // Title
     current_layer.use_text(
@@ -210,9 +225,12 @@ pub async fn generate_pdf_report(
         &font_regular,
     );
 
-    let bytes = doc.save_to_bytes().map_err(|e| ApiError::Internal {
-        message: format!("PDF save error: {e}"),
-    })?;
+    let mut doc = PdfDocument::new("BetBlocker Analytics Report");
+    let page = PdfPage::new(Mm(210.0), Mm(297.0), current_layer.ops);
+    let mut warnings = Vec::new();
+    let bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
 
     Ok(bytes)
 }
@@ -261,12 +279,26 @@ mod tests {
     fn pdf_report_is_nonempty() {
         use printpdf::*;
 
-        let (doc, page1, layer1) = PdfDocument::new("Test Report", Mm(210.0), Mm(297.0), "Layer 1");
-        let layer = doc.get_page(page1).get_layer(layer1);
-        let font = doc.add_builtin_font(BuiltinFont::Helvetica).unwrap();
-        layer.use_text("Hello PDF", 12.0, Mm(20.0), Mm(277.0), &font);
-
-        let bytes = doc.save_to_bytes().unwrap();
+        let mut doc = PdfDocument::new("Test Report");
+        let ops = vec![
+            Op::StartTextSection,
+            Op::SetTextCursor {
+                pos: Point::new(Mm(20.0), Mm(277.0)),
+            },
+            Op::SetFont {
+                font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
+                size: Pt(12.0),
+            },
+            Op::ShowText {
+                items: vec![TextItem::Text("Hello PDF".to_string())],
+            },
+            Op::EndTextSection,
+        ];
+        let page = PdfPage::new(Mm(210.0), Mm(297.0), ops);
+        let mut warnings = Vec::new();
+        let bytes = doc
+            .with_pages(vec![page])
+            .save(&PdfSaveOptions::default(), &mut warnings);
         assert!(!bytes.is_empty(), "PDF output should be non-empty");
         // PDF magic bytes
         assert!(
