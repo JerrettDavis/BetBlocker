@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.4...v0.2.5) (2026-10-28)
+
+
+### Miscellaneous
+
+* **deps:** bump the npm-dependencies group across 2 directories with 7 updates ([#93](https://github.com/JerrettDavis/BetBlocker/issues/93)) ([de7117b](https://github.com/JerrettDavis/BetBlocker/commit/de7117b74033dc7d5b1edb5d6dbfaf6b764dd4c7))
+
 ## [0.2.4](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.3...v0.2.4) (2026-10-19)
 
 
