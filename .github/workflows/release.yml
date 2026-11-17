@@ -475,7 +475,8 @@ jobs:
           name: betblocker-agent-windows-x86_64
 
       - name: Install WiX Toolset
-        run: dotnet tool install --global wix
+        # WiX 6+ introduced a new maintenance-fee EULA. Keep this build on the MS-RL 5.x tool.
+        run: dotnet tool install --global wix --version 5.0.2
 
       - name: Build MSI
         run: |
