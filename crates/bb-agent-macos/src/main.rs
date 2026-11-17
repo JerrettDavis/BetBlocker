@@ -183,8 +183,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     let binary_hash = binary_integrity
         .as_ref()
-        .map(|bi| bi.startup_hash().to_vec())
-        .unwrap_or_default();
+        .map_or_else(Vec::new, |bi| bi.startup_hash().to_vec());
 
     // --- Phase 2: Registration ---
 
