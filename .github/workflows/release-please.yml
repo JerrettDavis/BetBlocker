@@ -7,12 +7,25 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v5
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # GITHUB_TOKEN-created releases do not trigger release:published workflows.
+      # Explicit workflow_dispatch is allowed and keeps the release build automatic.
+      - name: Build published release artifacts
+        if: steps.release.outputs.releases_created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+        run: |
+          test -n "$RELEASE_TAG"
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main --field "tag=$RELEASE_TAG"
