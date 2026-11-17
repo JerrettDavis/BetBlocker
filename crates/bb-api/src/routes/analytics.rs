@@ -137,10 +137,9 @@ pub async fn trends(
     analytics_service::enforce_enrollment_visibility(&state.db, account.id, params.device_id)
         .await?;
 
-    let metric_names: Vec<String> = params
-        .metrics
-        .map(|m| m.split(',').map(|s| s.trim().to_string()).collect())
-        .unwrap_or_default();
+    let metric_names: Vec<String> = params.metrics.map_or_else(Vec::new, |m| {
+        m.split(',').map(|s| s.trim().to_string()).collect()
+    });
 
     let rows = analytics_service::get_trends(&state.db, params.device_id, &metric_names).await?;
 
