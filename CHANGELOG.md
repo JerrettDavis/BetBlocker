@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.5...v0.2.6) (2026-11-17)
+
+
+### Bug Fixes
+
+* dispatch artifact builds for release-please tags ([20d1066](https://github.com/JerrettDavis/BetBlocker/commit/20d10661e81569f6f349aed36064cd38be3b3518))
+
 ## [0.2.5](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.4...v0.2.5) (2026-10-28)
 
 
