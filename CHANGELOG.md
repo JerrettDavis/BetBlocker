@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.6...v0.2.7) (2026-11-17)
+
+
+### Bug Fixes
+
+* pin compatible MS-RL Windows packaging tooling ([be46a6d](https://github.com/JerrettDavis/BetBlocker/commit/be46a6d68710cf45d8a11dafef8979812b5b5d95))
+
 ## [0.2.6](https://github.com/JerrettDavis/BetBlocker/compare/v0.2.5...v0.2.6) (2026-11-17)
 
 
